@@ -1,0 +1,28 @@
+.main {
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
+  width: 300px;
+  max-width: 100%;
+  height: auto !important;
+  margin: 0 auto;
+  gap: 10px;
+  margin: 10px auto;
+  position: relative;
+}
+.main > label {
+  color: #000000;
+  text-align: start;
+  font-weight: bolder;
+}
+.main > input {
+  color: #000000;
+  max-width: 300px;
+  padding: 8px;
+  outline: none;
+}
+.main > input::placeholder {
+  color: #9e9b9b;
+  padding: 18px;
+  text-align: center;
+}

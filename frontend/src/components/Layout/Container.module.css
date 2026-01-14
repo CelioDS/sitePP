@@ -1,0 +1,11 @@
+.container {
+  max-width: 98%;
+  min-height: 100vh;
+  margin: 0 auto;
+  border-radius: 8px;
+  background-color: #ffffff;
+  filter: drop-shadow(1px 1px 6px rgb(192, 191, 191));
+  padding: 15px;
+  text-align: center;
+  overflow: auto;
+}

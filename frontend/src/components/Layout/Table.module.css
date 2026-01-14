@@ -1,0 +1,163 @@
+:root {
+  --color-brand-primary-lightest: #fde6e3;
+  --color-brand-primary-light: #fe918d;
+  --color-brand-primary-medium: #e3262e;
+  --color-brand-primary-dark: #a61d19;
+  --color-brand-primary-darkest: #67160d;
+  --heightNavBar: 60px;
+  --heightFooter: 60px;
+  --color-text: #333;
+  --color-bg: #f5f7fa;
+  --color-white: #fff;
+}
+
+.main {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  flex-direction: column;
+  width: 100%;
+  min-height: 80vh;
+  box-sizing: border-box;
+  background-color: var(--color-bg);
+  padding: 10px;
+  overflow-x: hidden;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.searchInput {
+  width: 100%;
+  max-width: 400px;
+  padding: 8px 12px;
+  border: 1px solid var(--color-brand-primary-medium);
+  border-radius: 8px;
+  font-size: 14px;
+  outline: none;
+  transition: all 0.3s ease;
+  background-color: #fff;
+  color: #333;
+}
+
+/* Placeholder */
+.searchInput::placeholder {
+  color: var(--color-brand-primary-light);
+  font-style: italic;
+}
+
+/* Focus */
+.searchInput:focus {
+  border-color: var(--color-brand-primary-dark);
+  box-shadow: 0 0 5px var(--color-brand-primary-light);
+}
+
+/* Hover */
+.searchInput:hover {
+  border-color: var(--color-brand-primary-dark);
+}
+
+/* Contêiner com scroll horizontal */
+.tableWrapper {
+  width: 100%;
+  overflow-x: auto;
+  height: 50vh;
+}
+
+/* Estilo principal da tabela */
+.table {
+  width: 100%;
+  min-width: 1200px;
+  border-collapse: collapse;
+  background-color: var(--color-white);
+  font-size: 12px;
+  border-radius: 10px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+/* Cabeçalho fixo */
+.main thead {
+  position: sticky;
+  top: 0;
+  background: linear-gradient(
+    90deg,
+    var(--color-brand-primary-light) 0%,
+    var(--color-brand-primary-medium) 100%
+  );
+  color: var(--color-white);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  z-index: 2;
+}
+
+.main th {
+  padding: 10px;
+  text-align: left;
+  font-weight: 600;
+  font-size: 12px;
+}
+
+.main td {
+  padding: 5px;
+  text-align: left;
+  color: var(--color-text);
+  border-bottom: 1px solid #e0e0e0;
+  word-break: break-word;
+}
+
+/* Linhas alternadas */
+.main tbody tr:nth-child(even) {
+  background-color: var(--color-brand-primary-lightest);
+}
+
+/* Hover */
+.main tbody tr:hover {
+  background-color: var(--color-brand-primary-light);
+  transition: background-color 0.2s ease;
+}
+
+/* Botões dentro da tabela */
+.main .btnAssumir {
+  background-color: var(--color-brand-primary-medium);
+  color: var(--color-white);
+  border: none;
+  border-radius: 5px;
+  padding: 5px 10px;
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.1s ease;
+  margin: 5px;
+  width: 70px;
+}
+
+.main .btnPagination {
+  display: inline-flex;
+  background-color: var(--color-brand-primary-medium);
+  color: var(--color-white);
+  border: none;
+  border-radius: 5px;
+  padding: 5px 10px;
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.1s ease;
+  margin: 5px;
+  width: 95px;
+  text-align: center;
+  align-items: center;
+  justify-content: center;
+}
+
+.main button:hover:not(:disabled) {
+  background-color: var(--color-brand-primary-dark);
+  transform: scale(1.05);
+}
+
+.main button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+/* Célula de loading */
+.loadingCell {
+  text-align: center;
+  padding: 20px;
+  font-style: italic;
+  color: var(--color-brand-primary-darkest);
+}

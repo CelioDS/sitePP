@@ -1,0 +1,62 @@
+.main {
+  display: flex;
+  width: 100%;
+  height: 100vh;
+  position: fixed;
+  background-color: #dfd4d4;
+  left: 0;
+  top: 0;
+  overflow: hidden;
+  z-index: 19;
+  scroll-behavior: none;
+  text-align: center;
+  justify-content: center;
+  align-items: center;
+}
+
+.main {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  width: 100%;
+  background-color: #dfd4d4;
+  overflow: hidden;
+}
+
+.main section {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem; /* Espaçamento automático entre os elementos */
+  width: 90%;
+  max-width: 400px; /* Evita que fique muito largo em telas pequenas */
+  background-color: #fff;
+  border: 1px solid #ddd;
+  border-radius: 12px;
+  padding: 2rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.Logo {
+  width: 180px;
+  margin-bottom: 1rem;
+}
+
+.btn {
+  width: 100%;
+  padding: 0.8rem;
+  background-color: #e3262e;
+  border: none;
+  color: #fff;
+  border-radius: 8px;
+  font-weight: bold;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease-in-out;
+}
+
+.btn:hover {
+  background-color: #c41f26;
+}
