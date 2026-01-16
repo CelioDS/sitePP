@@ -1,49 +1,34 @@
 import express from "express";
 
 import {
-  getDB,
-  setDB,
-  updateDB,
   patchDB,
-  deleteDB,
   getDBLogin,
   setDBLogin,
   updateDBLogin,
   deleteDBLogin,
   LoginDB,
   validateToken,
-  getLP
+  getLP,
 } from "../Controllers/Controllers.js";
 
+import { setExcel, upload } from "../Controllers/ExcelUpload.js";
+
 const router = express.Router();
-
-router.get("/", getDB);
-
-router.post("/", setDB);
-
-router.put("/:id", updateDB);
+/*------------------ AGENDAMENTO ------------------*/
 router.patch("/:id", patchDB);
 
-router.delete("/:id", deleteDB);
-
-/*--------------------query LP--------------------*/
+/*------------------ LOJA PRÓPRIA ------------------*/
 router.get("/lojapropria", getLP);
+router.post("/upload-excel-lp", upload.single("file"), setExcel);
 
+/*------------------ AUTH ------------------*/
+router.post("/auth/login", LoginDB);
+router.get("/auth/validate", validateToken);
 
-
-/*---------------LOGIN CRUD-------------------------- */
-
-router.get("/login", getDBLogin);
-
-router.post("/login/add", setDBLogin); // cria usuário
-
-router.put("/login/:id", updateDBLogin);
-
-router.delete("/login/:id", deleteDBLogin);
-
-//-------------------- LOGIN  -----------------
-router.post("/login", LoginDB); // login normal
-
-router.get("/validate-token", validateToken);
+/*------------------ USERS (ADMIN) ------------------*/
+router.get("/users", getDBLogin);
+router.post("/users", setDBLogin);
+router.put("/users/:id", updateDBLogin);
+router.delete("/users/:id", deleteDBLogin);
 
 export default router;

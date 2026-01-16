@@ -5,7 +5,6 @@ import bcrypt from "bcrypt";
 import { format } from "date-fns";
 import { fromZonedTime } from "date-fns-tz";
 
-
 const ANOMES = format(
   fromZonedTime(new Date(), "America/Sao_Paulo"),
   "yyyy-MM"
@@ -133,14 +132,16 @@ export const deleteDB = (req, res) => {
 // ------------------LOGIN-------------------
 
 // API de login
-export const getDBLogin = (_, res) => {
-  const query = "SELECT * FROM usuariosAgen";
+export const getDBLogin = async (_, res) => {
+  try {
+    const query = "SELECT * FROM usuariosAgen";
+    const [rows] = await dataBase.query(query);
 
-  dataBase.query(query, (err, data) => {
-    if (err) return res.json(err);
-
-    return res.status(200).json(data);
-  });
+    return res.status(200).json(rows);
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json(err);
+  }
 };
 
 export const setDBLogin = async (req, res) => {
@@ -181,37 +182,46 @@ export const deleteDBLogin = (req, res) => {
 };
 
 // ---------------VALIDAR LOGIN---------------------------------
-export const LoginDB = (req, res) => {
-  const query = "SELECT * FROM usuariosAgen WHERE `login` = ? AND `senha` = ?";
+export const LoginDB = async (req, res) => {
+  try {
+    const query = "SELECT * FROM usuariosAgen WHERE login = ?";
+    const [rows] = await dataBase.promise().query(query, [req.body.login]);
 
-  const values = [req.body.login, req.body.senha];
-
-  dataBase.query(query, values, (err, result) => {
-    if (err) return res.json(err);
-
-    if (result.length > 0) {
-      const user = result[0];
-      const token = jwt.sign(
-        { userId: user.id, login: user.login, admin: user.admin }, // objeto payload
-        process.env.JWT_SECRET, // chave secreta
-        { expiresIn: "1h" } // opções
-      );
-
-      return res.status(200).json({
-        token,
-        user: {
-          id: user.id,
-          login: user.login,
-          admin: user.admin,
-        },
-        message: "Acesso concluido!",
-      });
-    } else {
+    if (rows.length === 0) {
       return res
         .status(401)
-        .json({ success: false, message: "Login ou senha invalida;" });
+        .json({ success: false, message: "Login ou senha inválidos" });
     }
-  });
+
+    const user = rows[0];
+
+    const senhaValida = await bcrypt.compare(req.body.senha, user.senha);
+
+    if (!senhaValida) {
+      return res
+        .status(401)
+        .json({ success: false, message: "Login ou senha inválidos" });
+    }
+
+    const token = jwt.sign(
+      { userId: user.id, login: user.login, admin: user.admin },
+      process.env.JWT_SECRET,
+      { expiresIn: "1h" }
+    );
+
+    return res.status(200).json({
+      token,
+      user: {
+        id: user.id,
+        login: user.login,
+        admin: user.admin,
+      },
+      message: "Acesso concluído!",
+    });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ error: "Erro no login" });
+  }
 };
 
 export const validateToken = (req, res) => {

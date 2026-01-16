@@ -36,44 +36,6 @@ export default function Home() {
       <RenameTitle initialTitle={"P&P - Home"} />
       <div style={styles.container}>
         <h1>de paras de canais</h1>
-
-        <table>
-          <thead>
-            <tr>
-              <th>ANOMES</th>
-              <th>CANAL</th>
-              <th>COLABORADOR</th>
-              <th>LOGIN_CLARO</th>
-              <th>COMTA</th>
-              <th>CABEAMENTO</th>
-              <th>LOGIN_NET</th>
-              <th>LOJA</th>
-              <th>CIDADE</th>
-              <th>COORDENADOR</th>
-              <th>STATUS</th>
-            </tr>
-          </thead>
-
-          <tbody>
-            {data.map((item, index) => (
-              <tr key={index}>
-                <td>{item.ANOMES}</td>
-                <td>{item.CANAL}</td>
-                <td>{item.COLABORADOR}</td>
-                <td>{item.LOGIN_CLARO}</td>
-                <td>{item.COMTA}</td>
-                <td>{item.CABEAMENTO}</td>
-                <td>{item.LOGIN_NET}</td>
-                <td>{item.LOJA}</td>
-                <td>{item.CIDADE}</td>
-                <td>{item.COORDENADOR}</td>
-                <td>{item.STATUS}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-
-        {console.log(ANOMES)}
       </div>
     </Container>
   );

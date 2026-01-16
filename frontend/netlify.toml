@@ -15,7 +15,7 @@ status = 200
 
 [[redirects]]
   from = "/*"
-  to = "https://agendamentoclaro.netlify.app/:splat"
+  to = "https://ppspi.netlify.app//:splat"
   status = 301
   force = true
 

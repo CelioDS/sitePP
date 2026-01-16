@@ -33,6 +33,8 @@ app.use(express.json({ limit: "10kb" }));
 const allowedOrigins = [
   "http://localhost:3000",
   "https://agendamentoclaro.netlify.app",
+  "http://192.168.1.9:3000"
+  
 ];
 
 app.use(
