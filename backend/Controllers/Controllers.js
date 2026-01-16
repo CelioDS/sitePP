@@ -12,16 +12,6 @@ const ANOMES = format(
 
 dotenv.config(); // <-- Carrega o arquivo .env
 
-export const getDB = (_, res) => {
-  const query = "SELECT * FROM agendamento";
-
-  dataBase.query(query, (err, data) => {
-    if (err) return res.json(err);
-
-    return res.status(200).json(data);
-  });
-};
-
 export const getLP = (req, res) => {
   const { anomes = ANOMES } = req.query;
   const query = "SELECT * FROM LP WHERE ANOMES = ?";
@@ -30,102 +20,6 @@ export const getLP = (req, res) => {
     if (err) return res.json(err);
 
     return res.status(200).json(data);
-  });
-};
-
-export const setDB = (req, res) => {
-  const query =
-    "INSERT INTO agendamento (`curtidas`,`nome`,`descricao`,`tecnologias`,`imagem`,`site`,`repositorio`) VALUES(?)";
-
-  const values = [
-    req.body.curtidas,
-    req.body.nome,
-    req.body.descricao,
-    req.body.tecnologias,
-    req.body.imagem,
-    req.body.site,
-    req.body.repositorio,
-  ];
-  dataBase.query(query, [values], (err) => {
-    if (err) return res.json(err);
-    return res.status(200).json("Dados inseridos");
-  });
-};
-
-export const updateDB = (req, res) => {
-  const query =
-    " UPDATE agendamento SET `sk_data` = ?, `nm_canal_venda_subgrupo` = ?, `nm_parceiro` = ?, `nm_periodo_agendamento` = ?, `desc_mun` = ?, `ddd_mun` = ?, `segmento_porte` = ?, `territorio` = ?, `flag_rota` = ?, `flag_agenda_futura` = ?, `data_futura` = ?, `motivo_quebra_d1` = ?, `motivo_quebra_ult` = ?, `dt_quebra_ult` = ?, `cd_operadora` = ?, `nr_contrato` = ?, `dt_abertura_os` = ?, `movimento` = ?, `contato_com_sucesso` = ?, `nova_data` = ?, `responsavel` = ?, `forma_contato` = ?, `tel_contato` = ?, `obs` = ?, `finalizado` = ? , `data_assumir` = ?  WHERE `id` = ?";
-
-  const values = [
-    req.body.sk_data,
-    req.body.nm_canal_venda_subgrupo,
-    req.body.nm_parceiro,
-    req.body.nm_periodo_agendamento,
-    req.body.desc_mun,
-    req.body.ddd_mun,
-    req.body.segmento_porte,
-    req.body.territorio,
-    req.body.flag_rota,
-    req.body.flag_agenda_futura,
-    req.body.data_futura,
-    req.body.motivo_quebra_d1,
-    req.body.motivo_quebra_ult,
-    req.body.dt_quebra_ult,
-    req.body.cd_operadora,
-    req.body.nr_contrato,
-    req.body.dt_abertura_os,
-    req.body.movimento,
-    req.body.contato_com_sucesso,
-    req.body.nova_data,
-    req.body.responsavel,
-    req.body.forma_contato,
-    req.body.tel_contato,
-    req.body.obs,
-    req.body.finalizado,
-    req.body.data_assumir,
-  ];
-
-  dataBase.query(query, [...values, req.params.id], (err) => {
-    if (err) return res.json(err);
-
-    return res.status(200).json("agendamento atualizado");
-  });
-};
-
-export const patchDB = (req, res) => {
-  const { id } = req.params;
-  const dados = req.body;
-
-  if (!dados || Object.keys(dados).length === 0)
-    return res
-      .status(400)
-      .json({ error: "Nenhum campo enviado para atualizar..." });
-
-  const colunas = Object.keys(dados)
-    .map((campo) => `${campo} = ?`)
-    .join(", ");
-
-  const valores = Object.values(dados);
-
-  const query = `UPDATE agendamento set ${colunas} WHERE id = ?`;
-
-  dataBase.query(query, [...valores, id], (err) => {
-    if (err) {
-      console.error(err);
-      return res.status(500).json({ error: "Erro ao atualizar agendamento" });
-    }
-  });
-  return res.status(200).json("agendamento atualizado");
-};
-
-/******************UPDATE*** */
-
-export const deleteDB = (req, res) => {
-  const query = "DELETE FROM agendamento WHERE `id` = ?";
-
-  dataBase.query(query, [req.params.id], (err) => {
-    if (err) return res.json(err);
-    return res.status(200).json("deletado");
   });
 };
 

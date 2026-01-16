@@ -1,7 +1,6 @@
 import express from "express";
 
 import {
-  patchDB,
   getDBLogin,
   setDBLogin,
   updateDBLogin,
@@ -14,8 +13,6 @@ import {
 import { setExcel, upload } from "../Controllers/ExcelUpload.js";
 
 const router = express.Router();
-/*------------------ AGENDAMENTO ------------------*/
-router.patch("/:id", patchDB);
 
 /*------------------ LOJA PRÓPRIA ------------------*/
 router.get("/lojapropria", getLP);

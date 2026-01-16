@@ -33,21 +33,19 @@ app.use(express.json({ limit: "10kb" }));
 const allowedOrigins = [
   "http://localhost:3000",
   "https://agendamentoclaro.netlify.app",
-  "http://192.168.1.9:3000"
-  
+  "http://192.168.1.9:3000",
 ];
 
 app.use(
   cors({
-    origin: function (origin, callback) {
-      // permite requests sem origin (Postman, server-to-server)
+    origin: (origin, callback) => {
       if (!origin) return callback(null, true);
 
       if (allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error("Not allowed by CORS"));
+        return callback(null, true);
       }
+
+      return callback(new Error("CORS bloqueado: origem não permitida"), false);
     },
     credentials: true,
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
