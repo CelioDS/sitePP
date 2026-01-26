@@ -5,17 +5,21 @@ import {
   setDBLogin,
   updateDBLogin,
   deleteDBLogin,
-  LoginDB,
-  validateToken,
-  getLP,
-} from "../Controllers/Controllers.js";
+} from "../Controllers/CreateUser.js";
+
+import { getLP, getPAP } from "../Controllers/Controllers.js";
+import { LoginDB, validateToken } from "../Controllers/Auth.js";
 
 import { setExcel, upload } from "../Controllers/ExcelUpload.js";
 
 const router = express.Router();
 
 /*------------------ LOJA PRÓPRIA ------------------*/
+router.get("/", getLP);
 router.get("/lojapropria", getLP);
+
+router.get("/portaaporta", getPAP);
+
 router.post("/upload-excel-lp", upload.single("file"), setExcel);
 
 /*------------------ AUTH ------------------*/
@@ -24,7 +28,7 @@ router.get("/auth/validate", validateToken);
 
 /*------------------ USERS (ADMIN) ------------------*/
 router.get("/users", getDBLogin);
-router.post("/users", setDBLogin);
+router.post("/users/add", setDBLogin);
 router.put("/users/:id", updateDBLogin);
 router.delete("/users/:id", deleteDBLogin);
 

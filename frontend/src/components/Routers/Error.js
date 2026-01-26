@@ -22,7 +22,7 @@ export default function Error() {
         ERROR 404
       </h1>
       <a
-        href="https://www.claro.com.br//"
+        href="https://planejamentoperformance.netlify.app"
         target="_blank"
         rel="noopener noreferrer"
       >

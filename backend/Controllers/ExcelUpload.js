@@ -4,11 +4,7 @@ import { format } from "date-fns";
 import { fromZonedTime } from "date-fns-tz";
 import multer from "multer";
 import XLSX from "xlsx";
-
-const ANOMES = format(
-  fromZonedTime(new Date(), "America/Sao_Paulo"),
-  "yyyy-MM"
-).replace("-", "");
+import fs from "fs";
 
 dotenv.config(); // <-- Carrega o arquivo .env
 
@@ -16,19 +12,16 @@ export const upload = multer({
   dest: "uploads/",
 });
 
+
 /**___________________________LojaPropria___________________________**/
-export const getLP = async (req, res) => {
-  const { anomes = ANOMES } = req.query;
-  const query = "SELECT * FROM LP WHERE ANOMES = ?";
 
-  const [rows] = await dataBase.query(query, [anomes], (err, data) => {
-    if (err) return res.json(err);
-
-    return res.status(200).json(rows);
-  });
-};
 export const setExcel = async (req, res) => {
   try {
+    const login = req.headers.login;
+    const TODAY = format(
+      fromZonedTime(new Date(), "America/Sao_Paulo"),
+      "yyyy-MM-dd-HH-mm",
+    );
     if (!req.file) {
       return res.status(400).json({ error: "Arquivo não enviado" });
     }
@@ -55,11 +48,20 @@ export const setExcel = async (req, res) => {
       row.CIDADE,
       row.COORDENADOR,
       row.STATUS,
+      TODAY,
+      login,
     ]);
+
+    if (rows.length < values.length) {
+      return res.status(400).json({ error: "Planilha com colunas faltando" });
+    }
+    if (rows.length > values.length) {
+      return res.status(400).json({ error: "Planilha com colunas a mais" });
+    }
 
     const sql = `
       INSERT INTO LP
-      (ANOMES, CANAL, COLABORADOR, LOGIN_CLARO, COMTA, CABEAMENTO, LOGIN_NET, LOJA, CIDADE, COORDENADOR, STATUS)
+      (ANOMES, CANAL, COLABORADOR, LOGIN_CLARO, COMTA, CABEAMENTO, LOGIN_NET, LOJA, CIDADE, COORDENADOR, STATUS, DATA_ATUALIZACAO, LOGIN_ATUALIZACAO)
       VALUES ?
     `;
 
@@ -71,8 +73,13 @@ export const setExcel = async (req, res) => {
       message: "Arquivo importado com sucesso",
       inserted: values.length,
     });
+
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ error: "Erro ao importar Excel" });
+
+    return res.status(500).json({
+      error: "Erro ao importar Excel",
+      sql: error.sqlMessage || error.message || "Erro desconhecido",
+    });
   }
 };

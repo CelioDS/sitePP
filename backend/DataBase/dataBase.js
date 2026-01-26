@@ -1,5 +1,4 @@
-import mysql from "mysql2";
-
+import mysql from "mysql2/promise";
 import dotenv from "dotenv";
 
 dotenv.config(); // <-- Carrega o arquivo .env
@@ -19,7 +18,6 @@ export const dataBase = mysql
   database : "teste01ada",
   */
   })
-  .promise(); // 👈 ESSENCIAL
 
 dataBase.getConnection((err, connection) => {
   if (err) {

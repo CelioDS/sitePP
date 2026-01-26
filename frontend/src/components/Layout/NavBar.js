@@ -124,10 +124,10 @@ export default function NavBar({ setPermission }) {
 
           <Link
             onClick={openMenu}
-            style={linkAtivo === "Agenda" ? { color: colorLink } : {}}
-            to="/Agenda"
+            style={linkAtivo === "Depara" ? { color: colorLink } : {}}
+            to="/Depara"
           >
-            Agenda
+            Depara
           </Link>
           <Link
             onClick={openMenu}

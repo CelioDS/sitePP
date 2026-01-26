@@ -7,7 +7,7 @@ export default async function validarToken() {
 
     const Url = process.env.REACT_APP_API_URL || "http://localhost:8000";
 
-    const res = await axios.get(`${Url}/validate-token`, {
+    const res = await axios.get(`${Url}/auth/validate`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },

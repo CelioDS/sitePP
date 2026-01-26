@@ -6,7 +6,7 @@ import "./App.css";
 
 import Error from "./components/Routers/Error";
 import Home from "./components/Routers/Home";
-import Agenda from "./components/Routers/Agenda";
+import Depara from "./components/Routers/Depara";
 import Relatorio from "./components/Routers/Relatorio";
 import Visualizar from "./components/Routers/Visualizar";
 
@@ -21,8 +21,8 @@ const router = createBrowserRouter([
         element: <Home />,
       },
       {
-        path: "/Agenda",
-        element: <Agenda />,
+        path: "/depara",
+        element: <Depara />,
       },
       {
         path: "/Relatorio",

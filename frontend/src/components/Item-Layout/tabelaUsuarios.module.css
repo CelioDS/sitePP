@@ -1,0 +1,159 @@
+:root {
+  --heightNavBar: 60px;
+  --heightFooter: 60px;
+  --border-radius: 8px;
+  --transition: 0.3s ease;
+}
+
+/* ======== CONTAINER PRINCIPAL ======== */
+.main {
+  display: flex;
+  flex-direction: column;
+  justify-content: start;
+  align-items: center;
+  min-height: calc(100vh - var(--heightNavBar) - var(--heightFooter));
+}
+
+/* ======== CABEÇALHO ======== */
+.main header {
+  text-align: center;
+  color: var(--color-brand-primary-darkest);
+  font-size: 1.4rem;
+  font-weight: 600;
+}
+
+/* ======== FORMULÁRIO ======== */
+.formLogin {
+  display: flex;
+  justify-content: center;
+}
+
+.form {
+  background: #fff;
+  padding: 1rem 1.5rem;
+  border-radius: var(--border-radius);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  width: 100%;
+  max-width: 320px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+  margin: 5px;
+}
+
+.form div {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+/* Campos mais compactos */
+.form input,
+.form select {
+  padding: 0.45rem 0.7rem;
+  border: 1px solid var(--color-brand-primary-light);
+  border-radius: var(--border-radius);
+  background: var(--color-brand-primary-lightest);
+  font-size: 0.9rem;
+  transition: var(--transition);
+}
+
+.form input:focus,
+.form select:focus {
+  border-color: var(--color-brand-primary-medium);
+  outline: none;
+  background: #fff;
+}
+
+/* Botão menor e alinhado */
+.form button {
+  margin-top: 0.6rem;
+  padding: 0.5rem;
+  background: var(--color-brand-primary-medium);
+  color: #fff;
+  border: none;
+  border-radius: var(--border-radius);
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.9rem;
+  transition: var(--transition);
+}
+
+.form button:hover:not(:disabled) {
+  background: var(--color-brand-primary-dark);
+}
+
+.form button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ======== TABELA ======== */
+.sectionLogin {
+  display: flex;
+  justify-content: center;
+}
+
+.tableLogin {
+  width: 100%;
+  max-width: 700px;
+  border-collapse: collapse;
+  background: #fff;
+  border-radius: var(--border-radius);
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.tableLogin th,
+.tableLogin td {
+  padding: 0.6rem 0.8rem;
+  text-align: center;
+  border-bottom: 1px solid var(--color-brand-primary-lightest);
+  font-size: 0.9rem;
+}
+
+.tableLogin thead {
+  background: var(--color-brand-primary-light);
+  color: #fff;
+  font-weight: 600;
+}
+
+.tableLogin tbody tr:hover {
+  background: var(--color-brand-primary-lightest);
+}
+
+.tableLogin button {
+  background: var(--color-brand-primary-medium);
+  border: none;
+  color: #fff;
+  padding: 0.35rem 0.7rem;
+  border-radius: var(--border-radius);
+  cursor: pointer;
+  transition: var(--transition);
+  font-size: 0.85rem;
+}
+
+.tableLogin button:hover {
+  background: var(--color-brand-primary-dark);
+}
+
+/* Excluir com cor diferente */
+.tableLogin th:last-child button {
+  background: var(--color-brand-primary-darkest);
+}
+
+.tableLogin th:last-child button:hover {
+  background: #000;
+}
+
+/* ======== TEXTO DE VAZIO ======== */
+.sectionLogin p {
+  color: var(--color-brand-primary-dark);
+  text-align: center;
+  font-size: 0.95rem;
+  background: #fff;
+  padding: 0.8rem;
+  border-radius: var(--border-radius);
+  max-width: 320px;
+  margin: 0 auto;
+}

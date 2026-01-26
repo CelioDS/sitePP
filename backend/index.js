@@ -30,11 +30,7 @@ app.use(express.json({ limit: "10kb" }));
 // ----------------------
 // 🌐 CORS seguro
 // ----------------------
-const allowedOrigins = [
-  "http://localhost:3000",
-  "https://agendamentoclaro.netlify.app",
-  "http://192.168.1.9:3000",
-];
+const allowedOrigins = ["http://localhost:3000", process.env.BACKEND_URL];
 
 app.use(
   cors({
@@ -49,8 +45,8 @@ app.use(
     },
     credentials: true,
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
-    allowedHeaders: ["Content-Type", "Authorization"],
-  })
+    allowedHeaders: ["Content-Type", "Authorization", "login"],
+  }),
 );
 
 // ----------------------

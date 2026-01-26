@@ -1,0 +1,121 @@
+:root {
+  --color-brand-primary-lightest: #fde6e3;
+  --color-brand-primary-light: #fe918d;
+  --color-brand-primary-medium: #e3262e;
+  --color-brand-primary-dark: #a61d19;
+  --color-brand-primary-darkest: #67160d;
+  --heightNavBar: 60px;
+  --heightFooter: 60px;
+  --color-text: #333;
+  --color-bg: #f5f7fa;
+  --color-white: #fff;
+  --border-radius: 8px;
+  --padding: 0.75rem;
+  --gap: 1rem;
+}
+
+.main {
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  padding: var(--gap);
+  min-height: 100vh;
+}
+
+.main h2 {
+  color: var(--color-brand-primary-medium);
+  text-align: center;
+  margin-bottom: var(--gap);
+}
+
+.main .sectionFiltro {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--gap);
+  justify-content: center;
+  margin-bottom: var(--gap);
+}
+
+.main .sectionFiltro div {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.main .sectionFiltro input,
+.main .sectionFiltro select {
+  padding: var(--padding);
+  border-radius: var(--border-radius);
+  border: 1px solid var(--color-brand-primary-light);
+  font-size: 1rem;
+  transition: border 0.3s;
+}
+
+.main .sectionFiltro input:focus,
+.main .sectionFiltro select:focus {
+  outline: none;
+  border-color: var(--color-brand-primary-medium);
+}
+
+.main .chart-container {
+  max-width: 800px;
+  margin: auto;
+  background-color: var(--color-white);
+  padding: var(--gap);
+  border-radius: var(--border-radius);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.main table {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: var(--color-white);
+  border-radius: var(--border-radius);
+  overflow: auto;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  overflow-x: auto;
+}
+
+.main table thead {
+  background-color: var(--color-brand-primary-lightest);
+}
+
+.main table thead th {
+  font-weight: 600;
+  padding: 5px;
+  border-bottom: 1px solid var(--color-brand-primary-light);
+}
+
+.main table tbody td {
+  padding: 5px;
+  border-bottom: 1px solid #eee;
+  text-align: center;
+}
+
+.main table tbody tr:nth-child(even) {
+  background-color: #fafafa;
+}
+
+.main table tbody tr:hover {
+  background-color: var(--color-brand-primary-lightest);
+}
+
+.main table tbody tr.total-row {
+  background-color: var(--color-brand-primary-lightest);
+  font-weight: bold;
+}
+
+.main table tbody td.total {
+  color: var(--color-brand-primary-medium);
+}
+.main .sectionFiltro {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  position: relative;
+  align-self: center;
+  justify-content: center;
+  flex-direction: row;
+}

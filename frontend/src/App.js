@@ -23,7 +23,7 @@ function App() {
     if (token) {
       // Aqui você pode fazer uma requisição ao backend para validar o token
       axios
-        .get(`${baseURL}/validate-token`, {
+        .get(`${baseURL}/auth/validate`, {
           headers: { Authorization: `Bearer ${token}` },
         })
         .then(() => setPermission(true))

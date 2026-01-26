@@ -1,0 +1,78 @@
+-- phpMyAdmin SQL Dump
+-- version 5.2.2
+-- https://www.phpmyadmin.net/
+--
+-- Host: 127.0.0.1:3306
+-- Tempo de geração: 20/01/2026 às 19:14
+-- Versão do servidor: 8.3.0
+-- Versão do PHP: 8.1.2-1ubuntu2.23
+
+SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
+START TRANSACTION;
+SET time_zone = "+00:00";
+
+
+/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
+/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
+/*!40101 SET NAMES utf8mb4 */;
+
+--
+-- Banco de dados: `teste01ada`
+--
+
+-- --------------------------------------------------------
+
+--
+-- Estrutura para tabela `LP`
+--
+
+CREATE TABLE `LP` (
+  `ID` int NOT NULL,
+  `ANOMES` int NOT NULL,
+  `CANAL` varchar(126) NOT NULL,
+  `COLABORADOR` varchar(126) NOT NULL,
+  `LOGIN_CLARO` int NOT NULL,
+  `COMTA` varchar(20) NOT NULL,
+  `CABEAMENTO` varchar(126) NOT NULL,
+  `LOGIN_NET` varchar(20) NOT NULL,
+  `LOJA` varchar(126) NOT NULL,
+  `CIDADE` varchar(126) NOT NULL,
+  `COORDENADOR` varchar(126) NOT NULL,
+  `STATUS` varchar(20) NOT NULL,
+  `DATA_ATUALIZACAO` datetime NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+--
+-- Despejando dados para a tabela `LP`
+--
+
+INSERT INTO `LP` (`ID`, `ANOMES`, `CANAL`, `COLABORADOR`, `LOGIN_CLARO`, `COMTA`, `CABEAMENTO`, `LOGIN_NET`, `LOJA`, `CIDADE`, `COORDENADOR`, `STATUS`, `DATA_ATUALIZACAO`) VALUES
+(6241, 202601, 'LOJAS_PRÓPRIAS', 'ce', 90012345, 'LT10', 'CABO', 'X100200', 'LS SP CENTRAL CAMPINAS', 'CAMPINAS', 'MARINA SULEIMAN', '1', '2026-01-17 18:43:00'),
+(6242, 202601, 'LOJAS_PRÓPRIAS', 'MARIANA SOUZA', 90054321, 'LT08', 'CABO', 'X100201', 'LS SP SHOPPING NORTE', 'RIBEIRAO PRETO', 'ALEXANDRE BORGES', '0', '2026-01-17 18:43:00')
+
+
+--
+-- Índices para tabelas despejadas
+--
+
+--
+-- Índices de tabela `LP`
+--
+ALTER TABLE `LP`
+  ADD PRIMARY KEY (`ID`);
+
+--
+-- AUTO_INCREMENT para tabelas despejadas
+--
+
+--
+-- AUTO_INCREMENT de tabela `LP`
+--
+ALTER TABLE `LP`
+  MODIFY `ID` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7834;
+COMMIT;
+
+/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
+/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;

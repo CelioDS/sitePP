@@ -36,6 +36,16 @@ export default function Home() {
       <RenameTitle initialTitle={"P&P - Home"} />
       <div style={styles.container}>
         <h1>de paras de canais</h1>
+        <li>-hierarquia</li>
+        <li>-todolist</li>
+        <li>-data/frequencia de relatorio repostavel</li>
+        <li>-inserir DU</li>
+        <li>-criar um login para cada canal</li>
+        <li>-fazer relatorio com base nas informações </li>
+        <li>-entender de onde vem os relatorios</li>
+        <li>-admin vai poder ve todos os deparas e vai ter filtro para todos ou algum especifico</li>
+        <li>-</li>
+        <li>-</li>
       </div>
     </Container>
   );

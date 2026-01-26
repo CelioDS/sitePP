@@ -22,7 +22,7 @@ export default function Login({ setPermission, setLoginBD }) {
 
     try {
       setText("Entrando...");
-      const response = await axios.post(`${Url}/login`, { login, senha });
+      const response = await axios.post(`${Url}/auth/login`, { login, senha });
 
       if (response.data?.token) {
         const { user, token } = response.data;
