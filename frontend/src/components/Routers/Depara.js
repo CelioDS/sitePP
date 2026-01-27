@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
 import ValidarToken from "../Tools/ValidarToken";
+import TableAdmin from "../Layout/TableAdmin";
 
 export default function Depara() {
   const [dataBase, setDataBase] = useState(null);
@@ -29,6 +30,8 @@ export default function Depara() {
 
   const fetchData = async () => {
     if (!canal) return;
+    if (!Url || !rotas) return;
+
     try {
       const resp = await axios.get(`${Url}/${rotas[canal]}`);
 
@@ -67,7 +70,7 @@ export default function Depara() {
       <RenameTitle initialTitle={"P&P - Depara"} />
       <h1>DEPARAS</h1>
 
-      {admin && <h1>oi</h1>}
+      {admin && <TableAdmin Url={Url} />}
       {!admin && (
         <Table
           dataBase={dataBase}

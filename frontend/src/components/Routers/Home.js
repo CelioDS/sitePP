@@ -44,7 +44,7 @@ export default function Home() {
         <li>-fazer relatorio com base nas informações </li>
         <li>-entender de onde vem os relatorios</li>
         <li>-admin vai poder ve todos os deparas e vai ter filtro para todos ou algum especifico</li>
-        <li>-</li>
+        <li>-filtro por mes e tira dos ultimos 7 dias</li>
         <li>-</li>
       </div>
     </Container>

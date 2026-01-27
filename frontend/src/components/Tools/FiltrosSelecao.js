@@ -1,80 +1,140 @@
-import Style from "./FiltrosSelecao.module.css";
+import { useEffect, useState } from "react";
 
-export default function FiltrosSelecao({
-  municipios = [],
-  DDDSpi = [],
-  dataFuturas = [],
-  flagAgendaFuturas = [],
-
-  filterMunicipio,
-  setFilterMunicipio,
-  filterddd_mun,
-  setFilterddd_mun,
-  filterData_futura,
-  setFilterData_futura,
-  filterflag_agenda_futura,
-  setfilterflag_agenda_futura,
-
-  clearFilters,
+export default function TableFilters({
+  search,
+  setSearch,
+  start,
+  setStart,
+  end,
+  setEnd,
+  latest,
+  setLatest,
+  isLoading,
 }) {
+  const [localSearch, setLocalSearch] = useState(search);
+  const [mesSelecionado, setMesSelecionado] = useState("");
+
+  // Debounce do search
+  useEffect(() => {
+    const timer = setTimeout(() => setSearch(localSearch), 500);
+    return () => clearTimeout(timer);
+  }, [localSearch, setSearch]);
+
+  // Função para tratar seleção de mês
+  // Nota: Não desligamos mais o 'latest' aqui
+  const handleChangeMes = (value) => {
+    setMesSelecionado(value);
+    
+    // Se o usuário limpar o mês, limpamos as datas, mas mantemos o latest como está
+    if (!value) {
+        setStart("");
+        setEnd("");
+        return;
+    }
+
+    const [ano, mes] = value.split("-");
+    const inicio = `${ano}-${mes}-01`;
+    const ultimoDia = new Date(ano, parseInt(mes), 0).getDate();
+    const fim = `${ano}-${mes}-${ultimoDia}`;
+
+    setStart(inicio);
+    setEnd(fim);
+  };
+
+  const clearFilters = () => {
+    setLocalSearch("");
+    setSearch("");
+    setStart("");
+    setEnd("");
+    setMesSelecionado("");
+    setLatest(false); // Reset padrão pode ser false ou true, conforme sua preferência
+  };
+
   return (
-    <div className={Style.filters}>
-      {/* Filtro por Município */}
-      <select
-        value={filterMunicipio}
-        onChange={(e) => setFilterMunicipio(e.target.value)}
-      >
-        <option value="">Todos os Municípios</option>
-        {municipios.map((mun) => (
-          <option key={mun} value={mun}>
-            {mun}
-          </option>
-        ))}
-      </select>
+    <section
+      style={{
+        display: "grid",
+        gap: 8,
+        gridTemplateColumns: "1.5fr 1fr 1fr 1fr auto auto",
+        alignItems: "end",
+      }}
+    >
+      {/* SEARCH */}
+      <label>
+        Buscar:
+        <input
+          style={{ width: "100%" }}
+          placeholder="Login, loja, cidade..."
+          value={localSearch}
+          onChange={(e) => setLocalSearch(e.target.value)}
+          disabled={isLoading}
+        />
+      </label>
 
-      {/* Filtro por ddd_mun */}
-      <select
-        value={filterddd_mun}
-        onChange={(e) => setFilterddd_mun(e.target.value)}
-      >
-        <option value="">Todos os DDD</option>
-        {DDDSpi.map((ddd) => (
-          <option key={ddd} value={ddd}>
-            {ddd}
-          </option>
-        ))}
-      </select>
+      {/* MÊS */}
+      <label>
+        Mês:
+        <select
+          style={{ width: "100%" }}
+          value={mesSelecionado}
+          onChange={(e) => handleChangeMes(e.target.value)}
+          disabled={isLoading}
+        >
+          <option value="">Selecionar mês...</option>
+          <option value="2026-01">Janeiro/2026</option>
+          <option value="2025-12">Dezembro/2025</option>
+          <option value="2025-11">Novembro/2025</option>
+          <option value="2025-10">Outubro/2025</option>
+          <option value="2025-09">Setembro/2025</option>
+          <option value="2025-08">Agosto/2025</option>
+          <option value="2025-07">Julho/2025</option>
+          <option value="2025-06">Junho/2025</option>
+          <option value="2025-05">Maio/2025</option>
+          <option value="2025-04">Abril/2025</option>
+          <option value="2025-03">Março/2025</option>
+          <option value="2025-02">Fevereiro/2025</option>
+          <option value="2025-01">Janeiro/2025</option>
+        </select>
+      </label>
 
-      {/* Filtro por Responsável */}
-      <select
-        value={filterData_futura}
-        onChange={(e) => setFilterData_futura(e.target.value)}
-      >
-        <option value="">Todos os data futura</option>
-        {dataFuturas.map((resp) => (
-          <option key={resp} value={resp}>
-            {resp ? new Date(resp).toLocaleDateString("pt-BR") : ""}
-          </option>
-        ))}
-      </select>
+      {/* INÍCIO */}
+      <label>
+        Início:
+        <input
+          type="date"
+          style={{ width: "100%" }}
+          value={start}
+          onChange={(e) => setStart(e.target.value)} // Não mexe no latest
+          disabled={isLoading}
+        />
+      </label>
 
-      {/* Filtro por flag agenda futura */}
-      <select
-        value={filterflag_agenda_futura}
-        onChange={(e) => setfilterflag_agenda_futura(e.target.value)}
-      >
-        <option value="">Todos os flag_agenda_futura</option>
-        {flagAgendaFuturas.map((resp) => (
-          <option key={resp} value={resp}>
-            {resp}
-          </option>
-        ))}
-      </select>
+      {/* FIM */}
+      <label>
+        Fim:
+        <input
+          type="date"
+          style={{ width: "100%" }}
+          value={end}
+          onChange={(e) => setEnd(e.target.value)} // Não mexe no latest
+          disabled={isLoading}
+        />
+      </label>
 
-      {/* Botão para limpar todos os filtros */}
-      <button className={Style.clearFilters} onClick={clearFilters}>
-        Limpar filtros
+      {/* CHECKBOX */}
+      <label style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer", paddingBottom: 8 }}>
+        <input
+          type="checkbox"
+          checked={latest}
+          onChange={(e) => setLatest(e.target.checked)}
+        />
+        <span style={{ fontSize: 13 }}>Última de cada mês</span>
+      </label>
+
+      {/* BOTÃO LIMPAR */}
+      <button onClick={clearFilters} disabled={isLoading} style={{ marginBottom: 4 }}>
+        Limpar
       </button>
-    </div>
+    </section>
   );
 }
