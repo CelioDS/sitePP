@@ -165,7 +165,7 @@ export default function Home() {
               style={filters.select}
             >
               {anosOptions.map((y) => (
-                <option key={y} value={y}>
+                <option className={Style.options} key={y} value={y}>
                   {y}
                 </option>
               ))}
@@ -180,7 +180,7 @@ export default function Home() {
               style={filters.select}
             >
               {referencias.map((r) => (
-                <option key={r.value} value={r.value}>
+                <option className={Style.options} key={r.value} value={r.value}>
                   {r.label}
                 </option>
               ))}
@@ -550,6 +550,8 @@ const filters = {
     flexDirection: "column",
     gap: 4,
     minWidth: 160,
+    textAlign: "center",
+    alignItems: "center",
   },
   label: { fontSize: 13, color: "#555", fontWeight: 600 },
   select: {
@@ -557,6 +559,9 @@ const filters = {
     borderRadius: 8,
     border: "1px solid #ddd",
     background: "#fff",
+    textAlign: "center",
+    justifyContent: "center",
+    alignItems: "center",
   },
 };
 

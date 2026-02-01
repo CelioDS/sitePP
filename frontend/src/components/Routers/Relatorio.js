@@ -34,7 +34,7 @@ export default function Relatorio() {
   return (
     <Container>
       <main className={Style.main}>
-        <RenameTitle initialTitle={"P&P - Relatório"} />
+        <RenameTitle initialTitle={"P&P - Relatorio"} />
         {admin ? (
           <RelatorioAdmin user={user} Url={Url} />
         ) : (

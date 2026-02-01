@@ -72,3 +72,23 @@
   text-align: center;
   align-items: center;
 }
+
+.options {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  text-align: start;
+  justify-content: start;
+  align-items: start;
+  padding: 8px; /* funciona em alguns navegadores */
+}
+
+select {
+  width: 100%;
+  text-align: center; /* centraliza o texto */
+  text-align-last: start; /* essencial no Chrome/Edge */
+}
+
+option {
+  text-align: start; /* centraliza no dropdown */
+}

@@ -37,9 +37,7 @@
 }
 .main > section {
   display: flex;
-  border: 1px solid #ccc;
   background-color: #ffff;
-  filter: drop-shadow(3px 4px 6px #303030cc);
   height: 100%;
   width: 100%;
 }
@@ -109,6 +107,7 @@
   border-radius: var(--radius-sm);
   cursor: pointer;
   color: #ffff;
+  filter: drop-shadow(3px 4px 6px #303030cc);
 }
 .main input[type="file"]:hover,
 .main button:hover {
@@ -118,10 +117,22 @@
 }
 
 .main table {
-  border: 1px solid #ccc;
   background-color: #ffff;
   width: 100%;
-  filter: drop-shadow(3px 3px 3px #ccc8c8cc);
   padding: 5px;
   table-layout: fixed; /* evita expansão */
+  font-size: 14px;
+  background-color: #fff;
+  width: 100%;
+  padding: 5px;
+  table-layout: fixed;
+  font-size: 14px;
+  min-width: 800px; /* força o scroll */
+}
+
+.main table th {
+  background: #a1343c;
+  font-weight: 600;
+  color: #fff;
+  height: 30px;
 }

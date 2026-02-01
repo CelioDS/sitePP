@@ -29,7 +29,7 @@ export default function Table({ canal, login, admin, Url }) {
   // Mantém 'rota' em sincronia quando 'canal' mudar
   useEffect(() => {
     setRota(rotas[canal] || "lojapropria");
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [canal]);
 
   // Normalizador: transforma qualquer resposta em array
@@ -74,7 +74,7 @@ export default function Table({ canal, login, admin, Url }) {
 
   useEffect(() => {
     fetchData();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [Url, rota, search, start, end, latest]);
 
   const parseAsDate = (value) => {
@@ -208,57 +208,63 @@ export default function Table({ canal, login, admin, Url }) {
       <section>
         <table>
           <thead>
-            <tr>
-              {canal === "LP" && (
-                <>
-                  <th>CANAL</th>
-                  <th>COLABORADOR</th>
-                  <th>LOGIN_CLARO</th>
-                  <th>COMTA</th>
-                  <th>CABEAMENTO</th>
-                  <th>LOGIN_NET</th>
-                  <th>LOJA</th>
-                  <th>CIDADE</th>
-                  <th>COORDENADOR</th>
-                  <th>STATUS</th>
-                </>
-              )}
+            {isLoading ? (
+              <tr>
+        
+              </tr>
+            ) : (
+              <tr>
+                {canal === "LP" && (
+                  <>
+                    <th>CANAL</th>
+                    <th>COLABORADOR</th>
+                    <th>LOGIN_CLARO</th>
+                    <th>COMTA</th>
+                    <th>CABEAMENTO</th>
+                    <th>LOGIN_NET</th>
+                    <th>LOJA</th>
+                    <th>CIDADE</th>
+                    <th>COORDENADOR</th>
+                    <th>STATUS</th>
+                  </>
+                )}
 
-              {canal === "PAP" && (
-                <>
-                  <th>CANAL</th>
-                  <th>IBGE</th>
-                  <th>CIDADE</th>
-                  <th>RAZAO_SOCIAL</th>
-                  <th>CNPJ</th>
-                  <th>NOME</th>
-                  <th>CLASSIFICACAO</th>
-                  <th>SEGMENTO</th>
-                  <th>PRODUTO_ATUACAO</th>
-                  <th>DATA_CADASTRO</th>
-                  <th>SITUACAO</th>
-                  <th>LOGIN_NET</th>
-                  <th>TIPO</th>
-                </>
-              )}
+                {canal === "PAP" && (
+                  <>
+                    <th>CANAL</th>
+                    <th>IBGE</th>
+                    <th>CIDADE</th>
+                    <th>RAZAO_SOCIAL</th>
+                    <th>CNPJ</th>
+                    <th>NOME</th>
+                    <th>CLASSIFICACAO</th>
+                    <th>SEGMENTO</th>
+                    <th>PRODUTO_ATUACAO</th>
+                    <th>DATA_CADASTRO</th>
+                    <th>SITUACAO</th>
+                    <th>LOGIN_NET</th>
+                    <th>TIPO</th>
+                  </>
+                )}
 
-              {canal === "PEP" && (
-                <>
-                  <th>CANAL</th>
-                  <th>CIDADE</th>
-                  <th>IBGE</th>
-                  <th>ATIVO</th>
-                  <th>GERENTE</th>
-                  <th>COORD</th>
-                  <th>EXECUTIVO</th>
-                  <th>LOGIN_NET</th>
-                  <th>LOGIN_MPLAY</th>
-                  <th>LOGIN_CLARO</th>
-                  <th>ADMISSAO</th>
-                  <th>TIPO_HC</th>
-                </>
-              )}
-            </tr>
+                {canal === "PEP" && (
+                  <>
+                    <th>CANAL</th>
+                    <th>CIDADE</th>
+                    <th>IBGE</th>
+                    <th>ATIVO</th>
+                    <th>GERENTE</th>
+                    <th>COORD</th>
+                    <th>EXECUTIVO</th>
+                    <th>LOGIN_NET</th>
+                    <th>LOGIN_MPLAY</th>
+                    <th>LOGIN_CLARO</th>
+                    <th>ADMISSAO</th>
+                    <th>TIPO_HC</th>
+                  </>
+                )}
+              </tr>
+            )}
           </thead>
 
           <tbody>
