@@ -29,7 +29,8 @@ export default function Table({ canal, login, admin, Url }) {
   // Mantém 'rota' em sincronia quando 'canal' mudar
   useEffect(() => {
     setRota(rotas[canal] || "lojapropria");
-  }, [canal, rotas]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [canal]);
 
   // Normalizador: transforma qualquer resposta em array
   const toArray = (payload) => {
