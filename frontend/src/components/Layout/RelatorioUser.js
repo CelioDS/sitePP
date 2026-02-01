@@ -30,8 +30,8 @@ export default function RelatorioUser({ Url }) {
 
   const [monthFilter, setMonthFilter] = useState(tituloMes); // exemplo: "2026-01"
 
-  const user = userData?.login;
-  const canal = userData?.canal;
+  //const user = userData?.login;
+  //const canal = userData?.canal;
 
   // ---- Helpers ----
   // Normaliza um registro vindo da API
@@ -63,33 +63,6 @@ export default function RelatorioUser({ Url }) {
     return Number.isFinite(n) ? n : undefined;
   };
 
-  const mockData = [
-    {
-      anomes: 202601,
-      coordenador: "ANTONIO TRUGILHO",
-      colab: 1,
-      lojas: 1,
-      cidades: 1,
-      registros: 1,
-    },
-    {
-      anomes: 202601,
-      coordenador: "LUAN TRUGILHO",
-      colab: 1,
-      lojas: 1,
-      cidades: 1,
-      registros: 1,
-    },
-    {
-      anomes: 202601,
-      coordenador: "MARINA SULEIMAN",
-      colab: 1,
-      lojas: 1,
-      cidades: 1,
-      registros: 1,
-    },
-  ];
-
   // ---- Buscar dados da API (com filtro anomes) ----
   useEffect(() => {
     let ignore = false;
@@ -114,7 +87,7 @@ export default function RelatorioUser({ Url }) {
       } catch (err) {
         console.error("Erro ao carregar dados:", err);
         toast.error("Falha ao carregar dados. Exibindo dados de exemplo.");
-        if (!ignore) setDataBase(mockData);
+        if (!ignore) setDataBase(userData);
       } finally {
         if (!ignore) setIsLoading(false);
       }
@@ -124,7 +97,7 @@ export default function RelatorioUser({ Url }) {
     return () => {
       ignore = true;
     };
-  }, [Url, monthFilter]); // refetch quando trocar o filtro
+  }, [Url, monthFilter, userData]); // refetch quando trocar o filtro
 
   // ---- Validar token (uma vez ao montar) ----
   useEffect(() => {
