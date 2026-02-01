@@ -7,7 +7,14 @@ import {
   deleteDBLogin,
 } from "../Controllers/CreateUser.js";
 
-import { getLP, getPAP } from "../Controllers/Controllers.js";
+import {
+  getLP,
+  getPAP,
+  getPAP_PREMIUM,
+  getPDU,
+  getPduFull,
+  getLP_grafico,
+} from "../Controllers/Controllers.js";
 import { LoginDB, validateToken } from "../Controllers/Auth.js";
 
 import { setExcel, upload } from "../Controllers/ExcelUpload.js";
@@ -19,6 +26,14 @@ router.get("/", getLP);
 router.get("/lojapropria", getLP);
 
 router.get("/portaaporta", getPAP);
+
+router.get("/pap_premium", getPAP_PREMIUM);
+
+router.get("/pdu", getPDU);
+
+router.get("/PduFull", getPduFull);
+
+router.get("/lojapropriaGrafico", getLP_grafico);
 
 router.post("/upload-excel-lp", upload.single("file"), setExcel);
 

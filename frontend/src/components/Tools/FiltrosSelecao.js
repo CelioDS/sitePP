@@ -24,12 +24,12 @@ export default function TableFilters({
   // Nota: Não desligamos mais o 'latest' aqui
   const handleChangeMes = (value) => {
     setMesSelecionado(value);
-    
+
     // Se o usuário limpar o mês, limpamos as datas, mas mantemos o latest como está
     if (!value) {
-        setStart("");
-        setEnd("");
-        return;
+      setStart("");
+      setEnd("");
+      return;
     }
 
     const [ano, mes] = value.split("-");
@@ -63,6 +63,7 @@ export default function TableFilters({
       <label>
         Buscar:
         <input
+          type="input"
           style={{ width: "100%" }}
           placeholder="Login, loja, cidade..."
           value={localSearch}
@@ -122,8 +123,23 @@ export default function TableFilters({
       </label>
 
       {/* CHECKBOX */}
-      <label style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer", paddingBottom: 8 }}>
+      <label
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 6,
+          cursor: "pointer",
+          paddingBottom: 8,
+        }}
+      >
         <input
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 6,
+            cursor: "pointer",
+            paddingBottom: 8,
+          }}
           type="checkbox"
           checked={latest}
           onChange={(e) => setLatest(e.target.checked)}
@@ -132,7 +148,11 @@ export default function TableFilters({
       </label>
 
       {/* BOTÃO LIMPAR */}
-      <button onClick={clearFilters} disabled={isLoading} style={{ marginBottom: 4 }}>
+      <button
+        onClick={clearFilters}
+        disabled={isLoading}
+        style={{ marginBottom: 4 }}
+      >
         Limpar
       </button>
     </section>

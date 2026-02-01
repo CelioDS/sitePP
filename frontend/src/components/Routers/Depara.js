@@ -16,42 +16,6 @@ export default function Depara() {
   const login = userData?.login;
   const canal = userData?.canal;
 
-  const rotas = {
-    LP: "lojapropria",
-    PAP: "portaaporta",
-  };
-
-  // Normalizador: transforma qualquer resposta em array
-  const toArray = (payload) => {
-    if (Array.isArray(payload)) return payload;
-    if (payload?.data && Array.isArray(payload.data)) return payload.data;
-    return [];
-  };
-
-  const fetchData = async () => {
-    if (!canal) return;
-    if (!Url || !rotas) return;
-
-    try {
-      const resp = await axios.get(`${Url}/${rotas[canal]}`);
-
-      // resp.data pode ser: [...]  ou  { data: [...] }  ou até { message: ... }
-      const normalized = toArray(resp.data);
-      setDataBase(normalized);
-    } catch (err) {
-      console.error("Erro ao carregar dados:", err);
-      toast.error("Erro ao carregar dados:", err.message);
-
-      setDataBase([]); // fallback para garantir array
-    }
-  };
-
-  useEffect(() => {
-    if (!canal) return; // ainda não carregou o usuário
-
-    fetchData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [canal]); // roda apenas 1 vez
 
   useEffect(() => {
     async function loadUser() {
@@ -78,7 +42,6 @@ export default function Depara() {
           admin={admin}
           canal={canal}
           login={login}
-          fetchData={fetchData}
           Url={Url}
         />
       )}

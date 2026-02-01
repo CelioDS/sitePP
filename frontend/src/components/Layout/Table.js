@@ -1,35 +1,79 @@
-
 import Style from "./Table.module.css";
 import LoadingSvg from "../Item-Layout/Loading";
 import axios from "axios";
 import { toast } from "react-toastify";
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { format } from "date-fns";
 import { fromZonedTime } from "date-fns-tz";
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
+import FiltrosSelecao from "./../Tools/FiltrosSelecao";
 
-export default function Table({
-  dataBase,
-  setDataBase,
-  canal,
-  login,
-  admin,
-  fetchData,
-  Url,
-}) {
-  // ===== NOVOS ESTADOS: filtro por período =====
-  const [start, setStart] = useState(""); // YYYY-MM-DD
-  const [end, setEnd] = useState(""); // YYYY-MM-DD
-  const [latest, setLatest] = useState(true); // quando true ignora período
-
-  // ===== FILTRO DE TEXTO =====
+export default function Table({ canal, login, admin, Url }) {
   const [search, setSearch] = useState("");
+  const [start, setStart] = useState("");
+  const [end, setEnd] = useState("");
+  const [latest, setLatest] = useState(true);
+  const lastReqId = useRef(0);
+  const [isLoading, setIsLoading] = useState(false);
+  const [dataBase, setDatabase] = useState([]);
 
-  const dateFieldByCanal = useMemo(() => {
-    if (canal === "PAP") return "DATA_CADASTRO";
-    return "DATA_ATUALIZACAO"; // LP e PEP
+  const rotas = {
+    LP: "lojapropria",
+    PAP: "portaaporta",
+    PAP_PREMIUM: "pap_premium", // caso você venha a usar PEP
+  };
+
+  const [rota, setRota] = useState(rotas[canal] || "lojapropria");
+
+  // Mantém 'rota' em sincronia quando 'canal' mudar
+  useEffect(() => {
+    setRota(rotas[canal] || "lojapropria");
   }, [canal]);
+
+  // Normalizador: transforma qualquer resposta em array
+  const toArray = (payload) => {
+    if (Array.isArray(payload)) return payload;
+    if (payload?.data && Array.isArray(payload.data)) return payload.data;
+    return [];
+  };
+
+  const fetchData = async () => {
+    if (!Url || !rota) return;
+
+    const base = Url.endsWith("/") ? Url.slice(0, -1) : Url;
+    const endpoint = `${base}/${rota}`;
+    const reqId = ++lastReqId.current;
+
+    setIsLoading(true);
+
+    try {
+      // Enviamos start, end e latest juntos
+      const params = {
+        q: search || undefined,
+        start: start || undefined,
+        end: end || undefined,
+        latest: latest, // true ou false
+        limit: 2000,
+      };
+
+      const resp = await axios.get(endpoint, { params });
+
+      if (reqId !== lastReqId.current) return;
+      setDatabase(toArray(resp.data));
+    } catch (err) {
+      if (reqId !== lastReqId.current) return;
+      console.error("Erro ao carregar:", err);
+      toast.error("Erro ao carregar dados");
+      setDatabase([]);
+    } finally {
+      if (reqId === lastReqId.current) setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, [Url, rota, search, start, end, latest]);
 
   const parseAsDate = (value) => {
     if (!value) return null;
@@ -49,6 +93,7 @@ export default function Table({
 
     const ultima = datasValidas.at(-1);
     const zoned = fromZonedTime(ultima, "America/Sao_Paulo");
+
     return format(zoned, "HH:mm dd-MM-yyyy");
   }, [dataBase]);
 
@@ -63,43 +108,10 @@ export default function Table({
     return logins.at(-1) ?? null;
   }, [dataBase]);
 
-  const toArray = (payload) => {
-    if (Array.isArray(payload)) return payload;
-    if (payload?.data && Array.isArray(payload.data)) return payload.data;
-    return [];
-  };
-
-  const brasilDate = format(
+  const ANOMES = format(
     fromZonedTime(new Date(), "America/Sao_Paulo"),
-    "yyyy-MM"
+    "yyyyMM",
   );
-  const ANOMES = brasilDate.replace("-", "");
-
-  // ===========================================================
-  //  FETCH AUTOMÁTICO QUANDO FILTROS MUDAM
-  // ===========================================================
-  const fetchFilteredData = async () => {
-    try {
-      const response = await axios.get(Url, {
-        params: {
-          q: search || "",
-          start: latest ? "" : start,
-          end: latest ? "" : end,
-          latest: latest,
-          limit: 5000,
-        },
-      });
-
-      setDataBase(response.data);
-    } catch (err) {
-      console.error(err);
-      toast.error("Erro ao buscar dados filtrados.");
-    }
-  };
-
-  useEffect(() => {
-    fetchFilteredData();
-  }, [search, start, end, latest]);
 
   // ===== Upload Excel =====
   const handleUpload = async (e) => {
@@ -116,13 +128,13 @@ export default function Table({
 
       toast.success("Arquivo enviado com sucesso!");
       const normalized = toArray(response.data);
-      setDataBase(normalized);
+      setDatabase(normalized);
     } catch (error) {
       console.error(error);
       toast.error(error.response?.data?.sql || "Erro ao enviar o arquivo");
     }
 
-    fetchFilteredData();
+    fetchData();
     e.target.value = "";
   };
 
@@ -134,11 +146,12 @@ export default function Table({
     }
 
     const formattedData = dataBase.map(
-      ({ ID, DATA_MAX, LOGIN_ATUALIZACAO, ...rest }) => rest
+      ({ ID, DATA_MAX, LOGIN_ATUALIZACAO, ...rest }) => rest,
     );
 
     const worksheet = XLSX.utils.json_to_sheet(formattedData);
     const workbook = XLSX.utils.book_new();
+
     const sheetName =
       canal === "LP" ? "LojaPropria" : canal === "PAP" ? "PortaAPorta" : "PEP";
 
@@ -149,30 +162,12 @@ export default function Table({
       type: "array",
     });
 
-    const blob = new Blob([excelBuffer], {
-      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-    });
-
-    saveAs(blob, `${sheetName.toLowerCase()}_${ANOMES}.xlsx`);
-  };
-
-  // ====== Carregamento ======
-  const isLoading = dataBase === null;
-
-  // Helpers rápidos
-  const setLastNDays = (n) => {
-    const hoje = new Date();
-    const ini = new Date();
-    ini.setDate(hoje.getDate() - n);
-    setStart(ini.toISOString().slice(0, 10));
-    setEnd(hoje.toISOString().slice(0, 10));
-    setLatest(false);
-  };
-
-  const clearPeriod = () => {
-    setStart("");
-    setEnd("");
-    setLatest(true);
+    saveAs(
+      new Blob([excelBuffer], {
+        type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      }),
+      `${sheetName.toLowerCase()}_${ANOMES}.xlsx`,
+    );
   };
 
   const filteredData = dataBase ?? [];
@@ -180,187 +175,155 @@ export default function Table({
   return (
     <main className={Style.main}>
       <section>
-        <input type="file" accept=".xlsx,.xls" onChange={handleUpload} />
+        <div>
+          <FiltrosSelecao
+            search={search}
+            setSearch={setSearch}
+            start={start}
+            setStart={setStart}
+            end={end}
+            setEnd={setEnd}
+            latest={latest}
+            setLatest={setLatest}
+            isLoading={isLoading}
+            className={Style.table}
+          />
+        </div>
+        <div>
+          <input type="file" accept=".xlsx,.xls" onChange={handleUpload} />
+          <button onClick={handleDownload}>Download Excel</button>
+        </div>
 
-        <button onClick={handleDownload}>Download Excel</button>
-
-        <p>
-          <strong>Última atualização:</strong> {DATA_ATUALIZACAO_info || "—"}{" "}
-          {LOGIN_ATUALIZACAO_info ? `por ${LOGIN_ATUALIZACAO_info}` : ""}
-        </p>
-
-        {/* FILTRO DE TEXTO */}
-        <input
-          type="text"
-          placeholder="Filtrar resultados..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          style={{ padding: 8, marginTop: 10, width: "50%" }}
-        />
-
-        {/* FILTRO POR PERÍODO */}
-        <div style={{ display: "flex", gap: 8, marginTop: 10, flexWrap: "wrap" }}>
-          <label>
-            Início:
-            <input
-              type="date"
-              value={start}
-              onChange={(e) => setStart(e.target.value)}
-              disabled={latest}
-            />
-          </label>
-
-          <label>
-            Fim:
-            <input
-              type="date"
-              value={end}
-              onChange={(e) => setEnd(e.target.value)}
-              disabled={latest}
-            />
-          </label>
-
-          <label style={{ display: "flex", alignItems: "center", gap: 6 }}>
-            <input
-              type="checkbox"
-              checked={latest}
-              onChange={(e) => setLatest(e.target.checked)}
-            />
-            Somente última carga
-          </label>
-
-          <button disabled={latest} onClick={() => setLastNDays(7)}>
-            Últimos 7 dias
-          </button>
-
-          <button disabled={latest} onClick={() => setLastNDays(30)}>
-            Últimos 30 dias
-          </button>
-
-          <button onClick={clearPeriod}>Limpar período</button>
+        <div>
+          <p>
+            <strong>Última atualização:</strong> {DATA_ATUALIZACAO_info || "—"}{" "}
+            {LOGIN_ATUALIZACAO_info ? `por ${LOGIN_ATUALIZACAO_info}` : ""}
+          </p>
         </div>
       </section>
 
       {/* TABELA */}
-      <table>
-        <thead>
-          <tr>
-            {canal === "LP" && (
-              <>
-                <th>CANAL</th>
-                <th>COLABORADOR</th>
-                <th>LOGIN_CLARO</th>
-                <th>COMTA</th>
-                <th>CABEAMENTO</th>
-                <th>LOGIN_NET</th>
-                <th>LOJA</th>
-                <th>CIDADE</th>
-                <th>COORDENADOR</th>
-                <th>STATUS</th>
-              </>
-            )}
-
-            {canal === "PAP" && (
-              <>
-                <th>CANAL</th>
-                <th>IBGE</th>
-                <th>CIDADE</th>
-                <th>RAZAO_SOCIAL</th>
-                <th>CNPJ</th>
-                <th>NOME</th>
-                <th>CLASSIFICACAO</th>
-                <th>SEGMENTO</th>
-                <th>PRODUTO_ATUACAO</th>
-                <th>DATA_CADASTRO</th>
-                <th>SITUACAO</th>
-                <th>LOGIN_NET</th>
-                <th>TIPO</th>
-              </>
-            )}
-
-            {canal === "PEP" && (
-              <>
-                <th>CANAL</th>
-                <th>CIDADE</th>
-                <th>IBGE</th>
-                <th>ATIVO</th>
-                <th>GERENTE</th>
-                <th>COORD</th>
-                <th>EXECUTIVO</th>
-                <th>LOGIN_NET</th>
-                <th>LOGIN_MPLAY</th>
-                <th>LOGIN_CLARO</th>
-                <th>ADMISSAO</th>
-                <th>TIPO_HC</th>
-              </>
-            )}
-          </tr>
-        </thead>
-
-        <tbody>
-          {isLoading ? (
+      <section>
+        <table>
+          <thead>
             <tr>
-              <td colSpan={12}>
-                <LoadingSvg text="Carregando..." />
-              </td>
+              {canal === "LP" && (
+                <>
+                  <th>CANAL</th>
+                  <th>COLABORADOR</th>
+                  <th>LOGIN_CLARO</th>
+                  <th>COMTA</th>
+                  <th>CABEAMENTO</th>
+                  <th>LOGIN_NET</th>
+                  <th>LOJA</th>
+                  <th>CIDADE</th>
+                  <th>COORDENADOR</th>
+                  <th>STATUS</th>
+                </>
+              )}
+
+              {canal === "PAP" && (
+                <>
+                  <th>CANAL</th>
+                  <th>IBGE</th>
+                  <th>CIDADE</th>
+                  <th>RAZAO_SOCIAL</th>
+                  <th>CNPJ</th>
+                  <th>NOME</th>
+                  <th>CLASSIFICACAO</th>
+                  <th>SEGMENTO</th>
+                  <th>PRODUTO_ATUACAO</th>
+                  <th>DATA_CADASTRO</th>
+                  <th>SITUACAO</th>
+                  <th>LOGIN_NET</th>
+                  <th>TIPO</th>
+                </>
+              )}
+
+              {canal === "PEP" && (
+                <>
+                  <th>CANAL</th>
+                  <th>CIDADE</th>
+                  <th>IBGE</th>
+                  <th>ATIVO</th>
+                  <th>GERENTE</th>
+                  <th>COORD</th>
+                  <th>EXECUTIVO</th>
+                  <th>LOGIN_NET</th>
+                  <th>LOGIN_MPLAY</th>
+                  <th>LOGIN_CLARO</th>
+                  <th>ADMISSAO</th>
+                  <th>TIPO_HC</th>
+                </>
+              )}
             </tr>
-          ) : (
-            filteredData.map((item, idx) => (
-              <tr key={item.ID || item.id || idx}>
-                {canal === "LP" && (
-                  <>
-                    <td>{item.CANAL}</td>
-                    <td>{item.COLABORADOR}</td>
-                    <td>{item.LOGIN_CLARO}</td>
-                    <td>{item.COMTA}</td>
-                    <td>{item.CABEAMENTO}</td>
-                    <td>{item.LOGIN_NET}</td>
-                    <td>{item.LOJA}</td>
-                    <td>{item.CIDADE}</td>
-                    <td>{item.COORDENADOR}</td>
-                    <td>{item.STATUS}</td>
-                  </>
-                )}
+          </thead>
 
-                {canal === "PEP" && (
-                  <>
-                    <td>{item.CANAL}</td>
-                    <td>{item.CIDADE}</td>
-                    <td>{item.IBGE}</td>
-                    <td>{item.ATIVO}</td>
-                    <td>{item.GERENTE}</td>
-                    <td>{item.COORD}</td>
-                    <td>{item.EXECUTIVO}</td>
-                    <td>{item.LOGIN_NET}</td>
-                    <td>{item.LOGIN_MPLAY}</td>
-                    <td>{item.LOGIN_CLARO}</td>
-                    <td>{item.ADMISSAO}</td>
-                    <td>{item.TIPO_HC}</td>
-                  </>
-                )}
-
-                {canal === "PAP" && (
-                  <>
-                    <td>{item.CANAL}</td>
-                    <td>{item.IBGE}</td>
-                    <td>{item.CIDADE}</td>
-                    <td>{item.RAZAO_SOCIAL}</td>
-                    <td>{item.CNPJ}</td>
-                    <td>{item.NOME}</td>
-                    <td>{item.CLASSIFICACAO}</td>
-                    <td>{item.SEGMENTO}</td>
-                    <td>{item.PRODUTO_ATUACAO}</td>
-                    <td>{item.DATA_CADASTRO}</td>
-                    <td>{item.SITUACAO}</td>
-                    <td>{item.LOGIN_NET}</td>
-                    <td>{item.TIPO}</td>
-                  </>
-                )}
+          <tbody>
+            {isLoading ? (
+              <tr>
+                <td colSpan={12}>
+                  <LoadingSvg text="Carregando..." />
+                </td>
               </tr>
-            ))
-          )}
-        </tbody>
-      </table>
+            ) : (
+              filteredData.map((item, idx) => (
+                <tr key={item.ID || idx}>
+                  {canal === "LP" && (
+                    <>
+                      <td>{item.CANAL}</td>
+                      <td>{item.COLABORADOR}</td>
+                      <td>{item.LOGIN_CLARO}</td>
+                      <td>{item.COMTA}</td>
+                      <td>{item.CABEAMENTO}</td>
+                      <td>{item.LOGIN_NET}</td>
+                      <td>{item.LOJA}</td>
+                      <td>{item.CIDADE}</td>
+                      <td>{item.COORDENADOR}</td>
+                      <td>{item.STATUS}</td>
+                    </>
+                  )}
+
+                  {canal === "PEP" && (
+                    <>
+                      <td>{item.CANAL}</td>
+                      <td>{item.CIDADE}</td>
+                      <td>{item.IBGE}</td>
+                      <td>{item.ATIVO}</td>
+                      <td>{item.GERENTE}</td>
+                      <td>{item.COORD}</td>
+                      <td>{item.EXECUTIVO}</td>
+                      <td>{item.LOGIN_NET}</td>
+                      <td>{item.LOGIN_MPLAY}</td>
+                      <td>{item.LOGIN_CLARO}</td>
+                      <td>{item.ADMISSAO}</td>
+                      <td>{item.TIPO_HC}</td>
+                    </>
+                  )}
+
+                  {canal === "PAP" && (
+                    <>
+                      <td>{item.CANAL}</td>
+                      <td>{item.IBGE}</td>
+                      <td>{item.CIDADE}</td>
+                      <td>{item.RAZAO_SOCIAL}</td>
+                      <td>{item.CNPJ}</td>
+                      <td>{item.NOME}</td>
+                      <td>{item.CLASSIFICACAO}</td>
+                      <td>{item.SEGMENTO}</td>
+                      <td>{item.PRODUTO_ATUACAO}</td>
+                      <td>{item.DATA_CADASTRO}</td>
+                      <td>{item.SITUACAO}</td>
+                      <td>{item.LOGIN_NET}</td>
+                      <td>{item.TIPO}</td>
+                    </>
+                  )}
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </section>
     </main>
   );
 }

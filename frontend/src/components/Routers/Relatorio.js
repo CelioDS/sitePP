@@ -1,7 +1,6 @@
 import RenameTitle from "../Tools/RenameTitle";
-import { useState, useEffect, useLayoutEffect } from "react";
-import axios from "axios";
-import { toast } from "react-toastify";
+import { useState, useLayoutEffect } from "react";
+
 import Container from "../Layout/Container";
 import RelatorioUser from "../Layout/RelatorioUser";
 import RelatorioAdmin from "../Layout/RelatorioAdmin";
@@ -11,12 +10,11 @@ import Style from "./Relatorio.module.css";
 import ValidarToken from "../Tools/ValidarToken";
 
 export default function Relatorio() {
-  const [DataBase, setDataBase] = useState([]);
   const Url = process.env.REACT_APP_API_URL || "http://localhost:8000";
   const [userData, setUserData] = useState(null);
   const today = format(
     fromZonedTime(new Date(), "America/Sao_Paulo"),
-    "yyyy-MM-dd"
+    "yyyy-MM-dd",
   ); //
   const user = userData?.login;
   const admin = userData?.admin;
@@ -38,15 +36,9 @@ export default function Relatorio() {
       <main className={Style.main}>
         <RenameTitle initialTitle={"P&P - Relatório"} />
         {admin ? (
-          <RelatorioAdmin DataBase={DataBase} user={user} />
+          <RelatorioAdmin user={user} Url={Url} />
         ) : (
-          <RelatorioUser
-            DataBase={DataBase}
-            setDataBase={setDataBase}
-            user={user}
-            today={today}
-            admin={admin}
-          />
+          <RelatorioUser Url={Url} user={user} today={today} admin={admin} />
         )}
       </main>
     </Container>

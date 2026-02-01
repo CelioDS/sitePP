@@ -6,6 +6,7 @@ import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
 import { format } from "date-fns";
 import { fromZonedTime } from "date-fns-tz";
+import Style from "./TableAdmin.module.css";
 
 import TableFilters from "./../Tools/FiltrosSelecao";
 
@@ -37,15 +38,18 @@ export default function TableAdmin({ Url }) {
     if (!datas.length) return null;
     return format(
       fromZonedTime(datas.sort().at(-1), "America/Sao_Paulo"),
-      "HH:mm dd-MM-yyyy "
+      "HH:mm dd-MM-yyyy ",
     );
   }, [dataBase]);
 
   const LOGIN_ATUALIZACAO_info = useMemo(() => {
     if (!Array.isArray(dataBase) || dataBase.length === 0) return null;
-    return dataBase.map((item) => item.LOGIN_ATUALIZACAO).filter(Boolean).sort().at(-1);
+    return dataBase
+      .map((item) => item.LOGIN_ATUALIZACAO)
+      .filter(Boolean)
+      .sort()
+      .at(-1);
   }, [dataBase]);
-
 
   const fetchData = async () => {
     if (!Url || !rota) return;
@@ -90,14 +94,19 @@ export default function TableAdmin({ Url }) {
       return;
     }
     const formattedData = dataBase.map(
-      ({ ID, DATA_MAX, DATA_ATUALIZACAO, LOGIN_ATUALIZACAO, ...rest }) => rest
+      ({ ID, DATA_MAX, DATA_ATUALIZACAO, LOGIN_ATUALIZACAO, ...rest }) => rest,
     );
     const sheet = XLSX.utils.json_to_sheet(formattedData);
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, sheet, rota);
-    const excelBuffer = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
-    const blob = new Blob([excelBuffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
-    
+    const excelBuffer = XLSX.write(workbook, {
+      bookType: "xlsx",
+      type: "array",
+    });
+    const blob = new Blob([excelBuffer], {
+      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    });
+
     // Nome do arquivo dinâmico
     const prefix = latest ? "LatestMes" : "Geral";
     const range = start ? `_${start}_${end}` : "";
@@ -105,67 +114,131 @@ export default function TableAdmin({ Url }) {
   };
 
   return (
-    <main>
+    <main className={Style.main}>
       <TableFilters
-        search={search} setSearch={setSearch}
-        start={start} setStart={setStart}
-        end={end} setEnd={setEnd}
-        latest={latest} setLatest={setLatest}
+        search={search}
+        setSearch={setSearch}
+        start={start}
+        setStart={setStart}
+        end={end}
+        setEnd={setEnd}
+        latest={latest}
+        setLatest={setLatest}
         isLoading={isLoading}
       />
 
       <section style={{ marginTop: 12 }}>
-        <button disabled={rota === "lojapropria" || isLoading} onClick={() => setRota("lojapropria")}>Loja Própria</button>
-        <button disabled={rota === "portaaporta" || isLoading} onClick={() => setRota("portaaporta")} style={{ marginLeft: 8 }}>Porta a Porta</button>
-        <button onClick={handleDownload} disabled={isLoading || dataBase.length === 0} style={{ marginLeft: 16 }}>Download Excel</button>
         
+        <section className={Style.asideBTN}>
+          <button
+            disabled={rota === "lojapropria" || isLoading}
+            onClick={() => setRota("lojapropria")}
+          >
+            Loja Própria
+          </button>
+          <button
+            disabled={rota === "portaaporta" || isLoading}
+            onClick={() => setRota("portaaporta")}
+            style={{ marginLeft: 8 }}
+          >
+            Porta a Porta
+          </button>
+          <button
+            onClick={handleDownload}
+            disabled={isLoading || dataBase.length === 0}
+            style={{ marginLeft: 16 }}
+          >
+            Download Excel
+          </button>
+        </section>
+
         <p>
-          <strong>Última atualização (do resultado):</strong> {DATA_ATUALIZACAO_info || "—"} {LOGIN_ATUALIZACAO_info || "—"}
+          <strong>Última atualização (do resultado):</strong>{" "}
+          {DATA_ATUALIZACAO_info || "—"} {LOGIN_ATUALIZACAO_info || "—"}
         </p>
 
         <table style={{ marginTop: 12, width: "100%" }}>
           <thead>
             <tr>
               {isLoading ? (
-                <th colSpan={colSpan}><LoadingSvg text="Carregando..." /></th>
+                <th colSpan={colSpan}>
+                  <LoadingSvg text="Carregando..." />
+                </th>
               ) : rota === "lojapropria" ? (
                 <>
-                  <th>CANAL</th><th>COLABORADOR</th><th>LOGIN_CLARO</th><th>COMTA</th>
-                  <th>CABEAMENTO</th><th>LOGIN_NET</th><th>LOJA</th><th>CIDADE</th>
-                  <th>COORDENADOR</th><th>STATUS</th>
+                  <th>CANAL</th>
+                  <th>COLABORADOR</th>
+                  <th>LOGIN_CLARO</th>
+                  <th>COMTA</th>
+                  <th>CABEAMENTO</th>
+                  <th>LOGIN_NET</th>
+                  <th>LOJA</th>
+                  <th>CIDADE</th>
+                  <th>COORDENADOR</th>
+                  <th>STATUS</th>
                 </>
               ) : (
                 <>
-                  <th>CANAL</th><th>IBGE</th><th>CIDADE</th><th>RAZAO_SOCIAL</th>
-                  <th>CNPJ</th><th>NOME</th><th>CLASSIFICACAO</th><th>SEGMENTO</th>
-                  <th>PRODUTO_ATUACAO</th><th>DATA_CADASTRO</th><th>SITUACAO</th>
-                  <th>LOGIN_NET</th><th>TIPO</th>
+                  <th>CANAL</th>
+                  <th>IBGE</th>
+                  <th>CIDADE</th>
+                  <th>RAZAO_SOCIAL</th>
+                  <th>CNPJ</th>
+                  <th>NOME</th>
+                  <th>CLASSIFICACAO</th>
+                  <th>SEGMENTO</th>
+                  <th>PRODUTO_ATUACAO</th>
+                  <th>DATA_CADASTRO</th>
+                  <th>SITUACAO</th>
+                  <th>LOGIN_NET</th>
+                  <th>TIPO</th>
                 </>
               )}
             </tr>
           </thead>
           <tbody>
             {!isLoading && !dataBase.length && (
-              <tr><td colSpan={colSpan} style={{ textAlign: "center" }}>Sem dados...</td></tr>
+              <tr>
+                <td colSpan={colSpan} style={{ textAlign: "center" }}>
+                  Sem dados...
+                </td>
+              </tr>
             )}
-            {!isLoading && dataBase.map((item, idx) => (
-               <tr key={idx}>
-                 {rota === "lojapropria" ? (
-                   <>
-                     <td>{item.CANAL}</td><td>{item.COLABORADOR}</td><td>{item.LOGIN_CLARO}</td>
-                     <td>{item.COMTA}</td><td>{item.CABEAMENTO}</td><td>{item.LOGIN_NET}</td>
-                     <td>{item.LOJA}</td><td>{item.CIDADE}</td><td>{item.COORDENADOR}</td><td>{item.STATUS}</td>
-                   </>
-                 ) : (
-                   <>
-                     <td>{item.CANAL}</td><td>{item.IBGE}</td><td>{item.CIDADE}</td>
-                     <td>{item.RAZAO_SOCIAL}</td><td>{item.CNPJ}</td><td>{item.NOME}</td>
-                     <td>{item.CLASSIFICACAO}</td><td>{item.SEGMENTO}</td><td>{item.PRODUTO_ATUACAO}</td>
-                     <td>{item.DATA_CADASTRO}</td><td>{item.SITUACAO}</td><td>{item.LOGIN_NET}</td><td>{item.TIPO}</td>
-                   </>
-                 )}
-               </tr>
-            ))}
+            {!isLoading &&
+              dataBase.map((item, idx) => (
+                <tr key={idx}>
+                  {rota === "lojapropria" ? (
+                    <>
+                      <td>{item.CANAL}</td>
+                      <td>{item.COLABORADOR}</td>
+                      <td>{item.LOGIN_CLARO}</td>
+                      <td>{item.COMTA}</td>
+                      <td>{item.CABEAMENTO}</td>
+                      <td>{item.LOGIN_NET}</td>
+                      <td>{item.LOJA}</td>
+                      <td>{item.CIDADE}</td>
+                      <td>{item.COORDENADOR}</td>
+                      <td>{item.STATUS}</td>
+                    </>
+                  ) : (
+                    <>
+                      <td>{item.CANAL}</td>
+                      <td>{item.IBGE}</td>
+                      <td>{item.CIDADE}</td>
+                      <td>{item.RAZAO_SOCIAL}</td>
+                      <td>{item.CNPJ}</td>
+                      <td>{item.NOME}</td>
+                      <td>{item.CLASSIFICACAO}</td>
+                      <td>{item.SEGMENTO}</td>
+                      <td>{item.PRODUTO_ATUACAO}</td>
+                      <td>{item.DATA_CADASTRO}</td>
+                      <td>{item.SITUACAO}</td>
+                      <td>{item.LOGIN_NET}</td>
+                      <td>{item.TIPO}</td>
+                    </>
+                  )}
+                </tr>
+              ))}
           </tbody>
         </table>
       </section>

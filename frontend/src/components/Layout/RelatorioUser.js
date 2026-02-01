@@ -1,406 +1,371 @@
 import LoadingSvg from "../Item-Layout/Loading";
-import { Link } from "react-router-dom";
 import Style from "./RelatorioUser.module.css";
 import { useMemo, useState, useEffect } from "react";
 import { toast } from "react-toastify";
 import axios from "axios";
-//import QrCode from "../Item-Layout/qrCode";
-import { BsWhatsapp } from "react-icons/bs";
 import ValidarToken from "../Tools/ValidarToken";
+import ReactApexChart from "react-apexcharts";
+import { format } from "date-fns";
+import { toZonedTime } from "date-fns-tz";
+import ptBR from "date-fns/locale/pt-BR";
 
-export default function RelatorioUser({
-  DataBase,
-  setDataBase,
-  handleInputChange,
-  handleSubmit,
-  today,
-  admin,
-}) {
-  const Url = process.env.REACT_APP_API_URL || "http://localhost:8000";
-  const data = DataBase.length;
-  const [hidden, setHidden] = useState();
-  const [whatsNumber, setWhatsNumber] = useState("");
-  const [isSubmit, setSubmit] = useState(false);
-  const [whatsappOn, setWhatsappOn] = useState();
-  const userId = localStorage.getItem("login"); // vindo do login
+/**
+ * Este componente:
+ * - Busca /lojapropriaGrafico
+ * - Normaliza as chaves de retorno (ANOMES, coordenador, quantidades)
+ * - Renderiza 2 gráficos (Barras agrupadas, Donut)
+ * - Exibe KPIs e Loading
+ * - **Possui filtro por mês/ano (input type="month")**
+ */
+export default function RelatorioUser({ Url }) {
   const [userData, setUserData] = useState(null);
+  const [dataBase, setDataBase] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Filtro por mês (YYYY-MM)
+
+  const tz = "America/Sao_Paulo";
+  const hojeBR = toZonedTime(new Date(), tz);
+  const tituloMes = format(hojeBR, "yyyy'-'MM", { locale: ptBR }); // ex.: janeiro de 2026
+
+  const [monthFilter, setMonthFilter] = useState(tituloMes); // exemplo: "2026-01"
 
   const user = userData?.login;
+  const canal = userData?.canal;
 
+  // ---- Helpers ----
+  // Normaliza um registro vindo da API
+  const normalizeRow = (r) => ({
+    anomes: Number(r?.anomes ?? r?.ANOMES ?? 0),
+    coordenador: (r?.coordenador ?? r?.COORDENADOR ?? "").toString(),
+    colab: Number(
+      r?.qtde_colaboradores_distintos ??
+        r?.qtde_colaborador_distintas ??
+        r?.QTDE_COLABORADORES_DISTINTOS ??
+        r?.QTDE_COLABORADOR_DISTINTAS ??
+        r?.colaboradores ??
+        0,
+    ),
+    lojas: Number(
+      r?.qtde_lojas_distintas ?? r?.QTDE_LOJAS_DISTINTAS ?? r?.lojas ?? 0,
+    ),
+    cidades: Number(
+      r?.qtde_cidades_distintas ?? r?.QTDE_CIDADES_DISTINTAS ?? r?.cidades ?? 0,
+    ),
+    registros: Number(r?.registros ?? r?.REGISTROS ?? 0),
+  });
+
+  // Converte "YYYY-MM" => 202601 (número)
+  const toAnomes = (val) => {
+    if (!val) return undefined;
+    const digits = val.replace("-", ""); // "2026-01" -> "202601"
+    const n = Number(digits);
+    return Number.isFinite(n) ? n : undefined;
+  };
+
+  const mockData = [
+    {
+      anomes: 202601,
+      coordenador: "ANTONIO TRUGILHO",
+      colab: 1,
+      lojas: 1,
+      cidades: 1,
+      registros: 1,
+    },
+    {
+      anomes: 202601,
+      coordenador: "LUAN TRUGILHO",
+      colab: 1,
+      lojas: 1,
+      cidades: 1,
+      registros: 1,
+    },
+    {
+      anomes: 202601,
+      coordenador: "MARINA SULEIMAN",
+      colab: 1,
+      lojas: 1,
+      cidades: 1,
+      registros: 1,
+    },
+  ];
+
+  // ---- Buscar dados da API (com filtro anomes) ----
   useEffect(() => {
+    let ignore = false;
+
+    async function fetchData() {
+      try {
+        setIsLoading(true);
+        const params = {};
+        const anomes = toAnomes(monthFilter);
+        if (anomes) params.anomes = anomes;
+
+        const resp = await axios.get(`${Url}/lojapropriaGrafico`, { params });
+        const rows = Array.isArray(resp.data) ? resp.data : [];
+        const parsed = rows.map(normalizeRow);
+
+        if (!ignore) {
+          setDataBase(parsed);
+          if (!parsed.length) {
+            toast.info("Sem dados para o período selecionado.");
+          }
+        }
+      } catch (err) {
+        console.error("Erro ao carregar dados:", err);
+        toast.error("Falha ao carregar dados. Exibindo dados de exemplo.");
+        if (!ignore) setDataBase(mockData);
+      } finally {
+        if (!ignore) setIsLoading(false);
+      }
+    }
+
+    fetchData();
+    return () => {
+      ignore = true;
+    };
+  }, [Url, monthFilter]); // refetch quando trocar o filtro
+
+  // ---- Validar token (uma vez ao montar) ----
+  useEffect(() => {
+    let ignore = false;
     async function loadUser() {
       const data = await ValidarToken();
+      if (ignore) return;
       if (!data) {
         window.location.href = "/Error";
         return;
       }
-      console.log(DataBase);
-      setUserData(data); // { login, admin }
+      setUserData(data); // { login, admin, ... }
     }
     loadUser();
-  }, [DataBase]);
+    return () => {
+      ignore = true;
+    };
+  }, []);
 
-  function gerarMensagens(item, nomeAssistente) {
-    const footer = `\n\n— Atendimento Claro\n${nomeAssistente}`;
-    const dataFormatada = new Date(item.data_futura).toLocaleDateString(
-      "pt-BR"
+  // ---- MEMOs para gráficos ----
+  // Ordena: lojas desc -> cidades desc -> coordenador A-Z
+  const byCoord = useMemo(() => {
+    const rows = [...dataBase];
+    rows.sort(
+      (a, b) =>
+        b.lojas - a.lojas ||
+        b.cidades - a.cidades ||
+        a.coordenador.localeCompare(b.coordenador),
     );
+    return rows;
+  }, [dataBase]);
 
-    function getOnlyNumber(value) {
-      if (!value) return 0; // se vier null, undefined, "", etc
+  // Donut (participação por Lojas; pode trocar para Colab)
+  const donut = useMemo(() => {
+    const labels = byCoord.map((r) => r.coordenador.split(" ")[0]);
+    const series = byCoord.map((r) => r.lojas);
+    return { labels, series };
+  }, [byCoord]);
 
-      const onlyNumbers = String(value).replace(/\D/g, ""); // remove tudo que não for número
+  // KPIs
+  const kpis = useMemo(() => {
+    const coords = new Set(byCoord.map((x) => x.coordenador)).size;
+    const totalColab = byCoord.reduce((acc, r) => acc + r.colab, 0);
+    const totalLojas = byCoord.reduce((acc, r) => acc + r.lojas, 0);
+    const totalCidades = byCoord.reduce((acc, r) => acc + r.cidades, 0);
+    return { coords, totalColab, totalLojas, totalCidades };
+  }, [byCoord]);
 
-      return onlyNumbers ? Number(onlyNumbers) : 0;
-    }
+  // ---- ApexCharts options/series ----
+  const optionsBar = useMemo(
+    () => ({
+      chart: { type: "bar", toolbar: { show: true } },
+      plotOptions: { bar: { horizontal: false, columnWidth: "55%" } },
+      dataLabels: { enabled: false },
+      stroke: { show: true, width: 2, colors: ["transparent"] },
+      xaxis: {
+        categories: byCoord.map((r) => r.coordenador.split(" ")[0]),
+        title: { text: "Coordenador" },
+      },
+      yaxis: { title: { text: "Quantidade" }, decimalsInFloat: 0 },
+      tooltip: { shared: true, intersect: false },
+      legend: { position: "bottom" },
+      colors: ["#A1343C", "#E68F96", "#8f8989"], // colab, lojas, cidades
+    }),
+    [byCoord],
+  );
 
-    const flag = getOnlyNumber(item.flag_agenda_futura);
-    // Mensagens para antecipação de agenda
-    if (flag > 24) {
-      return [
-        `Olá! Tudo bem?
+  const seriesBar = useMemo(
+    () => [
+      { name: "Colaboradores", data: byCoord.map((r) => r.colab) },
+      { name: "Lojas", data: byCoord.map((r) => r.lojas) },
+      { name: "Cidades", data: byCoord.map((r) => r.cidades) },
+    ],
+    [byCoord],
+  );
 
-Aqui é do *Time de Agendamento da Claro*. Identificamos uma oportunidade para *antecipar o seu atendimento* 😊
-
-O atendimento está vinculado ao contrato *${item.nr_contrato}*, programado para o período *${item.nm_periodo_agendamento}* na cidade de *${item.desc_mun}*.
-
-Atualmente, sua visita está agendada para o dia *${dataFormatada}*.
-
-Caso você tenha disponibilidade para ser atendido antes, podemos ajustar imediatamente. Basta me confirmar por aqui que farei a alteração para você.
-
-Fico no aguardo da sua resposta!${footer}`,
-      ];
-    }
-
-    // ===========================
-    // 📌 MENSAGENS PARA CONFIRMAÇÃO DE AGENDAMENTO
-    // ===========================
-    return [
-      `Olá! Tudo bem?
-
-Aqui é do *Time de Agendamento da Claro*. Estamos entrando em contato para realizar a *confirmação do seu atendimento* referente ao contrato *${item.nr_contrato}*.
-
-Seu atendimento está programado para o período *${item.nm_periodo_agendamento}*, no município de *${item.desc_mun}*, com agendamento previsto para o dia *${dataFormatada}*.
-
-Para garantirmos que tudo ocorra conforme o planejado, poderia confirmar sua disponibilidade para essa data e período?
-
-Sua confirmação é muito importante para mantermos o atendimento sem atrasos.
-
-Agradeço desde já!${footer}`,
-    ];
-  }
-
-  async function handleSendWhats(item) {
-    if (isSubmit) {
-      toast.warning("Aguarde um momento para reenviar a mensagem via WhatsApp");
-      return;
-    }
-    setSubmit(true);
-
-    if (!whatsNumber) {
-      toast.warn("Digite o número!");
-      setSubmit(false);
-      return;
-    }
-
-    const mensagens = gerarMensagens(
-      item,
-      localStorage.getItem("login").toUpperCase()
-    );
-    const mesagensAleatorios =
-      mensagens[Math.floor(Math.random() * mensagens.length)];
-
-    try {
-      const res = await axios.patch(`${Url}/${item.id}`, {
-        tel_contato: whatsNumber,
-      });
-
-      toast.success(res.data);
-
-      setDataBase((prev) =>
-        prev.map((dbItem) =>
-          dbItem.id === item.id
-            ? { ...dbItem, tel_contato: whatsNumber }
-            : dbItem
-        )
-      );
-    } catch (error) {
-      toast.error(error.response?.data || error.message);
-      console.log(error);
-    } finally {
-      setTimeout(() => {
-        setSubmit(false);
-      }, 5000);
-    }
-
-    try {
-      await axios.post(`${Url}/send/${userId}`, {
-        number: whatsNumber,
-        message: mesagensAleatorios,
-      });
-
-      toast.success("Mensagem enviada com sucesso!");
-    } catch (error) {
-      toast.error("Erro ao enviar mensagem: " + error.message);
-    }
-    setWhatsNumber("");
-  }
-
-  const finalizadoHoje = useMemo(() => {
-    return DataBase.filter(
-      (item) =>
-        item.finalizado === 1 && item.data_assumir?.slice(0, 10) === today
-    );
-  }, [DataBase, today]);
-
-  const pendenteHoje = useMemo(() => {
-    return DataBase.filter((item) => !item.finalizado);
-  }, [DataBase]);
+  const optionsDonut = useMemo(
+    () => ({
+      labels: donut.labels,
+      legend: { position: "bottom" },
+      tooltip: { y: { formatter: (val) => `${val}` } },
+      colors: [
+        "#A1343C",
+        "#E68F96",
+        "#bfa5a4",
+        "#595A4A",
+        "#999999",
+        "#E6E6E6",
+        "#CCCCCC",
+        "#897170",
+        "#8BAAAD",
+      ], // colab, lojas, cidades
+    }),
+    [donut],
+  );
 
   return (
     <main className={Style.main}>
-    
-      <p>Lista de agendamentos pendentes de : {user}</p>
-      <p>Quantidade: {pendenteHoje.length}</p>
+      {/* Cabeçalho + Filtro */}
+      <section
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 12,
+          marginBottom: 16,
+          flexWrap: "wrap",
+        }}
+      >
+        <h2 style={{ margin: 0 }}>Lojas Próprias</h2>
 
-      <section>
-        {data.length === 0 ? (
-          <main>
-            <LoadingSvg text={"Sem dados pendentes..."} />
-          </main>
-        ) : (
-          <table className={Style.table}>
-            <thead>
-              <tr>
-                <th>Contrato</th>
-                <th>Telefone</th>
-                <th>Movimento</th>
-                <th>Contato com sucesso</th>
-                {/*hidden === "Instalação Reagendada" && <th>Data Nova</th> */}
-                {/*hidden === "Instalação Antecipada" && <th>Data Nova</th>*/}
-                <th>Data Nova</th>
-                <th>Forma de Contato</th>
-                <th>Observação</th>
-                <th>Salvar</th>
-              </tr>
-            </thead>
-            <tbody>
-              {DataBase.map((item, index) =>
-                !item.finalizado ? (
-                  <tr key={item.id || index}>
-                    <td>
-                      <Link
-                        to={`/Visualizar/${item.id}/${item.nr_contrato}`}
-                        title="Acesse aqui"
-                        aria-label={`Acesse ${item.nr_contrato}`}
-                      >
-                        {item.nr_contrato}
-                      </Link>
-                    </td>
-
-                    <td>
-                      <div className={Style.whatsapp}>
-                        <input
-                          type="text"
-                          value={item.tel_contato ? item.tel_contato : null}
-                          disabled={
-                            Boolean(item.tel_contato) ||
-                            Boolean(isSubmit) ||
-                            Boolean(!whatsappOn)
-                          }
-                          onChange={(e) => {
-                            setWhatsNumber(e.target.value);
-                            handleInputChange(e, index, "telefoneContato");
-                          }}
-                          placeholder="(XX) XXXXX-XXXX"                        />
-
-                        <button
-                        className={Style.btnWhats}
-                          disabled={
-                            Boolean(item.tel_contato) ||
-                            Boolean(isSubmit) ||
-                            Boolean(!whatsappOn)
-                          }
-                          type="button"
-                          onClick={() => handleSendWhats(item)}
-                        >
-                          <BsWhatsapp />
-                        </button>
-                      </div>
-                    </td>
-
-                    <td>
-                      <select
-                        id="movimento"
-                        name="movimento"
-                        value={item.movimento || ""}
-                        onChange={(e) => {
-                          handleInputChange(e, index, "movimento");
-                          setHidden(e.target.value);
-                        }}
-                      >
-                        <option value="">Selecione a movimentação</option>
-                        <option value="Agenda Mantida">Agenda Mantida</option>
-                        <option value="Instalação Antecipada">
-                          Instalação Antecipada
-                        </option>
-                        <option value="Sem Retorno do Cliente">
-                          Sem Retorno do Cliente
-                        </option>
-                        <option value="Serviço Já Conectado">
-                          Serviço Já Conectado
-                        </option>
-                        <option value="Solicitado ou Cancelado pelo Cliente">
-                          Solicitado ou Cancelado pelo Cliente
-                        </option>
-                        <option value="Erro de Pacote ou Cadastro no Sistema">
-                          Erro de Pacote ou Cadastro no Sistema
-                        </option>
-                        <option value="Instalação Reagendada">
-                          Instalação Reagendada
-                        </option>
-                        <option value="Quebra Técnica de Instalação (Sem Viabilidade)">
-                          Quebra Técnica de Instalação (Sem Viabilidade)
-                        </option>
-                      </select>
-                    </td>
-
-                    <td>
-                      <select
-                        value={item.contatoComSucesso || ""}
-                        onChange={(e) =>
-                          handleInputChange(e, index, "contatoComSucesso")
-                        }
-                      >
-                        <option value="">Selecione</option>
-                        <option value="SIM">SIM</option>
-                        <option value="NAO">NÃO</option>
-                      </select>
-                    </td>
-
-                    {[
-                      "Instalação Reagendada",
-                      "Instalação Antecipada",
-                    ].includes(item.movimento) ? (
-                      <td>
-                        <input
-                          type="date"
-                          value={item.novaData || ""}
-                          onChange={(e) =>
-                            handleInputChange(e, index, "novaData")
-                          }
-                        />
-                      </td>
-                    ) : (
-                      <td>{!hidden && ""}</td>
-                    )}
-
-                    <td>
-                      <select
-                        value={item.formaContato || ""}
-                        onChange={(e) =>
-                          handleInputChange(e, index, "formaContato")
-                        }
-                      >
-                        <option value="">Selecione</option>
-                        <option value="Whatsapp">Whatsapp</option>
-                        <option value="Ligacao">Ligação</option>
-                      </select>
-                    </td>
-
-                    <td>
-                      <textarea
-                        value={item.observacao || ""}
-                        onChange={(e) =>
-                          handleInputChange(e, index, "observacao")
-                        }
-                      />
-                    </td>
-
-                    <td>
-                      <button onClick={() => handleSubmit(item)}>Salvar</button>
-                    </td>
-                  </tr>
-                ) : (
-                  <tr key={`no-data-${index}`}>
-                    {data.length === 0 && (
-                      <td colSpan={8}>Sem pedidos pendentes {today}</td>
-                    )}
-                  </tr>
-                )
-              )}
-            </tbody>
-          </table>
-        )}
+        <div
+          style={{
+            marginLeft: "auto",
+            display: "flex",
+            gap: 8,
+            alignItems: "center",
+          }}
+        >
+          <label style={{ fontSize: 12, color: "#6b7280" }}>
+            Filtrar por mês
+          </label>
+          <input
+            type="month"
+            value={monthFilter}
+            onChange={(e) => setMonthFilter(e.target.value)}
+            aria-label="Filtro por mês (YYYY-MM)"
+          />
+          {monthFilter && (
+            <button
+              type="button"
+              className={Style.linkBtn}
+              onClick={() => setMonthFilter("")}
+              style={{ padding: "6px 10px" }}
+              title="Limpar filtro"
+            >
+              Limpar
+            </button>
+          )}
+        </div>
       </section>
-      <p>Lista de agendamentos finalizados:</p>
-      <p>Quantidade: {finalizadoHoje.length}</p>
-      <section>
-        {data === 0 ? (
-          <main>
-            <LoadingSvg text={"Sem dados pendentes..."} />
-          </main>
-        ) : (
-          <table className={Style.table}>
-            <thead>
-              <tr>
-                <th>Contrato</th>
-                <th>Município</th>
-                <th>Movimento</th>
-                <th>Contato com sucesso</th>
-                <th>Nova Data</th>
-                <th>Forma de Contato</th>
-                <th>Telefone</th>
-                <th>Observação</th>
-              </tr>
-            </thead>
-            <tbody>
-              {DataBase.map((item, index) =>
-                item.finalizado && item.data_assumir?.slice(0, 10) === today ? (
-                  <tr key={item.id || index}>
-                    <td>
-                      <Link
-                        to={`/Visualizar/${item.id}/${item.nr_contrato}`}
-                        title="Acesse aqui"
-                        aria-label={`Acesse ${item.nr_contrato}`}
-                      >
-                        {item.nr_contrato}
-                      </Link>
-                    </td>
-                    <td>{item.desc_mun}</td>
 
-                    <td>{item.movimento}</td>
+      {/* Loading */}
+      {isLoading && (
+        <div style={{ display: "grid", placeItems: "center", height: 260 }}>
+          <LoadingSvg />
+          <p style={{ marginTop: 8, color: "#6b7280" }}>Carregando dados...</p>
+        </div>
+      )}
 
-                    <td>{item.contato_com_sucesso}</td>
+      {/* Conteúdo */}
+      {!isLoading && (
+        <>
+          {/* KPIs */}
+          <section
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(4, minmax(160px, 1fr))",
+              gap: 12,
+              marginBottom: 16,
+            }}
+          >
+            <Kpi title="Coordenadores" value={kpis.coords} />
+            <Kpi title="Total de Colaboradores" value={kpis.totalColab} />
+            <Kpi title="Total de Lojas" value={kpis.totalLojas} />
+            <Kpi title="Total de Cidades" value={kpis.totalCidades} />
+          </section>
 
-                    <td>
-                      {item.nova_data && item.nova_data
-                        ? new Date(item.nova_data).toLocaleString("pt-BR", {
-                            day: "2-digit",
-                            month: "2-digit",
-                            year: "numeric",
-                          })
-                        : "__/__/__"}
-                    </td>
+          <section className={Style.graficoaside}>
+            {/* Barras Agrupadas */}
+            <aside className={Style.card}>
+              <h3 style={{ marginBottom: 8 }}>
+                Colaboradores × Lojas × Cidades (por Coordenador)
+              </h3>
+              <div
+                style={{ width: "100%", maxWidth: "100%", overflow: "hidden" }}
+              >
+                <ReactApexChart
+                  options={optionsBar}
+                  series={seriesBar}
+                  type="bar"
+                  height={360}
+                  width={420}
+                />
+              </div>
+            </aside>
 
-                    <td>{item.forma_contato}</td>
+            {/* Donut */}
+            <aside className={Style.card}>
+              <h3 style={{ marginBottom: 8 }}>
+                Participação por Coordenador (Lojas)
+              </h3>
+              <ReactApexChart
+                options={optionsDonut}
+                series={donut.series}
+                type="donut"
+                height={340}
+                width={420}
+              />
+            </aside>
+          </section>
 
-                    <td>{item.tel_contato}</td>
-
-                    <td>{item.obs}</td>
+          {/* Tabela simples */}
+          <section className={Style.card}>
+            <div style={{ overflowX: "auto" }}>
+              <table className={Style.table}>
+                <thead>
+                  <tr>
+                    <th>ANOMES</th>
+                    <th>Coordenador</th>
+                    <th>Colaboradores</th>
+                    <th>Lojas</th>
+                    <th>Cidades</th>
                   </tr>
-                ) : (
-                  <tr key={`no-data-${index}`}>
-                    {data.length === 0 && (
-                      <td colSpan={8}>Sem pedidos finalizado {today}</td>
-                    )}
-                  </tr>
-                )
-              )}
-            </tbody>
-          </table>
-        )}
-      </section>
+                </thead>
+                <tbody>
+                  {byCoord.map((r, idx) => (
+                    <tr key={idx}>
+                      <td>{r.anomes}</td>
+                      <td>{r.coordenador}</td>
+                      <td>{r.colab}</td>
+                      <td>{r.lojas}</td>
+                      <td>{r.cidades}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </section>
+        </>
+      )}
     </main>
+  );
+}
+
+function Kpi({ title, value }) {
+  return (
+    <div className={Style.card} style={{ padding: 12 }}>
+      <div style={{ fontSize: 12, color: "#6b7280", marginBottom: 4 }}>
+        {title}
+      </div>
+      <div style={{ fontSize: 28, fontWeight: 700 }}>{value}</div>
+    </div>
   );
 }

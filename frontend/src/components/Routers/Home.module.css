@@ -1,0 +1,74 @@
+.tablesComparacao {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  flex-direction: column;
+}
+
+.gabidesing {
+  display: flex;
+  align-items: flex-start;
+  text-align: center;
+  width: 100%;
+  gap: 8px; /* opcional para respiro entre itens */
+}
+
+.gabidesing > {
+  margin-left: auto; /* empurra o último para a borda direita */
+}
+
+.gabidesing {
+  border-bottom: 1px solid rgb(168, 53, 53);
+  display: inline-flex;
+  justify-content: space-around;
+  margin: 0 auto;
+}
+
+.gabidesing:first-child {
+  padding-bottom: 0px;
+}
+
+.luandesing div {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  text-align: center;
+  flex-direction: row;
+}
+
+.legendas {
+  color: #666;
+}
+
+.MesAtual {
+  color: #ffffff !important;
+  background-color: #a83535;
+}
+
+.Mescomparacao {
+  color: #ffffff !important;
+  background-color: #6d6868;
+}
+
+.AnoAnterior {
+  color: #0f0f0f !important;
+  background-color: #978d8d;
+}
+
+.classificacaoINST {
+  display: flex;
+  color: #0f0f0f !important;
+  color: #2ca02c !important;
+  text-align: center;
+  align-items: center;
+}
+.classificacaoVB {
+  display: flex;
+  color: #0f0f0f !important;
+  color: #1f77b4 !important;
+  text-align: center;
+  align-items: center;
+}

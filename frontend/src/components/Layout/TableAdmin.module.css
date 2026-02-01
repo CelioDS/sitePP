@@ -37,9 +37,7 @@
 }
 .main > section {
   display: flex;
-  border: 1px solid #ccc;
   background-color: #ffff;
-  filter: drop-shadow(3px 4px 6px #303030cc);
   height: 100%;
   width: 100%;
 }
@@ -62,6 +60,27 @@
 }
 .main > section > div > p > strong {
   color: #131212cc;
+}
+
+.main input[type="text"],
+.main input[type="date"],
+.main input[type="input"],
+.main select {
+  appearance: none;
+  background: var(--color-bg);
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: 8px 10px;
+  font-size: 14px;
+  line-height: 1.2;
+  box-shadow: inset 0 1px 0 rgba(0, 0, 0, 0.02);
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    background-color 0.2s ease;
+  cursor: pointer;
+  filter: drop-shadow(3px 4px 6px #303030cc);
 }
 
 .main input[type="text"],
@@ -108,7 +127,6 @@
   padding: 8px;
   border-radius: var(--radius-sm);
   cursor: pointer;
-  color: #ffff;
 }
 .main input[type="file"]:hover,
 .main button:hover {
@@ -118,10 +136,18 @@
 }
 
 .main table {
-  border: 1px solid #ccc;
   background-color: #ffff;
   width: 100%;
   filter: drop-shadow(3px 3px 3px #ccc8c8cc);
   padding: 5px;
   table-layout: fixed; /* evita expansão */
+  overflow-x: scroll;
+}
+.main .asideBTN {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  flex-direction: row;
+  justify-content: space-around;
+  padding: 5px;
 }
