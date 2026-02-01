@@ -6,8 +6,8 @@ import Teste from "../Item-Layout/teste";
 
 export default function RelatorioUser({ Url }) {
   const [userData, setUserData] = useState(null);
-  const admin = userData?.admin;
-  const login = userData?.login;
+  //const admin = userData?.admin;
+  //const login = userData?.login;
   const canal = userData?.canal;
 
   useEffect(() => {
