@@ -86,6 +86,8 @@ export default function TableAdmin({ Url }) {
 
   useEffect(() => {
     fetchData();
+    
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [Url, rota, search, start, end, latest]);
 
   const handleDownload = () => {

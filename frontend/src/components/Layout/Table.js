@@ -29,7 +29,7 @@ export default function Table({ canal, login, admin, Url }) {
   // Mantém 'rota' em sincronia quando 'canal' mudar
   useEffect(() => {
     setRota(rotas[canal] || "lojapropria");
-  }, [canal]);
+  }, [canal, rotas]);
 
   // Normalizador: transforma qualquer resposta em array
   const toArray = (payload) => {

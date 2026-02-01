@@ -3,8 +3,6 @@ import Table from "../Layout/Table";
 import Style from "./Depara.module.css";
 import Container from "../Layout/Container";
 import { useEffect, useState } from "react";
-import axios from "axios";
-import { toast } from "react-toastify";
 import ValidarToken from "../Tools/ValidarToken";
 import TableAdmin from "../Layout/TableAdmin";
 
