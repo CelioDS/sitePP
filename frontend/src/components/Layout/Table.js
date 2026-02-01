@@ -74,6 +74,7 @@ export default function Table({ canal, login, admin, Url }) {
 
   useEffect(() => {
     fetchData();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [Url, rota, search, start, end, latest]);
 
   const parseAsDate = (value) => {
