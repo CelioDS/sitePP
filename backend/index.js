@@ -30,7 +30,10 @@ app.use(express.json({ limit: "10kb" }));
 // ----------------------
 // 🌐 CORS seguro
 // ----------------------
-const allowedOrigins = ["http://localhost:3000", process.env.BACKEND_URL];
+const allowedOrigins = [
+  "http://localhost:3000",
+  ...(process.env.FRONTEND_URL?.split(",") || []),
+];
 
 app.use(
   cors({
@@ -40,6 +43,8 @@ app.use(
       if (allowedOrigins.includes(origin)) {
         return callback(null, true);
       }
+
+      console.error("CORS bloqueado:", origin);
 
       return callback(new Error("CORS bloqueado: origem não permitida"), false);
     },
