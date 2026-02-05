@@ -30,11 +30,13 @@
   padding-bottom: 0px;
 }
 
+
 .luandesing div {
   height: 100%;
+  width: 100%;
   display: flex;
   align-items: center;
-  justify-content: space-around;
+  justify-content: space-between;
   text-align: center;
   flex-direction: row;
 }

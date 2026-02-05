@@ -9,18 +9,19 @@ import { toZonedTime, formatInTimeZone } from "date-fns-tz";
 import ptBR from "date-fns/locale/pt-BR";
 import BrRsiApex from "../Tools/grafico";
 import Loading from "../Item-Layout/Loading";
+import GraficoPDU from "../Item-Layout/GraficoPDU";
 
 export default function Home() {
   const [data, setData] = useState([]);
   const [dataFULL, setDataFULL] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [rowOLd, setRowOld] = useState({});
   const Url = process.env.REACT_APP_API_URL || "http://localhost:8000";
 
   // [FILTROS] Ano (AAAA) e Referência (REFERENCIA)
   const anoAtual = new Date().getFullYear();
   const [year, setYear] = useState(String(anoAtual)); // "2026"
   const [referencia, setReferencia] = useState("BR"); // "BR" | "SP_INT"
+  const [onlyMovel, setOnlyMovel] = useState(false);
 
   const showYear = Number(year) === anoAtual;
   // Data de referência local (exibição)
@@ -34,14 +35,21 @@ export default function Home() {
         setLoading(true);
 
         const params = new URLSearchParams();
-        if (year) params.set("year", year); // filtra AAAA
-        if (referencia) params.set("referencia", referencia); // filtra REFERENCIA
 
         // Se quiser simular outra data:
         // params.set("refDate", "2026-01-27");
 
-        const resp = await axios.get(`${Url}/pdu?${params.toString()}`);
-        setData(resp.data || []);
+        if (onlyMovel) {
+          if (year) params.set("year", year); // filtra AAAA
+          if (referencia) params.set("referencia", referencia); // filtra REFERENCIA
+          const resp = await axios.get(`${Url}/pdumovel?${params.toString()}`);
+          setData(resp.data || []);
+        } else {
+          if (year) params.set("year", year); // filtra AAAA
+          if (referencia) params.set("referencia", referencia); // filtra REFERENCIA
+          const resp = await axios.get(`${Url}/pdu?${params.toString()}`);
+          setData(resp.data || []);
+        }
       } catch (err) {
         console.error("Erro ao carregar dados:", err);
         setData([]);
@@ -53,9 +61,6 @@ export default function Home() {
     const fetchDataFULL = async () => {
       try {
         setLoading(true);
-        const params = new URLSearchParams();
-        if (year) params.set("year", year); // filtra AAAA
-        if (referencia) params.set("referencia", referencia); // filtra REFERENCIA
         // Se quiser simular outra data:
         // params.set("refDate", "2026-01-27");
 
@@ -71,23 +76,10 @@ export default function Home() {
 
     fetchDataFULL();
     fetchData();
-  }, [Url, year, referencia]);
+  }, [Url, year, referencia, onlyMovel]);
 
   // Pega a primeira (e única) linha retornada
   const row = data?.[0];
-
-  useEffect(() => {
-    // salve somente se houver row
-
-    if (row && typeof row === "object") {
-      localStorage.setItem(String(year), JSON.stringify(row));
-    }
-
-    // colocar uma conta para o ano atual -1
-
-    const prevYearKey = String(Number(year - 1));
-    setRowOld(JSON.parse(localStorage.getItem(prevYearKey)) || {});
-  }, [year, row, anoAtual]);
 
   // Helpers de formatação
   const num = (v, frac = 2) =>
@@ -106,7 +98,7 @@ export default function Home() {
       return formatInTimeZone(
         row.data_referencia,
         "America/Sao_Paulo",
-        "dd/MM/yyyy HH:mm",
+        "dd/MM/yyyy",
         { locale: ptBR },
       );
     } catch {
@@ -172,18 +164,38 @@ export default function Home() {
             </select>
           </div>
 
+          {!onlyMovel && (
+            <div style={filters.group}>
+              <label style={filters.label}>Abrangência</label>
+              <select
+                value={referencia}
+                onChange={(e) => setReferencia(e.target.value)}
+                style={filters.select}
+              >
+                {referencias.map((r) => (
+                  <option
+                    className={Style.options}
+                    key={r.value}
+                    value={r.value}
+                  >
+                    {r.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+
           <div style={filters.group}>
-            <label style={filters.label}>Abrangência</label>
+            <label style={filters.label}>Tipo de Linha</label>
             <select
-              value={referencia}
-              onChange={(e) => setReferencia(e.target.value)}
               style={filters.select}
+              value={onlyMovel.toString()}
+              onChange={(e) => {
+                setOnlyMovel(e.target.value === "true");
+              }}
             >
-              {referencias.map((r) => (
-                <option className={Style.options} key={r.value} value={r.value}>
-                  {r.label}
-                </option>
-              ))}
+              <option value="false">Fixa</option>
+              <option value="true">Móvel</option>
             </select>
           </div>
         </section>
@@ -199,12 +211,12 @@ export default function Home() {
             <div style={kpi.label}>Dias no mês: {row.dias_no_mes}</div>
             <section className={Style.luandesing}>
               <div className={Style.gabidesing} style={kpi.value}>
-                <p>Instalação</p>
-                <p>{num(row.vb_mes_atual, 2)}</p>
+                <p>{onlyMovel ? "BRASIL" : "Instalçao"}</p>
+                <p>{num(row.inst_mes_atual, 2)}</p>
               </div>
               <div style={kpi.value}>
-                <p>Venda Bruta</p>
-                <p>{num(row.inst_mes_atual, 2)}</p>
+                <p>{onlyMovel ? "SPI" : "Venda Bruta"}</p>
+                <p>{num(row.vb_mes_atual, 2)}</p>
               </div>
             </section>
           </aside>
@@ -223,7 +235,7 @@ export default function Home() {
               {num(row.inst_mes_atual - row.inst_ate_hoje, 2)}
             </div>
             <div style={kpi.value}>
-              {num(row.inst_mes_atual - row.vb_ate_hoje, 2)}
+              {num(row.vb_mes_atual - row.vb_ate_hoje, 2)}
             </div>
           </aside>
 
@@ -259,7 +271,6 @@ export default function Home() {
         {/* SUA TABELA REINSERIDA EXATAMENTE COMO ESTAVA */}
         <section className={Style.tablesComparacao}>
           {/* Tabela de somas INST/VB por mês (anterior, atual, próximo) */}
-
           <p
             style={{
               textAlign: "center",
@@ -307,11 +318,11 @@ export default function Home() {
             <tbody>
               <tr>
                 <td style={tbl.tdHead} className={Style.classificacaoINST}>
-                  INST
+                  {onlyMovel ? "BRASIL" : "INST"}
                 </td>
                 {showYear && (
                   <td className={Style.AnoAnterior}>
-                    {num(rowOLd["inst_mes_atual"], 2)}
+                    {num(row.inst_mes_ano_passado, 2)}
                   </td>
                 )}
 
@@ -319,19 +330,19 @@ export default function Home() {
                   <td
                     style={
                       showYear &&
-                      row.inst_mes_atual - rowOLd["inst_mes_atual"] >= 0
+                      row.inst_mes_atual - row.inst_mes_ano_passado >= 0
                         ? { color: "#207210cc" }
                         : { color: "#ff0000" }
                     }
                   >
                     <small title={"Diferença real"}>
                       {showYear &&
-                      row.inst_mes_atual - rowOLd["inst_mes_atual"] >= 0
+                      row.inst_mes_atual - row.inst_mes_ano_passado >= 0
                         ? "↗"
                         : "↘"}
 
                       {showYear &&
-                        num(row.inst_mes_atual - rowOLd["inst_mes_atual"], 2)}
+                        num(row.inst_mes_atual - row.inst_mes_ano_passado, 2)}
                     </small>
                   </td>
                 )}
@@ -350,8 +361,10 @@ export default function Home() {
                       ? "▲"
                       : "▼"}
 
-                    {num(row.inst_mes_atual / row.inst_mes_anterior - 1, 2) +
-                      "%"}
+                    {num(
+                      (row.inst_mes_atual / row.inst_mes_anterior - 1) * 100,
+                      2,
+                    ) + "%"}
                   </small>
                 </td>
                 <td style={tbl.td} className={Style.MesAtual}>
@@ -366,7 +379,10 @@ export default function Home() {
                 >
                   <small title={"Variação vs próximo mês "}>
                     {row.inst_mes_atual - row.inst_prox_mes >= 0 ? "▲" : "▼"}
-                    {num(row.inst_mes_atual / row.inst_prox_mes - 1, 2) + "%"}
+                    {num(
+                      (row.inst_mes_atual / row.inst_prox_mes - 1) * 100,
+                      2,
+                    ) + "%"}
                   </small>
                 </td>
                 <td style={tbl.td} className={Style.Mescomparacao}>
@@ -375,29 +391,29 @@ export default function Home() {
               </tr>
               <tr>
                 <td style={tbl.tdHead} className={Style.classificacaoVB}>
-                  VB
+                  {onlyMovel ? "SPI" : "VB"}
                 </td>
                 {showYear && (
                   <td className={Style.AnoAnterior}>
-                    {num(rowOLd["vb_mes_atual"], 2)}
+                    {num(row.vb_mes_ano_passado, 2)}
                   </td>
                 )}
                 {showYear && (
                   <td
                     style={
-                      row.vb_mes_atual - rowOLd["vb_mes_atual"] >= 0
+                      row.vb_mes_atual - row.vb_mes_ano_passado >= 0
                         ? { color: "#207210cc" }
                         : { color: "#ff0000" }
                     }
                   >
                     <small title={"Diferença real"}>
                       {showYear &&
-                      row.vb_mes_atual - rowOLd["vb_mes_atual"] >= 0
+                      row.vb_mes_atual - row.vb_mes_ano_passado >= 0
                         ? "↗"
                         : "↘"}
 
                       {showYear &&
-                        num(row.vb_mes_atual - rowOLd["vb_mes_atual"], 2)}
+                        num(row.vb_mes_atual - row.vb_mes_ano_passado, 2)}
                     </small>
                   </td>
                 )}
@@ -417,7 +433,10 @@ export default function Home() {
                 >
                   <small title={`Variação vs mês anterior`}>
                     {row.vb_mes_atual - row.vb_mes_anterior >= 0 ? "▲" : "▼"}
-                    {num(row.vb_mes_atual / row.vb_mes_anterior - 1, 2) + "%"}
+                    {num(
+                      (row.vb_mes_atual / row.vb_mes_anterior - 1) * 100,
+                      2,
+                    ) + "%"}
                   </small>
                 </td>
                 <td style={tbl.td} className={Style.MesAtual}>
@@ -432,7 +451,8 @@ export default function Home() {
                 >
                   <small title={"Variação vs próximo mês "}>
                     {row.vb_mes_atual - row.vb_prox_mes >= 0 ? "▲" : "▼"}
-                    {num(row.vb_mes_atual / row.vb_prox_mes - 1, 2) + "%"}
+                    {num((row.vb_mes_atual / row.vb_prox_mes - 1) * 100, 2) +
+                      "%"}
                   </small>
                 </td>
                 <td style={tbl.td} className={Style.Mescomparacao}>
@@ -441,6 +461,7 @@ export default function Home() {
               </tr>
             </tbody>
           </table>
+          <GraficoPDU year={year} Url={Url} />
           <BrRsiApex
             dataFULL={dataFULL}
             loading={loading}
@@ -452,6 +473,7 @@ export default function Home() {
         {/* Roadmap (mantido) */}
         <h3 style={styles.subtitle}>Roadmap</h3>
         <ul>
+          {console.log(showYear)}
           <li>- hierarquia</li>
           <li>- todolist</li>
           <li>- data/frequência de relatório repostável</li>
@@ -467,6 +489,10 @@ export default function Home() {
           <li>fazer grafico de todos os meses</li>
           <li>filtro para o anos e brasil e rsi</li>
           <li>orçamento</li>
+          <li>trocar o nome depara para carteira emoji</li>
+          <li>status de relazado</li>
+          <li>corrigir o pdu ano contra ano</li>
+          <li>criar um grafico do PDU igual o que a gabi envio </li>
         </ul>
       </main>
     </Container>

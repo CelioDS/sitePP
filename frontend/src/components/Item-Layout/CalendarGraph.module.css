@@ -1,0 +1,170 @@
+.mainContainer {
+  font-family: 'Arial', sans-serif;
+  background-color: #fff;
+  padding: 20px;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.mainHeader {
+  margin-bottom: 20px;
+  border-bottom: 1px dotted #ccc;
+  padding-bottom: 10px;
+}
+
+.mainHeader h2 {
+  margin: 0;
+  font-size: 18px;
+  color: #555;
+  text-transform: uppercase;
+}
+
+.mainHeader p {
+  margin: 5px 0 0;
+  font-size: 14px;
+  color: #888;
+}
+
+/* Container de cada linha de gráfico */
+.rowContainer {
+  margin-bottom: 30px;
+  border-bottom: 1px solid #ccc; /* Linha de base do gráfico */
+}
+
+.rowHeader {
+  color: white;
+  padding: 5px 15px;
+  font-size: 12px;
+  font-weight: bold;
+  text-transform: uppercase;
+  border-radius: 4px 4px 0 0; /* Arredondado só em cima */
+  margin-bottom: 10px;
+}
+
+/* Área onde ficam as barras */
+.chartArea {
+  display: flex;
+  align-items: flex-end; /* Alinha barras na base */
+  justify-content: space-between;
+  height: 120px; /* Altura fixa para o gráfico */
+  padding-bottom: 5px;
+  padding-top: 30px; /* Espaço para as bolhas de % */
+}
+
+/* --- A Barra --- */
+.barWrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  flex: 1;
+  height: 100%;
+  position: relative;
+  z-index: 2;
+}
+
+.barValue {
+  font-size: 11px;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 2px;
+}
+
+.bar {
+  width: 40%; /* Largura da barra */
+  min-width: 20px;
+  transition: height 0.5s ease;
+}
+
+.barLabel {
+  margin-top: 5px;
+  font-size: 10px;
+  color: #333;
+  font-weight: bold;
+}
+
+/* --- O Conector (Bolha de %) --- */
+.connectorWrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  width: 15px; /* Espaço entre barras */
+  height: 100%;
+  position: relative;
+  top: -20px; /* Sobe um pouco para ficar acima das barras */
+  z-index: 1;
+}
+
+.connectorLine {
+  position: relative;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.percentBadge {
+  background-color: #fff;
+  border: 1px solid #666;
+  border-radius: 12px;
+  padding: 2px 6px;
+  font-size: 10px;
+  font-weight: bold;
+  color: #000;
+  white-space: nowrap;
+  position: relative;
+  z-index: 3;
+}
+
+/* Simulação das linhas curvas saindo da bolha */
+.curveLeft, .curveRight {
+  position: absolute;
+  top: 50%;
+  width: 30px;
+  height: 15px;
+  border-top: 1px solid #666;
+  z-index: 0;
+}
+
+.curveLeft {
+  right: 50%;
+  border-right: 1px solid #666; /* Cria o canto */
+  border-top-right-radius: 10px; /* Arredonda */
+  transform: skewY(10deg); /* Inclinação leve se quiser */
+  top: 10px;
+  display: none; /* Simplificado: remover se quiser CSS puro complexo */
+}
+
+/* Para simplificar a visualização das setas: usamos pseudo-elementos simples
+   que conectam a bolha até perto da barra vizinha. 
+   O visual exato da imagem requer SVG, mas aqui usamos uma aproximação visual limpa.
+*/
+.connectorWrapper::before {
+  content: '';
+  position: absolute;
+  top: 10px;
+  left: -25px;
+  right: -25px;
+  height: 1px;
+  background: #999;
+  z-index: 0;
+}
+
+.connectorWrapper::after {
+   content: '';
+   position: absolute;
+   top: 10px;
+   left: 50%;
+   height: 5px;
+   width: 1px;
+   background: #999;
+}
+.connectorWrapper::before {
+    /* Ajuste fino para desenhar a linha conectora */
+    border-left: 1px solid #999;
+    border-right: 1px solid #999;
+    background: transparent;
+    height: 5px;
+    top: 10px;
+}

@@ -13,11 +13,14 @@ import {
   getPAP_PREMIUM,
   getPDU,
   getPduFull,
+  getPDUMovel,
   getLP_grafico,
+  getAPARELHO,
+  getPduFullGrafico
 } from "../Controllers/Controllers.js";
 import { LoginDB, validateToken } from "../Controllers/Auth.js";
 
-import { setExcel, upload } from "../Controllers/ExcelUpload.js";
+import { setExcelLP, setExcelPAP, upload } from "../Controllers/ExcelUpload.js";
 
 const router = express.Router();
 
@@ -32,10 +35,17 @@ router.get("/pap_premium", getPAP_PREMIUM);
 router.get("/pdu", getPDU);
 
 router.get("/PduFull", getPduFull);
+router.get("/PduFullGrafico", getPduFullGrafico);
+
+router.get("/PduMovel", getPDUMovel);
 
 router.get("/lojapropriaGrafico", getLP_grafico);
 
-router.post("/upload-excel-lp", upload.single("file"), setExcel);
+router.get("/aparelho", getAPARELHO);
+
+router.post("/upload-excel-lp", upload.single("file"), setExcelLP);
+
+router.post("/upload-excel-PAP", upload.single("file"), setExcelPAP);
 
 /*------------------ AUTH ------------------*/
 router.post("/auth/login", LoginDB);

@@ -124,13 +124,21 @@ export default function Table({ canal, login, admin, Url }) {
     formData.append("file", file);
 
     try {
-      const response = await axios.post(`${Url}/upload-excel-lp`, formData, {
-        headers: { "Content-Type": "multipart/form-data", login: login },
-      });
-
-      toast.success("Arquivo enviado com sucesso!");
-      const normalized = toArray(response.data);
-      setDatabase(normalized);
+      if (canal === "PAP") {
+        const response = await axios.post(`${Url}/upload-excel-PAP`, formData, {
+          headers: { "Content-Type": "multipart/form-data", login: login },
+        });
+        toast.success("Arquivo enviado com sucesso!");
+        const normalized = toArray(response.data);
+        setDatabase(normalized);
+      } else {
+        const response = await axios.post(`${Url}/upload-excel-lp`, formData, {
+          headers: { "Content-Type": "multipart/form-data", login: login },
+        });
+        toast.success("Arquivo enviado com sucesso!");
+        const normalized = toArray(response.data);
+        setDatabase(normalized);
+      }
     } catch (error) {
       console.error(error);
       toast.error(error.response?.data?.sql || "Erro ao enviar o arquivo");
@@ -209,9 +217,7 @@ export default function Table({ canal, login, admin, Url }) {
         <table>
           <thead>
             {isLoading ? (
-              <tr>
-        
-              </tr>
+              <tr></tr>
             ) : (
               <tr>
                 {canal === "LP" && (

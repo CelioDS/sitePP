@@ -1,4 +1,4 @@
-import ClaroWebp from "../IMG/cc.png";
+import ClaroWebp from "../IMG/PEP_white.svg";
 import Style from "./ClaroLogo.module.css";
 
 export default function ClaroLogo({ className }) {

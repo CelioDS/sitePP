@@ -34,53 +34,34 @@ export default function RelatorioUser({ Url }) {
   //const user = userData?.login;
   //const canal = userData?.canal;
 
-  // Função robusta para converter ANOMES (202401 ou data ISO) em objeto Date
-  const parseAnomes = (value) => {
+  const parseAsDate = (value) => {
     if (!value) return null;
-
-    // Se for número ou string numérica (ex: 202401)
-    const str = String(value).replace(/\D/g, "");
-    if (str.length === 6) {
-      const ano = parseInt(str.substring(0, 4));
-      const mes = parseInt(str.substring(4, 6)) - 1; // Mês começa em 0 no JS
-      return new Date(ano, mes, 1);
-    }
-
-    // Tenta formato padrão de data
     const d = new Date(value);
     return isNaN(d) ? null : d;
   };
 
   useEffect(() => {
-    async function fetchMaxDate() {
+    async function fetchData() {
       try {
         setIsLoading(true);
         const resp = await axios.get(`${Url}/lojapropria`);
+        const data_max = resp.data
+          .map((item) => parseAsDate(item.DATA_ATUALIZACAO))
+          .filter(Boolean)
+          .sort((a, b) => a - b);
 
-        const sortedDates = resp.data
-          .map((item) => parseAnomes(item.ANOMES)) // Converte para Date
-          .filter(Boolean) // Remove nulos
-          .sort((a, b) => b - a); // ORDENAÇÃO DECRESCENTE (Mais recente -> Mais antigo)
-
-        if (sortedDates.length > 0) {
-          // Pega o índice 0 (O mais recente)
-          const lastDate = sortedDates[0];
-          const formattedDate = format(lastDate, "yyyy'-'MM", { locale: ptBR });
-
-          setDataMAX(formattedDate);
-          setMonthFilter(formattedDate); // <--- Força o filtro a assumir a data mais recente
-        }
+        setDataMAX(format(data_max[1], "yyyy'-'MM", { locale: ptBR }));
       } catch (err) {
-        console.error("Erro ao carregar datas:", err);
-        toast.error("Falha ao carregar datas.");
-        setIsLoading(false); // Para o loading se der erro aqui
+        console.error("Erro ao carregar dados:", err);
+        toast.error("Falha ao carregar dados. Exibindo dados de exemplo.");
+      } finally {
+        setIsLoading(false);
       }
-      // Nota: Não damos setIsLoading(false) no finally aqui para evitar "piscar" a tela
-      // O loading vai sumir quando o próximo useEffect terminar.
     }
 
-    fetchMaxDate();
-  }, [Url]);
+    fetchData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // refetch quando trocar o filtro
 
   // ---- Validar token (uma vez ao montar) ----
   useEffect(() => {
@@ -141,7 +122,7 @@ export default function RelatorioUser({ Url }) {
         const anomes = toAnomes(monthFilter);
         if (anomes) params.anomes = anomes;
 
-        const resp = await axios.get(`${Url}/lojapropriaGrafico`, { params });
+        const resp = await axios.get(`${Url}/portaaportaGrafico`, { params });
         const rows = Array.isArray(resp.data) ? resp.data : [];
         const parsed = rows.map(normalizeRow);
 

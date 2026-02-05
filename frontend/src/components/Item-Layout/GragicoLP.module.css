@@ -1,3 +1,10 @@
+.main {
+  overflow-x: hidden;
+  display: flex;
+  position: relative;
+  flex-direction: column;
+}
+
 .main > .graficoaside {
   display: flex;
   width: 100%;
@@ -62,8 +69,3 @@
 .main table tbody {
   background-color: #fff;
 }
-
-.main {
-  overflow-x: hidden;
-}
-

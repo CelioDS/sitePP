@@ -1,5 +1,6 @@
 import Style from "./RelatorioUser.module.css";
 import GraficoLP from "../Item-Layout/GraficoLP";
+import GraficoPAP from "../Item-Layout/GraficoPAP";
 import ValidarToken from "../Tools/ValidarToken";
 import { useState, useEffect } from "react";
 import Teste from "../Item-Layout/teste";
@@ -25,8 +26,8 @@ export default function RelatorioUser({ Url }) {
   return (
     <main className={Style.main}>
       {canal === "LP" && <GraficoLP Url={Url}></GraficoLP>}
-      {canal === "PAP" && <Teste></Teste>}
-      {canal === "LP" && <GraficoLP Url={Url}></GraficoLP>}
+      {canal === "PAP" && <Teste Url={Url}></Teste>}
+      {canal === "PAP_Premium" && <GraficoPAP Url={Url}></GraficoPAP>}
     </main>
   );
 }

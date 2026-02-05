@@ -1,12 +1,13 @@
 import { Link } from "react-router-dom";
 import { BsList, BsXLg } from "react-icons/bs";
-
 import { useEffect, useState, useCallback } from "react";
 
 import styleExt from "./NavBar.module.css";
 import CheckMobile from "../Tools/CheckMobile.js";
 import LinkButton from "../Item-Layout/LinkButton";
 import ClaroLogo from "../Item-Layout/ClaroLogo.js";
+import WalletLogo from "../Item-Layout/WalletLogo.js";
+import RelatorioLogo from "../Item-Layout/RelatorioLogo.js";
 import Logout from "./logout.js";
 
 export default function NavBar({ setPermission }) {
@@ -17,29 +18,28 @@ export default function NavBar({ setPermission }) {
   const colorBtn = "#b98639";
   const colorLink = "#E3262E";
 
-  const [iconMenu, setIconMenu] = useState(
-    <BsList color={colorBtn} size={sizeBtn} />
-  );
+  // REMOVIDO: const [iconMenu, setIconMenu]...
   const [menuUp, setMenuUp] = useState(false);
   const [menuDown, setMenuDown] = useState(null);
   const [MenuOpen, setMenuOpen] = useState(false);
   const [linkAtivo, setLinkAtivo] = useState("Home");
 
   function openMenu(linkclick) {
-    // Inverte o valor de MenuOpen
-    setMenuOpen((prevState) => !prevState);
+    // Verifica se linkclick é um evento (acontece quando vem do Link) ou string
+    const nomeLink = typeof linkclick === 'string' ? linkclick : linkAtivo;
 
+    setMenuOpen((prevState) => !prevState);
     setMenuUp(!menuUp);
 
     if (menuDown !== null) {
-      // Inverte o valor de menuDown
       setMenuDown((prevState) => !prevState);
     } else {
       setMenuDown(false);
     }
 
-    setLinkAtivo(linkclick);
+    setLinkAtivo(nomeLink);
   }
+
   // Sempre que isMobile mudar, reajusta o estado
   useEffect(() => {
     if (!isMobile) {
@@ -49,41 +49,41 @@ export default function NavBar({ setPermission }) {
     }
   }, [isMobile]);
 
-  useEffect(() => {
-    if (!MenuOpen) {
-      setTimeout(() => {
-        setIconMenu(<BsList color={colorBtn} size={sizeBtn} />);
-      }, 1000);
-    } else {
-      setIconMenu(<BsXLg color={colorBtn} size={sizeBtn} />);
-    }
-  }, [MenuOpen]);
+  // REMOVIDO: useEffect com setTimeout que causava o bug
 
   useEffect(() => {
-    // Criando o MutationObserver
     const observer = new MutationObserver((mutationsList) => {
       for (const mutation of mutationsList) {
         if (
           mutation.type === "childList" &&
           mutation.target === document.querySelector("title")
         ) {
-          setLinkAtivo(mutation.target.textContent.split(" ")[2]);
+          // Proteção caso o título não tenha 3 partes
+          const parts = mutation.target.textContent.split(" ");
+          if(parts.length > 2) setLinkAtivo(parts[2]);
         }
       }
     });
 
-    // Observando mudanças no nó do título
-    observer.observe(document.querySelector("title"), {
-      subtree: true,
-      characterData: true,
-      childList: true,
-    });
+    const titleNode = document.querySelector("title");
+    if (titleNode) {
+        observer.observe(titleNode, {
+            subtree: true,
+            characterData: true,
+            childList: true,
+        });
+    }
 
-    // Função de limpeza para desconectar o MutationObserver ao desmontar o componente
     return () => {
       observer.disconnect();
     };
   }, []);
+
+  function getLogo(linkAtivo) {
+    if (linkAtivo === "Carteira") return <WalletLogo />;
+    if (linkAtivo === "Relatorio") return <RelatorioLogo />;
+    return <ClaroLogo />;
+  }
 
   return (
     <main className={styleExt.main}>
@@ -91,7 +91,7 @@ export default function NavBar({ setPermission }) {
         <LinkButton
           to="/"
           text={""}
-          img={<ClaroLogo></ClaroLogo>}
+          img={getLogo(linkAtivo)}
           extStyle={true}
           className={styleExt.logo}
         />
@@ -101,9 +101,15 @@ export default function NavBar({ setPermission }) {
             className={`${styleExt.MenuBtn}
           ${menuUp ? styleExt.btnOpen : ""} 
           ${menuUp ? "" : styleExt.btnClose}`}
+            // Passamos uma string fixa ou null, pois o botão apenas abre/fecha
             onClick={() => openMenu(linkAtivo)}
           >
-            {iconMenu}
+            {/* CORREÇÃO AQUI: Renderização condicional direta */}
+            {MenuOpen ? (
+                <BsXLg color={colorBtn} size={sizeBtn} />
+            ) : (
+                <BsList color={colorBtn} size={sizeBtn} />
+            )}
           </button>
         )}
 
@@ -114,8 +120,9 @@ export default function NavBar({ setPermission }) {
             ${!menuDown ? null : styleExt.closeMenu}
             `}
         >
+          {/* Use arrow function no onClick para passar a string correta se desejar */}
           <Link
-            onClick={openMenu}
+            onClick={() => openMenu("Home")}
             style={linkAtivo === "Home" ? { color: colorLink } : {}}
             to="/"
           >
@@ -123,14 +130,14 @@ export default function NavBar({ setPermission }) {
           </Link>
 
           <Link
-            onClick={openMenu}
-            style={linkAtivo === "Depara" ? { color: colorLink } : {}}
-            to="/Depara"
+            onClick={() => openMenu("Carteira")}
+            style={linkAtivo === "Carteira" ? { color: colorLink } : {}}
+            to="/Carteira"
           >
-            Depara
+            Carteira
           </Link>
           <Link
-            onClick={openMenu}
+            onClick={() => openMenu("Relatorio")}
             style={linkAtivo === "Relatorio" ? { color: colorLink } : {}}
             to="/Relatorio"
           >

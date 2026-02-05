@@ -6,7 +6,7 @@ import "./App.css";
 
 import Error from "./components/Routers/Error";
 import Home from "./components/Routers/Home";
-import Depara from "./components/Routers/Depara";
+import Carteira from "./components/Routers/Carteira";
 import Relatorio from "./components/Routers/Relatorio";
 import Visualizar from "./components/Routers/Visualizar";
 
@@ -21,8 +21,8 @@ const router = createBrowserRouter([
         element: <Home />,
       },
       {
-        path: "/depara",
-        element: <Depara />,
+        path: "/Carteira",
+        element: <Carteira />,
       },
       {
         path: "/Relatorio",
