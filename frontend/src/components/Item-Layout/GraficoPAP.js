@@ -1,5 +1,5 @@
 import LoadingSvg from "./Loading";
-import Style from "./GragicoLP.module.css";
+import Style from "./GraficoLP.module.css";
 import { useMemo, useState, useEffect } from "react";
 import { toast } from "react-toastify";
 import axios from "axios";

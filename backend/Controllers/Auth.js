@@ -2,23 +2,25 @@ import { dataBase } from "../DataBase/dataBase.js";
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
 import bcrypt from "bcrypt";
-import { format } from "date-fns";
-import { fromZonedTime } from "date-fns-tz";
 
-const ANOMES = format(
-  fromZonedTime(new Date(), "America/Sao_Paulo"),
-  "yyyy-MM"
-).replace("-", "");
+dotenv.config();
 
-dotenv.config(); // <-- Carrega o arquivo .env
-
-// ---------------VALIDAR LOGIN---------------------------------
 export const LoginDB = async (req, res) => {
   try {
-    const query = "SELECT * FROM usuariosAgen WHERE login = ?";
-    const [rows] = await dataBase.query(query, [req.body.login]);
+    const { login, senha } = req.body;
 
- 
+    if (!login || !senha) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Login e senha são obrigatórios." });
+    }
+
+    // 1) Busca só pelo login
+    const [rows] = await dataBase.query(
+      "SELECT id, login, senha AS senha_hash, admin, canal FROM usuariosAgen WHERE login = ? LIMIT 1",
+      [login]
+    );
+
     if (rows.length === 0) {
       return res
         .status(401)
@@ -27,26 +29,46 @@ export const LoginDB = async (req, res) => {
 
     const user = rows[0];
 
+    // 2) Compara a senha digitada com o hash do banco
+    const ok = await bcrypt.compare(senha, user.senha_hash);
+    if (!ok) {
+      return res
+        .status(401)
+        .json({ success: false, message: "Login ou senha inválidos" });
+    }
+
+    // 3) Gera o token
+    if (!process.env.JWT_SECRET) {
+      console.error("JWT_SECRET ausente no .env");
+      return res.status(500).json({ success: false, message: "Erro interno" });
+    }
 
     const token = jwt.sign(
-      { userId: user.id, login: user.login, admin: user.admin, canal: user.canal },
+      {
+        userId: user.id,
+        login: user.login,
+        admin: user.admin,
+        canal: user.canal,
+      },
       process.env.JWT_SECRET,
       { expiresIn: "1h" }
     );
 
+    // 4) Retorna usuário sem a senha
     return res.status(200).json({
+      success: true,
+      message: "Acesso concluído!",
       token,
       user: {
         id: user.id,
         login: user.login,
         admin: user.admin,
-        canal: user.canal
+        canal: user.canal,
       },
-      message: "Acesso concluído!",
     });
   } catch (err) {
     console.error(err);
-    return res.status(500).json({ error: "Erro no login" });
+    return res.status(500).json({ success: false, message: "Erro no login" });
   }
 };
 

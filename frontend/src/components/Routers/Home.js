@@ -150,7 +150,7 @@ export default function Home() {
         {/* Barra de filtros */}
         <section style={filters.row}>
           <div style={filters.group}>
-            <label style={filters.label}>Ano</label>
+            <label style={filters.label}>ANO</label>
             <select
               value={year}
               onChange={(e) => setYear(e.target.value)}
@@ -166,7 +166,7 @@ export default function Home() {
 
           {!onlyMovel && (
             <div style={filters.group}>
-              <label style={filters.label}>Abrangência</label>
+              <label style={filters.label}>LOCALIZAÇÃO</label>
               <select
                 value={referencia}
                 onChange={(e) => setReferencia(e.target.value)}
@@ -186,7 +186,7 @@ export default function Home() {
           )}
 
           <div style={filters.group}>
-            <label style={filters.label}>Tipo de Linha</label>
+            <label style={filters.label}>UNIDADE</label>
             <select
               style={filters.select}
               value={onlyMovel.toString()}
@@ -493,6 +493,11 @@ export default function Home() {
           <li>status de relazado</li>
           <li>corrigir o pdu ano contra ano</li>
           <li>criar um grafico do PDU igual o que a gabi envio </li>
+          <li>em relatorio fazer um grafico para mostrar a evolução dos coordenario por colaborador</li>
+          <li>responsividade </li>
+
+          <li>colocar cache</li>
+          <li>criar perfil para o usaurio ver  eo admin alterar</li>
         </ul>
       </main>
     </Container>
@@ -506,7 +511,7 @@ const styles = {
     padding: "20px",
     boxShadow: "0 2px 10px rgba(0,0,0,0.1)",
     width: "90%",
-    maxWidth: "900px",
+    maxWidth: "1000px",
     margin: "40px auto",
     fontFamily: "Arial, sans-serif",
   },

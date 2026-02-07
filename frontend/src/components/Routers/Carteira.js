@@ -14,7 +14,6 @@ export default function Depara() {
   const login = userData?.login;
   const canal = userData?.canal;
 
-
   useEffect(() => {
     async function loadUser() {
       const data = await ValidarToken();
@@ -30,10 +29,16 @@ export default function Depara() {
   return (
     <Container className={Style.main}>
       <RenameTitle initialTitle={"P&P - Carteira"} />
-      <h1>Carteira</h1>
+      <p>
+        Carteira: <span>{canal}</span>
+      </p>
+      <p>
+        usuario: <span>{login}</span>
+      </p>
 
-      {admin === true && <TableAdmin Url={Url} />}
-      {!admin && (
+      {admin && canal === "admin" ? (
+        <TableAdmin Url={Url} />
+      ) : (
         <Table
           dataBase={dataBase}
           setDataBase={setDataBase}

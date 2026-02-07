@@ -24,7 +24,7 @@ export default function Table({ canal, login, admin, Url }) {
     PAP_PREMIUM: "pap_premium", // caso você venha a usar PEP
   };
 
-  const [rota, setRota] = useState(rotas[canal] || "lojapropria");
+  const [rota, setRota] = useState(rotas[canal]);
 
   // Mantém 'rota' em sincronia quando 'canal' mudar
   useEffect(() => {
@@ -156,7 +156,7 @@ export default function Table({ canal, login, admin, Url }) {
     }
 
     const formattedData = dataBase.map(
-      ({ ID, DATA_MAX, LOGIN_ATUALIZACAO, ...rest }) => rest,
+      ({ ID, DATA_MAX, DATA_ATUALIZACAO, LOGIN_ATUALIZACAO, ...rest }) => rest,
     );
 
     const worksheet = XLSX.utils.json_to_sheet(formattedData);
@@ -200,8 +200,12 @@ export default function Table({ canal, login, admin, Url }) {
           />
         </div>
         <div>
-          <input type="file" accept=".xlsx,.xls" onChange={handleUpload} />
-          <button onClick={handleDownload}>Download Excel</button>
+          {!admin && (
+            <>
+              <input type="file" accept=".xlsx,.xls" onChange={handleUpload} />
+              <button onClick={handleDownload}>Download Excel</button>
+            </>
+          )}
         </div>
 
         <div>
@@ -240,16 +244,23 @@ export default function Table({ canal, login, admin, Url }) {
                     <th>CANAL</th>
                     <th>IBGE</th>
                     <th>CIDADE</th>
-                    <th>RAZAO_SOCIAL</th>
+                    <th>PARCEIRO LOJA</th>
                     <th>CNPJ</th>
                     <th>NOME</th>
-                    <th>CLASSIFICACAO</th>
+                    <th>CLASSIFICAÇÃO</th>
                     <th>SEGMENTO</th>
                     <th>PRODUTO_ATUACAO</th>
                     <th>DATA_CADASTRO</th>
                     <th>SITUACAO</th>
-                    <th>LOGIN_NET</th>
                     <th>TIPO</th>
+                    <th>RAZAO_SOCIAL</th>
+                    <th>LOGIN NET</th>
+                    <th>LOGIN CLARO</th>
+                    <th>EXECUTIVO</th>
+                    <th>GRUPO</th>
+                    <th>COMTA</th>
+                    <th>CABEAMENTO</th>
+                    <th>FILIAL COORDENADOR</th>
                   </>
                 )}
 
@@ -320,7 +331,7 @@ export default function Table({ canal, login, admin, Url }) {
                       <td>{item.CANAL}</td>
                       <td>{item.IBGE}</td>
                       <td>{item.CIDADE}</td>
-                      <td>{item.RAZAO_SOCIAL}</td>
+                      <td>{item.PARCEIRO_LOJA}</td>
                       <td>{item.CNPJ}</td>
                       <td>{item.NOME}</td>
                       <td>{item.CLASSIFICACAO}</td>
@@ -328,8 +339,15 @@ export default function Table({ canal, login, admin, Url }) {
                       <td>{item.PRODUTO_ATUACAO}</td>
                       <td>{item.DATA_CADASTRO}</td>
                       <td>{item.SITUACAO}</td>
-                      <td>{item.LOGIN_NET}</td>
                       <td>{item.TIPO}</td>
+                      <td>{item.RAZAO_SOCIAL}</td>
+                      <td>{item.LOGIN_NET}</td>
+                      <td>{item.LOGIN_CLARO}</td>
+                      <td>{item.EXECUTIVO}</td>
+                      <td>{item.GRUPO}</td>
+                      <td>{item.COMTA}</td>
+                      <td>{item.CABEAMENTO}</td>
+                      <td>{item.FILIAL_COORDENADOR}</td>
                     </>
                   )}
                 </tr>

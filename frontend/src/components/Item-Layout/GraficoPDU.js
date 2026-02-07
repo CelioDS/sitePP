@@ -6,16 +6,15 @@ import { FaCaretDown } from "react-icons/fa";
 
 export default function GraficoPDU({ year, Url, referencia = "BR" }) {
   const [dataFULL, setDataFULL] = useState(null);
+  
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         const params = new URLSearchParams();
         if (year) params.set("year", year);
-        
-        const resp = await axios.get(
-          `${Url}/PduFullGrafico?}`
-        );
+
+        const resp = await axios.get(`${Url}/PduFullGrafico?}`);
         setDataFULL(resp.data || []);
       } catch (err) {
         console.error("Erro ao carregar dados:", err);
@@ -28,8 +27,9 @@ export default function GraficoPDU({ year, Url, referencia = "BR" }) {
 
   // Define o sufixo baseado na referencia recebida da Home
   const suffix = referencia === "SP_INT" ? "_soma_RSI" : "_soma_br";
-  
-  const tituloAbrangencia = referencia === "SP_INT" ? "SÃO PAULO INTERIOR" : "BRASIL";
+
+  const tituloAbrangencia =
+    referencia === "SP_INT" ? "SÃO PAULO INTERIOR" : "BRASIL";
 
   const yearData = useMemo(() => {
     if (!dataFULL || !Array.isArray(dataFULL)) return [];
@@ -42,7 +42,20 @@ export default function GraficoPDU({ year, Url, referencia = "BR" }) {
   }, [dataFULL, year]);
 
   const getMonthName = (anomes) => {
-    const months = ["JAN", "FEV", "MAR", "ABR", "MAI", "JUN", "JUL", "AGO", "SET", "OUT", "NOV", "DEZ"];
+    const months = [
+      "JAN",
+      "FEV",
+      "MAR",
+      "ABR",
+      "MAI",
+      "JUN",
+      "JUL",
+      "AGO",
+      "SET",
+      "OUT",
+      "NOV",
+      "DEZ",
+    ];
     const monthIndex = parseInt(anomes.toString().slice(4, 6)) - 1;
     return months[monthIndex];
   };
@@ -54,7 +67,8 @@ export default function GraficoPDU({ year, Url, referencia = "BR" }) {
     const dataKey = `${baseKey}${suffix}`;
 
     // Calcula máximo. Converte para Number para garantir.
-    const maxValue = Math.max(...yearData.map((d) => Number(d[dataKey]) || 0)) * 1.3;
+    const maxValue =
+      Math.max(...yearData.map((d) => Number(d[dataKey]) || 0)) * 1.3;
 
     return (
       <div className={styles.rowContainer}>
@@ -66,7 +80,8 @@ export default function GraficoPDU({ year, Url, referencia = "BR" }) {
           {yearData.map((item, index) => {
             const currentVal = Number(item[dataKey]);
             // Pega o valor anterior para calcular %
-            const prevVal = index > 0 ? Number(yearData[index - 1][dataKey]) : null;
+            const prevVal =
+              index > 0 ? Number(yearData[index - 1][dataKey]) : null;
 
             let percentChange = 0;
             // Verifica se prevVal existe e não é zero para evitar divisão por zero
@@ -79,7 +94,7 @@ export default function GraficoPDU({ year, Url, referencia = "BR" }) {
             return (
               <React.Fragment key={item.anomes}>
                 {/* CORREÇÃO: Removido <main>, usando React.Fragment para manter o layout flex correto */}
-                
+
                 {/* Conector com Seta (aparece a partir do segundo item) */}
                 {index > 0 && (
                   <div className={styles.connectorWrapper}>
@@ -95,6 +110,8 @@ export default function GraficoPDU({ year, Url, referencia = "BR" }) {
                   </div>
                 )}
 
+               
+
                 <div className={styles.barWrapper}>
                   <span className={styles.barValue}>
                     {currentVal?.toFixed(2).replace(".", ",")}
@@ -103,7 +120,7 @@ export default function GraficoPDU({ year, Url, referencia = "BR" }) {
                     className={styles.bar}
                     style={{
                       height: `${barHeight}%`,
-                      backgroundColor: index === 0 ? "#D35F65" : "#A9A9A9",
+                      backgroundColor: year === "FEV" ? "#D35F65" : "#A9A9A9",
                     }}
                   />
                   <span className={styles.barLabel}>

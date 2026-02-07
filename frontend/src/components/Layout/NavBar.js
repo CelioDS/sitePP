@@ -9,10 +9,13 @@ import ClaroLogo from "../Item-Layout/ClaroLogo.js";
 import WalletLogo from "../Item-Layout/WalletLogo.js";
 import RelatorioLogo from "../Item-Layout/RelatorioLogo.js";
 import Logout from "./logout.js";
+import ValidarToken from "../Tools/ValidarToken.js";
 
 export default function NavBar({ setPermission }) {
   const checkMobile = useCallback(CheckMobile, []);
   const isMobile = checkMobile();
+
+
 
   const sizeBtn = 36;
   const colorBtn = "#b98639";
@@ -26,7 +29,7 @@ export default function NavBar({ setPermission }) {
 
   function openMenu(linkclick) {
     // Verifica se linkclick é um evento (acontece quando vem do Link) ou string
-    const nomeLink = typeof linkclick === 'string' ? linkclick : linkAtivo;
+    const nomeLink = typeof linkclick === "string" ? linkclick : linkAtivo;
 
     setMenuOpen((prevState) => !prevState);
     setMenuUp(!menuUp);
@@ -60,18 +63,18 @@ export default function NavBar({ setPermission }) {
         ) {
           // Proteção caso o título não tenha 3 partes
           const parts = mutation.target.textContent.split(" ");
-          if(parts.length > 2) setLinkAtivo(parts[2]);
+          if (parts.length > 2) setLinkAtivo(parts[2]);
         }
       }
     });
 
     const titleNode = document.querySelector("title");
     if (titleNode) {
-        observer.observe(titleNode, {
-            subtree: true,
-            characterData: true,
-            childList: true,
-        });
+      observer.observe(titleNode, {
+        subtree: true,
+        characterData: true,
+        childList: true,
+      });
     }
 
     return () => {
@@ -106,9 +109,9 @@ export default function NavBar({ setPermission }) {
           >
             {/* CORREÇÃO AQUI: Renderização condicional direta */}
             {MenuOpen ? (
-                <BsXLg color={colorBtn} size={sizeBtn} />
+              <BsXLg color={colorBtn} size={sizeBtn} />
             ) : (
-                <BsList color={colorBtn} size={sizeBtn} />
+              <BsList color={colorBtn} size={sizeBtn} />
             )}
           </button>
         )}
@@ -144,6 +147,8 @@ export default function NavBar({ setPermission }) {
             Relatorio
           </Link>
           <Logout setPermission={setPermission} />
+
+          
         </ul>
       </nav>
     </main>

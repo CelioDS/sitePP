@@ -18,6 +18,7 @@ export default function Relatorio() {
   ); //
   const user = userData?.login;
   const admin = userData?.admin;
+  const canal = userData?.canal;
 
   useLayoutEffect(() => {
     async function loadUser() {
@@ -35,7 +36,7 @@ export default function Relatorio() {
     <Container>
       <main className={Style.main}>
         <RenameTitle initialTitle={"P&P - Relatorio"} />
-        {admin ? (
+        {admin && canal === "admin" ? (
           <RelatorioAdmin user={user} Url={Url} />
         ) : (
           <RelatorioUser Url={Url} user={user} today={today} admin={admin} />

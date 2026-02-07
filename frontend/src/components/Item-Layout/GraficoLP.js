@@ -1,5 +1,5 @@
 import LoadingSvg from "./Loading";
-import Style from "./GragicoLP.module.css";
+import Style from "./GraficoLP.module.css";
 import { useMemo, useState, useEffect } from "react";
 import { toast } from "react-toastify";
 import axios from "axios";
@@ -8,31 +8,31 @@ import ReactApexChart from "react-apexcharts";
 import { format } from "date-fns";
 import { toZonedTime } from "date-fns-tz";
 import ptBR from "date-fns/locale/pt-BR";
+import { MdManageAccounts} from "react-icons/md";
+import { RiTeamFill } from "react-icons/ri";
+import { GiShop } from "react-icons/gi";
+import { FaCity } from "react-icons/fa";
 
-/**
- * Este componente:
- * - Busca /lojapropriaGrafico
- * - Normaliza as chaves de retorno (ANOMES, coordenador, quantidades)
- * - Renderiza 2 gráficos (Barras agrupadas, Donut)
- * - Exibe KPIs e Loading
- * - **Possui filtro por mês/ano (input type="month")**
- */
+
+
 export default function RelatorioUser({ Url }) {
   const [userData, setUserData] = useState(null);
   const [dataBase, setDataBase] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [dataMAX, setDataMAX] = useState();
 
-  // Filtro por mês (YYYY-MM)
+  // Base histórica exclusiva para o gráfico de linha (sempre todos os meses)
+  const [dataHistory, setDataHistory] = useState([]);
+  const [isLoadingHistory, setIsLoadingHistory] = useState(true);
 
+  // Filtro por mês (YYYY-MM)
   const tz = "America/Sao_Paulo";
   const hojeBR = toZonedTime(new Date(), tz);
   const tituloMes = format(hojeBR, "yyyy'-'MM", { locale: ptBR }); // ex.: janeiro de 2026
 
-  const [monthFilter, setMonthFilter] = useState(dataMAX); // exemplo: "2026-01"
 
-  //const user = userData?.login;
-  //const canal = userData?.canal;
+
+  const [monthFilter, setMonthFilter] = useState(tituloMes); // exemplo: "2026-01"
 
   // Função robusta para converter ANOMES (202401 ou data ISO) em objeto Date
   const parseAnomes = (value) => {
@@ -55,10 +55,10 @@ export default function RelatorioUser({ Url }) {
     async function fetchMaxDate() {
       try {
         setIsLoading(true);
-        const resp = await axios.get(`${Url}/lojapropria`);
+        const resp = await axios.get(`${Url}/lojapropriaGraficoHistorico`);
 
         const sortedDates = resp.data
-          .map((item) => parseAnomes(item.ANOMES)) // Converte para Date
+          .map((item) => parseAnomes(item.anomes)) // Converte para Date
           .filter(Boolean) // Remove nulos
           .sort((a, b) => b - a); // ORDENAÇÃO DECRESCENTE (Mais recente -> Mais antigo)
 
@@ -68,7 +68,7 @@ export default function RelatorioUser({ Url }) {
           const formattedDate = format(lastDate, "yyyy'-'MM", { locale: ptBR });
 
           setDataMAX(formattedDate);
-          setMonthFilter(formattedDate); // <--- Força o filtro a assumir a data mais recente
+          setMonthFilter(formattedDate); // <-- mantém seu comportamento atual
         }
       } catch (err) {
         console.error("Erro ao carregar datas:", err);
@@ -257,15 +257,153 @@ export default function RelatorioUser({ Url }) {
         "#CCCCCC",
         "#897170",
         "#8BAAAD",
-      ], // colab, lojas, cidades
+      ], // paleta
     }),
     [donut],
+  );
+
+  // -------------------------------
+  // --------- LINHA (NOVO) --------
+  // -------------------------------
+
+  // 1) Fetch separado SEMPRE sem filtro (todos os meses da base)
+  useEffect(() => {
+    let ignore = false;
+    async function fetchHistory() {
+      try {
+        setIsLoadingHistory(true);
+
+        const resp = await axios.get(`${Url}/lojapropriaGraficoHistorico`);
+        const rows = Array.isArray(resp.data) ? resp.data : [];
+        const parsed = rows.map(normalizeRow);
+        if (!ignore) setDataHistory(parsed);
+      } catch (err) {
+        console.error("Erro ao carregar histórico:", err);
+        toast.error("Falha ao carregar histórico para a evolução.");
+        if (!ignore) setDataHistory([]);
+      } finally {
+        if (!ignore) setIsLoadingHistory(false);
+      }
+    }
+    fetchHistory();
+    return () => {
+      ignore = true;
+    };
+  }, [Url]);
+
+  // 2) Helpers para timeline
+  const formatAnomesToLabel = (anomesNum) => {
+    // anomesNum: 202401 -> "01/2024"
+    const s = String(anomesNum || "");
+    if (s.length !== 6) return String(anomesNum ?? "");
+    const ano = s.substring(0, 4);
+    const mes = s.substring(4, 6);
+    return `${mes}/${ano}`;
+  };
+
+  const buildLineSeries = (rows, { limitLastMonths = null } = {}) => {
+    // 2.1) ANOMES únicos
+    const allAnomes = Array.from(new Set(rows.map((r) => r.anomes))).filter(
+      Boolean,
+    );
+    allAnomes.sort((a, b) => a - b); // crescente
+
+    // (Opcional) limitar aos últimos N meses
+    let anomesX = allAnomes;
+    if (
+      limitLastMonths &&
+      Number.isFinite(limitLastMonths) &&
+      limitLastMonths > 0
+    ) {
+      anomesX = allAnomes.slice(-limitLastMonths);
+    }
+
+    // 2.2) Agrupar coord x anomes somando colab
+    const mapCoord = new Map(); // coord -> Map(anomes -> soma colab)
+    for (const r of rows) {
+      if (!r.coordenador || !r.anomes) continue;
+      if (!mapCoord.has(r.coordenador)) mapCoord.set(r.coordenador, new Map());
+      const m = mapCoord.get(r.coordenador);
+      m.set(r.anomes, (m.get(r.anomes) || 0) + (r.colab || 0));
+    }
+
+    // 2.3) Séries
+    const series = [];
+    for (const [coord, m] of mapCoord.entries()) {
+      const data = anomesX.map((a) => m.get(a) || 0);
+      series.push({
+        name: coord.split(" ")[0], // só primeiro nome
+        data,
+      });
+    }
+
+    // 2.4) Eixo X
+    const categories = anomesX.map(formatAnomesToLabel);
+
+    return { categories, series };
+  };
+
+  // 3) Ordenação só para o line (usando a base histórica completa)
+  const byCoordHistory = useMemo(() => {
+    const rows = [...dataHistory];
+    rows.sort(
+      (a, b) =>
+        b.lojas - a.lojas ||
+        b.cidades - a.cidades ||
+        a.coordenador.localeCompare(b.coordenador),
+    );
+    return rows;
+  }, [dataHistory]);
+
+  // 4) Series e options do line com TODOS os meses
+  const { lineCategories, lineSeries } = useMemo(() => {
+    const { categories, series } = buildLineSeries(byCoordHistory, {
+      /* limitLastMonths: 12 */
+    });
+    return { lineCategories: categories, lineSeries: series };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [byCoordHistory]);
+
+  const optionsLine = useMemo(
+    () => ({
+      chart: { type: "line", toolbar: { show: true }, zoom: { enabled: true } },
+      stroke: { width: 2, curve: "smooth" },
+      dataLabels: { enabled: false },
+      xaxis: {
+        categories: lineCategories,
+        title: { text: "Mês/Ano (ANOMES)" },
+      },
+      yaxis: {
+        title: { text: "Colaboradores" },
+        decimalsInFloat: 0,
+        forceNiceScale: true,
+      },
+      tooltip: { shared: true, intersect: false },
+      legend: { position: "bottom" },
+      colors: [
+        "#A1343C",
+        "#E68F96",
+        "#595A4A",
+        "#8BAAAD",
+        "#897170",
+        "#1F77B4",
+        "#FF7F0E",
+        "#2CA02C",
+        "#D62728",
+        "#9467BD",
+        "#8C564B",
+        "#E377C2",
+        "#7F7F7F",
+        "#BCBD22",
+        "#17BECF",
+      ],
+    }),
+    [lineCategories],
   );
 
   return (
     <main className={Style.main}>
       {/* Cabeçalho + Filtro */}
-      <h1>{console.log(dataMAX)}</h1>
       <section
         style={{
           display: "flex",
@@ -275,7 +413,7 @@ export default function RelatorioUser({ Url }) {
           flexWrap: "wrap",
         }}
       >
-        <h2 style={{ margin: 0 }}>Lojas Próprias</h2>
+        <h2 style={{ margin: 0 }}>Lojas Próprias + ATP</h2>
 
         <div
           style={{
@@ -285,7 +423,10 @@ export default function RelatorioUser({ Url }) {
             alignItems: "center",
           }}
         >
-          <label style={{ fontSize: 12, color: "#6b7280" }}>
+          <label
+            className={Style.btn}
+            style={{ fontSize: 12, color: "#6b7280" }}
+          >
             Filtrar por mês
           </label>
           <input
@@ -328,10 +469,26 @@ export default function RelatorioUser({ Url }) {
               marginBottom: 16,
             }}
           >
-            <Kpi title="Coordenadores" value={kpis.coords} />
-            <Kpi title="Total de Colaboradores" value={kpis.totalColab} />
-            <Kpi title="Total de Lojas" value={kpis.totalLojas} />
-            <Kpi title="Total de Cidades" value={kpis.totalCidades} />
+            <Kpi
+              title="Coordenadores"
+              value={kpis.coords}
+              icon={<MdManageAccounts size={26} />}
+            />
+            <Kpi
+              title="Total de Colaboradores"
+              value={kpis.totalColab}
+              icon={<RiTeamFill size={26} />}
+            />
+            <Kpi
+              title="Total de Lojas"
+              value={kpis.totalLojas}
+              icon={<GiShop size={26} />}
+            />
+            <Kpi
+              title="Total de Cidades"
+              value={kpis.totalCidades}
+              icon={<FaCity size={26} color="#000000"/>}
+            />
           </section>
 
           <section className={Style.graficoaside}>
@@ -368,6 +525,51 @@ export default function RelatorioUser({ Url }) {
             </aside>
           </section>
 
+          {/* Linha: Evolução de Colaboradores por Coordenador (usa TODOS os meses) */}
+          <aside className={Style.card}>
+            <h3 style={{ marginBottom: 8 }}>
+              Evolução de Colaboradores por Coordenador (ANOMES)
+            </h3>
+
+            {isLoadingHistory ? (
+              <div
+                style={{ display: "grid", placeItems: "center", height: 260 }}
+              >
+                <LoadingSvg />
+                <p style={{ marginTop: 8, color: "#6b7280" }}>
+                  Carregando histórico...
+                </p>
+              </div>
+            ) : (
+              <div
+                style={{
+                  width: "100%",
+                  maxWidth: "100%",
+                  overflow: "hidden",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <ReactApexChart
+                  options={optionsLine}
+                  series={lineSeries}
+                  type="line"
+                  height={360}
+                  width={1000} // mais largo para linha; ajuste se necessário
+                />
+              </div>
+            )}
+
+            {/* Dica opcional para muitos coordenadores */}
+            {!isLoadingHistory && lineSeries.length > 10 && (
+              <p style={{ marginTop: 8, color: "#6b7280", fontSize: 12 }}>
+                Dica: use a legenda para ocultar/mostrar coordenadores e o zoom
+                do gráfico para focar em períodos.
+              </p>
+            )}
+          </aside>
+
           {/* Tabela simples */}
           <section className={Style.card}>
             <div style={{ overflowX: "auto" }}>
@@ -401,13 +603,14 @@ export default function RelatorioUser({ Url }) {
   );
 }
 
-function Kpi({ title, value }) {
+function Kpi({ title, value, icon }) {
   return (
-    <div className={Style.card} style={{ padding: 12 }}>
-      <div style={{ fontSize: 12, color: "#6b7280", marginBottom: 4 }}>
+    <main className={Style.card} style={{ padding: 12 }}>
+      {icon}
+      <section style={{ fontSize: 12, color: "#6b7280", marginBottom: 4 }}>
         {title}
-      </div>
-      <div style={{ fontSize: 28, fontWeight: 700 }}>{value}</div>
-    </div>
+      </section>
+      <section style={{ fontSize: 28, fontWeight: 700 }}>{value}</section>
+    </main>
   );
 }

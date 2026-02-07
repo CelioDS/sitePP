@@ -113,6 +113,17 @@ nav > ul > a:hover:before {
   animation-fill-mode: forwards; /* Mantém o último quadro da animação */
 }
 
+.perfilLogin {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  justify-content: center;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background-color: red;
+}
+
 @keyframes rotate {
   0% {
     transform: rotate(0deg);

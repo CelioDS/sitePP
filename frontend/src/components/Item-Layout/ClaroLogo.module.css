@@ -1,12 +1,12 @@
 .main {
+  display: flex;
   width: 100px;
   height: 65px;
-  display: flex;
   justify-content: start;
   align-items: start;
   position: relative;
   flex-direction: column;
-  padding: 0px 5px;
+ 
    
 }
 

@@ -10,6 +10,7 @@ import Carteira from "./components/Routers/Carteira";
 import Relatorio from "./components/Routers/Relatorio";
 import Visualizar from "./components/Routers/Visualizar";
 
+
 const router = createBrowserRouter([
   {
     path: "/",
@@ -32,6 +33,7 @@ const router = createBrowserRouter([
         path: "/Visualizar/:id/:nm_contrato",
         element: <Visualizar />,
       },
+      
     ],
   },
 ]);
@@ -40,5 +42,5 @@ const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
   <React.StrictMode>
     <RouterProvider router={router} />
-  </React.StrictMode>
+  </React.StrictMode>,
 );

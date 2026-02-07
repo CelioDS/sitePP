@@ -897,6 +897,40 @@ export const getAPARELHO = async (req, res) => {
   }
 };
 
+// Controller novo
+export const getLP_graficoHistorico = async (req, res) => {
+  try {
+    const query = `
+      WITH max_por_mes AS (
+        SELECT
+          ANOMES,
+          MAX(DATA_ATUALIZACAO) AS data_maxima_mes
+        FROM LP
+        GROUP BY ANOMES
+      )
+      SELECT
+        LP.ANOMES AS anomes,
+        LP.COORDENADOR AS coordenador,
+        COUNT(DISTINCT LP.COLABORADOR) AS qtde_colaborador_distintas,
+        COUNT(DISTINCT LP.LOJA)        AS qtde_lojas_distintas,
+        COUNT(DISTINCT LP.CIDADE)      AS qtde_cidades_distintas,
+        COUNT(*)                       AS registros
+      FROM LP
+      JOIN max_por_mes m
+        ON LP.ANOMES = m.ANOMES
+       AND LP.DATA_ATUALIZACAO = m.data_maxima_mes
+      GROUP BY LP.ANOMES, LP.COORDENADOR
+      ORDER BY LP.ANOMES ASC, LP.COORDENADOR ASC;
+    `;
+
+    const [rows] = await dataBase.query(query);
+    return res.status(200).json(rows);
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ error: "Erro ao buscar histórico LP" });
+  }
+};
+
 export const getPduFullGrafico = async (req, res) => {
   try {
     const { year, referencia } = req.query; // ?year=2026&referencia=SP_INT
@@ -998,11 +1032,11 @@ export const getPduFullGrafico = async (req, res) => {
         if (base) return base;
 
         return onlyOneRef
-          ? { 
-              anomes, 
-              VB_soma: 0, 
-              INST_soma: 0, 
-              MOVEL_soma: 0 
+          ? {
+              anomes,
+              VB_soma: 0,
+              INST_soma: 0,
+              MOVEL_soma: 0,
             }
           : {
               anomes,
@@ -1010,7 +1044,7 @@ export const getPduFullGrafico = async (req, res) => {
               VB_soma_RSI: 0,
               INST_soma_br: 0,
               INST_soma_RSI: 0,
-              MOVEL_soma_br: 0,  // <--- Inicializa BR
+              MOVEL_soma_br: 0, // <--- Inicializa BR
               MOVEL_soma_RSI: 0, // <--- Inicializa RSI
             };
       });

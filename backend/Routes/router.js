@@ -15,8 +15,9 @@ import {
   getPduFull,
   getPDUMovel,
   getLP_grafico,
+  getLP_graficoHistorico,
   getAPARELHO,
-  getPduFullGrafico
+  getPduFullGrafico,
 } from "../Controllers/Controllers.js";
 import { LoginDB, validateToken } from "../Controllers/Auth.js";
 
@@ -26,6 +27,7 @@ const router = express.Router();
 
 /*------------------ LOJA PRÓPRIA ------------------*/
 router.get("/", getLP);
+
 router.get("/lojapropria", getLP);
 
 router.get("/portaaporta", getPAP);
@@ -40,6 +42,8 @@ router.get("/PduFullGrafico", getPduFullGrafico);
 router.get("/PduMovel", getPDUMovel);
 
 router.get("/lojapropriaGrafico", getLP_grafico);
+
+router.get("/lojapropriaGraficoHistorico", getLP_graficoHistorico);
 
 router.get("/aparelho", getAPARELHO);
 

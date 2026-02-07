@@ -80,8 +80,6 @@ export const setExcelLP = async (req, res) => {
   }
 };
 
-
-
 export const setExcelPAP = async (req, res) => {
   try {
     const login = req.headers.login;
@@ -131,7 +129,7 @@ export const setExcelPAP = async (req, res) => {
 
     const sql = `
       INSERT INTO PAP
-      (ANOMES,	CANAL,	IBGE,	CIDADE,	RAZAO_SOCIAL,	CNPJ,	NOME,	CLASSIFICACAO,	SEGMENTO,	PRODUTO_ATUACAO,	DATA_CADASTRO,	SITUACAO,	LOGIN_NET,	TIPO, DATA_ATUALIZACAO, LOGIN_ATUALIZACAO)
+      (ANOMES,	CANAL,	IBGE,	CIDADE,	PARCEIRO_LOJA	CNPJ,	NOME,	CLASSIFICACAO,	SEGMENTO,	PRODUTO_ATUACAO	DATA_CADASTRO,	SITUACAO,	LOGIN_NET,	TIPO,	LOGIN_CLARO,	EXECUTIVO,	GRUPO,	COMTA,	CABEAMENTO,	FILIAL_COORDENADOR, DATA_ATUALIZACAO, LOGIN_ATUALIZACAO)
       VALUES ?
     `;
 
