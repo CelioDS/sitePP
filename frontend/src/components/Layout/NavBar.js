@@ -155,24 +155,7 @@ export default function NavBar({ setPermission }) {
               Relatorio
             </Link>
           </li>
-          <li>
-            <Link
-              className={styleExt.perfil}
-              onClick={() => openMenu("Perfil")}
-              style={linkAtivo === "Perfil" ? { color: colorLink } : {}}
-              to={`/Perfil/${id}/${login}`}
-              alt="Link para o perfil do usuário"
-              title="Perfil do usuário"
-            >
-              {linkAtivo !== "Perfil" && (
-                <span>
-                  <CgProfile size={22} />
-                </span>
-              )}
-
-              {login && <p>{login}</p>}
-            </Link>
-          </li>
+        
           <li>
             <Logout setPermission={setPermission} />
           </li>
