@@ -83,7 +83,7 @@ export default function NavBar({ setPermission }) {
   function getLogo(linkAtivo) {
     if (linkAtivo === "Carteira") return <WalletLogo />;
     if (linkAtivo === "Relatorio") return <RelatorioLogo />;
-    if (linkAtivo === "Perfil") return <CgProfile size={36} />;
+    if (linkAtivo === "Perfil") return <CgProfile size={54} />;
     return <ClaroLogo />;
   }
 
@@ -151,6 +151,22 @@ export default function NavBar({ setPermission }) {
               to="/Relatorio"
             >
               Relatorio
+            </Link>
+          </li>
+
+          <li>
+            <Link
+              className={styleExt.perfil}
+              to={`/Perfil`}
+              alt="Link para o perfil do usuário"
+              title="Perfil do usuário"
+            >
+              {linkAtivo !== "Perfil" && (
+                <span>
+                  <CgProfile size={36} />
+                </span>
+              )}
+              {<p>{"perfil"} </p>}
             </Link>
           </li>
 

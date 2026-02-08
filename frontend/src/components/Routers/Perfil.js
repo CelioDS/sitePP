@@ -5,13 +5,29 @@ import { useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
+import ValidarToken from "../Tools/ValidarToken";
+import RenameTitle from "../Tools/RenameTitle";
 
 export default function Perfil() {
-  const { id, login } = useParams();
-
   const Url = process.env.REACT_APP_API_URL || "http://localhost:8000";
   const [perfilData, setPerfilData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [userData, setUserData] = useState(null);
+
+  const login = userData?.login;
+  const id = userData?.userId;
+
+  useEffect(() => {
+    async function loadUser() {
+      const data = await ValidarToken();
+      if (!data) {
+        window.location.href = "/Error";
+        return;
+      }
+      setUserData(data); // { login, admin }
+    }
+    loadUser();
+  }, []);
 
   useEffect(() => {
     async function fetchData() {
@@ -35,6 +51,7 @@ export default function Perfil() {
 
   return (
     <Container>
+      <RenameTitle initialTitle={"P&P - Perfil"} />
       <main className={Style.perfil}>
         <h1>
           {login} : {id}
