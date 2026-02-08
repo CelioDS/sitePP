@@ -1,6 +1,5 @@
 import RenameTitle from "../Tools/RenameTitle";
 import { useState, useLayoutEffect } from "react";
-
 import Container from "../Layout/Container";
 import RelatorioUser from "../Layout/RelatorioUser";
 import RelatorioAdmin from "../Layout/RelatorioAdmin";
@@ -37,7 +36,7 @@ export default function Relatorio() {
       <main className={Style.main}>
         <RenameTitle initialTitle={"P&P - Relatorio"} />
         {admin && canal === "admin" ? (
-          <RelatorioAdmin user={user} Url={Url} />
+          <RelatorioAdmin />
         ) : (
           <RelatorioUser Url={Url} user={user} today={today} admin={admin} />
         )}

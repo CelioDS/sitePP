@@ -2,7 +2,8 @@ import Style from "./RelatorioAdmin.module.css";
 import TabelaUsuarios from "../Item-Layout/tabelaUsuarios";
 import TabelaResponsavel from "../Item-Layout/tabelaResponsavel";
 import { useState } from "react";
-export default function RelatorioAdmin({ user, DataBase }) {
+
+export default function RelatorioAdmin() {
   const [pagina, setPagina] = useState(false);
 
   return (

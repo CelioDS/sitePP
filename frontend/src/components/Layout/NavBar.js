@@ -9,28 +9,13 @@ import ClaroLogo from "../Item-Layout/ClaroLogo.js";
 import WalletLogo from "../Item-Layout/WalletLogo.js";
 import RelatorioLogo from "../Item-Layout/RelatorioLogo.js";
 import Logout from "./logout.js";
-import ValidarToken from "../Tools/ValidarToken.js";
 import { CgProfile } from "react-icons/cg";
 
 export default function NavBar({ setPermission }) {
   const checkMobile = useCallback(CheckMobile, []);
   const isMobile = checkMobile();
 
-  const [userData, setUserData] = useState(null);
-  const id = userData?.userId;
-  const login = userData?.login;
 
-  useEffect(() => {
-    async function loadUser() {
-      const data = await ValidarToken();
-      if (!data) {
-        window.location.href = "/Error";
-        return;
-      }
-      setUserData(data); // { login, admin }
-    }
-    loadUser();
-  }, []);
 
   const sizeBtn = 36;
   const colorBtn = "#b98639";
