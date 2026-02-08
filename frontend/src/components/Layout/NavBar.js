@@ -15,8 +15,6 @@ export default function NavBar({ setPermission }) {
   const checkMobile = useCallback(CheckMobile, []);
   const isMobile = checkMobile();
 
-
-
   const sizeBtn = 36;
   const colorBtn = "#b98639";
   const colorLink = "#E3262E";
@@ -155,7 +153,7 @@ export default function NavBar({ setPermission }) {
               Relatorio
             </Link>
           </li>
-        
+
           <li>
             <Logout setPermission={setPermission} />
           </li>

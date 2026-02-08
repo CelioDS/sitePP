@@ -493,11 +493,14 @@ export default function Home() {
           <li>status de relazado</li>
           <li>corrigir o pdu ano contra ano</li>
           <li>criar um grafico do PDU igual o que a gabi envio </li>
-          <li>em relatorio fazer um grafico para mostrar a evolução dos coordenario por colaborador</li>
+          <li>
+            em relatorio fazer um grafico para mostrar a evolução dos
+            coordenario por colaborador
+          </li>
           <li>responsividade </li>
 
           <li>colocar cache</li>
-          <li>criar perfil para o usaurio ver  eo admin alterar</li>
+          <li>criar perfil para o usaurio ver eo admin alterar</li>
         </ul>
       </main>
     </Container>
