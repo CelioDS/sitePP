@@ -184,6 +184,12 @@ backend/.wwebjs_auth/
 .wwebjs_cache/
 .wwebjs_auth/
 
+
+#ENV
+
+.env
+.env.local
+
 # ========================
 # IDEs e Editor
 # ========================

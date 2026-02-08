@@ -23,6 +23,11 @@ yarn-debug.log*
 yarn-error.log*
 
 #.env
+#ENV
+
+.env
+.env.local
+.env.development.local
 
 backend/.wwebjs_auth/
 backend/.wwebjs_cache/

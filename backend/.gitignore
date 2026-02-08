@@ -15,6 +15,11 @@
 /sql
 .sql
 
+#ENV
+
+.env
+.env.local
+.env.development.local  
 
 # misc
 .DS_Store
