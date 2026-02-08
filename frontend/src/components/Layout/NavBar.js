@@ -11,7 +11,7 @@ import RelatorioLogo from "../Item-Layout/RelatorioLogo.js";
 import Logout from "./logout.js";
 import { CgProfile } from "react-icons/cg";
 
-export default function NavBar({ setPermission }) {
+export default function NavBar({ setPermission, permission }) {
   const checkMobile = useCallback(CheckMobile, []);
   const isMobile = checkMobile();
 
@@ -154,21 +154,23 @@ export default function NavBar({ setPermission }) {
             </Link>
           </li>
 
-          <li>
-            <Link
-              className={styleExt.perfil}
-              to={`/Perfil`}
-              alt="Link para o perfil do usuário"
-              title="Perfil do usuário"
-            >
-              {linkAtivo !== "Perfil" && (
-                <span>
-                  <CgProfile size={36} />
-                </span>
-              )}
-              {<p>{"perfil"} </p>}
-            </Link>
-          </li>
+          {permission && (
+            <li>
+              <Link
+                className={styleExt.perfil}
+                to={`/Perfil`}
+                alt="Link para o perfil do usuário"
+                title="Perfil do usuário"
+              >
+                {linkAtivo !== "Perfil" && (
+                  <span>
+                    <CgProfile size={36} />
+                  </span>
+                )}
+                {<p>{"perfil"} </p>}
+              </Link>
+            </li>
+          )}
 
           <li>
             <Logout setPermission={setPermission} />
