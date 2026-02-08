@@ -36,7 +36,7 @@ function App() {
 
   return (
     <div className="App">
-      <NavBar setPermission={setPermission} permission={permission} />
+      <NavBar setPermission={setPermission} permission={permission} loginBD={loginBD} />
       {permission && <Outlet context={{ loginBD }} />}
       {!permission && (
         <Login
