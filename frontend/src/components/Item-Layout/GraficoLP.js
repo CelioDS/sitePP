@@ -19,7 +19,6 @@ export default function RelatorioUser({ Url }) {
   const [userData, setUserData] = useState(null);
   const [dataBase, setDataBase] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [dataMAX, setDataMAX] = useState();
 
   // Base histórica exclusiva para o gráfico de linha (sempre todos os meses)
   const [dataHistory, setDataHistory] = useState([]);
@@ -67,7 +66,7 @@ export default function RelatorioUser({ Url }) {
           const lastDate = sortedDates[0];
           const formattedDate = format(lastDate, "yyyy'-'MM", { locale: ptBR });
 
-          setDataMAX(formattedDate);
+  
           setMonthFilter(formattedDate); // <-- mantém seu comportamento atual
         }
       } catch (err) {

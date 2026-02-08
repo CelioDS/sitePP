@@ -2,6 +2,7 @@ import express from "express";
 
 import {
   getDBLogin,
+  getDBLoginID,
   setDBLogin,
   updateDBLogin,
   deleteDBLogin,
@@ -57,6 +58,8 @@ router.get("/auth/validate", validateToken);
 
 /*------------------ USERS (ADMIN) ------------------*/
 router.get("/users", getDBLogin);
+router.get("/users/:id", getDBLoginID);
+
 router.post("/users/add", setDBLogin);
 router.put("/users/:id", updateDBLogin);
 router.delete("/users/:id", deleteDBLogin);

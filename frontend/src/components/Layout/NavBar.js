@@ -10,12 +10,27 @@ import WalletLogo from "../Item-Layout/WalletLogo.js";
 import RelatorioLogo from "../Item-Layout/RelatorioLogo.js";
 import Logout from "./logout.js";
 import ValidarToken from "../Tools/ValidarToken.js";
+import { CgProfile } from "react-icons/cg";
 
 export default function NavBar({ setPermission }) {
   const checkMobile = useCallback(CheckMobile, []);
   const isMobile = checkMobile();
 
+  const [userData, setUserData] = useState(null);
+  const id = userData?.userId;
+  const login = userData?.login;
 
+  useEffect(() => {
+    async function loadUser() {
+      const data = await ValidarToken();
+      if (!data) {
+        window.location.href = "/Error";
+        return;
+      }
+      setUserData(data); // { login, admin }
+    }
+    loadUser();
+  }, []);
 
   const sizeBtn = 36;
   const colorBtn = "#b98639";
@@ -85,6 +100,7 @@ export default function NavBar({ setPermission }) {
   function getLogo(linkAtivo) {
     if (linkAtivo === "Carteira") return <WalletLogo />;
     if (linkAtivo === "Relatorio") return <RelatorioLogo />;
+    if (linkAtivo === "Perfil") return <CgProfile size={36} />;
     return <ClaroLogo />;
   }
 
@@ -97,6 +113,7 @@ export default function NavBar({ setPermission }) {
           img={getLogo(linkAtivo)}
           extStyle={true}
           className={styleExt.logo}
+          alt="Logo da Claro"
         />
         {isMobile && (
           <button
@@ -124,31 +141,56 @@ export default function NavBar({ setPermission }) {
             `}
         >
           {/* Use arrow function no onClick para passar a string correta se desejar */}
-          <Link
-            onClick={() => openMenu("Home")}
-            style={linkAtivo === "Home" ? { color: colorLink } : {}}
-            to="/"
-          >
-            Home
-          </Link>
 
-          <Link
-            onClick={() => openMenu("Carteira")}
-            style={linkAtivo === "Carteira" ? { color: colorLink } : {}}
-            to="/Carteira"
-          >
-            Carteira
-          </Link>
-          <Link
-            onClick={() => openMenu("Relatorio")}
-            style={linkAtivo === "Relatorio" ? { color: colorLink } : {}}
-            to="/Relatorio"
-          >
-            Relatorio
-          </Link>
-          <Logout setPermission={setPermission} />
+          <li>
+            <Link
+              onClick={() => openMenu("Home")}
+              style={linkAtivo === "Home" ? { color: colorLink } : {}}
+              to="/"
+            >
+              Home
+            </Link>
+          </li>
+          <li>
+            <Link
+              onClick={() => openMenu("Carteira")}
+              style={linkAtivo === "Carteira" ? { color: colorLink } : {}}
+              to="/Carteira"
+            >
+              Carteira
+            </Link>
+          </li>
 
-          
+          <li>
+            <Link
+              onClick={() => openMenu("Relatorio")}
+              style={linkAtivo === "Relatorio" ? { color: colorLink } : {}}
+              to="/Relatorio"
+            >
+              Relatorio
+            </Link>
+          </li>
+          <li>
+            <Link
+              className={styleExt.perfil}
+              onClick={() => openMenu("Perfil")}
+              style={linkAtivo === "Perfil" ? { color: colorLink } : {}}
+              to={`/Perfil/${id}/${login}`}
+              alt="Link para o perfil do usuário"
+              title="Perfil do usuário"
+            >
+              {linkAtivo !== "Perfil" && (
+                <span>
+                  <CgProfile size={22} />
+                </span>
+              )}
+
+              {login && <p>{login}</p>}
+            </Link>
+          </li>
+          <li>
+            <Logout setPermission={setPermission} />
+          </li>
         </ul>
       </nav>
     </main>

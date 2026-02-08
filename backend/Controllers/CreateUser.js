@@ -1,4 +1,3 @@
-
 import { dataBase } from "../DataBase/dataBase.js";
 import dotenv from "dotenv";
 import bcrypt from "bcrypt";
@@ -16,6 +15,17 @@ export const getDBLogin = async (_, res) => {
   } catch (err) {
     console.error("Erro getDBLogin:", err);
     return res.status(500).json({ error: "Erro ao buscar usuários." });
+  }
+};
+
+export const getDBLoginID = async (req, res) => {
+  try {
+    const query = "SELECT * FROM usuariosAgen WHERE id = ?";
+    const [rows] = await dataBase.query(query, [req.params.id]);
+    return res.status(200).json(rows);
+  } catch (err) {
+    console.error("Erro getDBLoginID:", err);
+    return res.status(500).json({ error: "Erro ao buscar usuário por ID." });
   }
 };
 
@@ -118,4 +128,4 @@ export const deleteDBLogin = async (req, res) => {
     return res.status(500).json({ error: "Erro ao deletar usuário." });
   }
 };
-``
+``;

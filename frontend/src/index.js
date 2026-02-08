@@ -9,6 +9,7 @@ import Home from "./components/Routers/Home";
 import Carteira from "./components/Routers/Carteira";
 import Relatorio from "./components/Routers/Relatorio";
 import Visualizar from "./components/Routers/Visualizar";
+import Perfil from "./components/Routers/Perfil";
 
 
 const router = createBrowserRouter([
@@ -32,6 +33,10 @@ const router = createBrowserRouter([
       {
         path: "/Visualizar/:id/:nm_contrato",
         element: <Visualizar />,
+      },
+      {
+        path: "/Perfil/:id/:login",
+        element: <Perfil />,
       },
       
     ],
