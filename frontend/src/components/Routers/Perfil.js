@@ -1,7 +1,6 @@
 // components/Routers/Perfil.jsx
 import Style from "./Perfil.module.css";
 import Container from "../Layout/Container";
-import { useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
