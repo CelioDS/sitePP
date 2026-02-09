@@ -31,7 +31,7 @@ export default function Table({ canal, login, admin, Url }) {
 
   // Mantém 'rota' em sincronia quando 'canal' mudar
   useEffect(() => {
-    setRota(rotas[canal] || "lojapropria");
+    setRota(rotas[canal]);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [canal]);
 
@@ -142,7 +142,8 @@ export default function Table({ canal, login, admin, Url }) {
         toast.success("Arquivo enviado com sucesso!");
         const normalized = toArray(response.data);
         setDatabase(normalized);
-      } else {
+      }
+      if (canal === "LP") {
         const response = await axios.post(`${Url}/upload-excel-lp`, formData, {
           headers: { "Content-Type": "multipart/form-data", login: login },
         });
@@ -216,6 +217,9 @@ export default function Table({ canal, login, admin, Url }) {
             className={Style.table}
           />
         </div>
+
+        {console.log(latest)}
+        {console.log(lastReqId)}
         <div>
           {!admin && (
             <>
@@ -227,7 +231,7 @@ export default function Table({ canal, login, admin, Url }) {
 
         <div>
           <p>
-            <strong>Última atualização:</strong> {DATA_ATUALIZACAO_info || "—"}{" "}
+            <strong>Última atualização:</strong> {DATA_ATUALIZACAO_info || "—"}
             {LOGIN_ATUALIZACAO_info ? `por ${LOGIN_ATUALIZACAO_info}` : ""}
           </p>
         </div>

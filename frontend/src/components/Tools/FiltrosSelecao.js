@@ -82,6 +82,17 @@ export default function TableFilters({
           disabled={isLoading}
         >
           <option value="">Selecionar mês...</option>
+          <option value="2026-12">Dezembro/2026</option>
+          <option value="2026-11">Novembro/2026</option>
+          <option value="2026-10">Outubro/2026</option>
+          <option value="2026-09">Setembro/2026</option>
+          <option value="2026-08">Agosto/2026</option>
+          <option value="2026-07">Julho/2026</option>
+          <option value="2026-06">Junho/2026</option>
+          <option value="2026-05">Maio/2026</option>
+          <option value="2026-04">Abril/2026</option>
+          <option value="2026-03">Março/2026</option>
+          <option value="2026-02">Fevereiro/2026</option>
           <option value="2026-01">Janeiro/2026</option>
           <option value="2025-12">Dezembro/2025</option>
           <option value="2025-11">Novembro/2025</option>

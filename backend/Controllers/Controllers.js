@@ -1,13 +1,23 @@
 import { dataBase } from "../DataBase/dataBase.js";
 import dotenv from "dotenv";
-import { format } from "date-fns";
-import { fromZonedTime } from "date-fns-tz";
 
 dotenv.config();
+
+// Normaliza para comparar sem acentos/maiúsculas se precisar
+
+const MAPA_TABELAS = {
+  AA: "AA",
+  LP: "LP",
+  PME: "PME",
+  PAP: "PAP",
+  VAREJO: "VAREJO",
+};
+
 
 const buildDateFilter = (tableAlias, start, end, latest) => {
   const where = [];
   const params = [];
+  const tableName = MAPA_TABELAS[tableAlias];
 
   if (start) {
     where.push(`${tableAlias}.DATA_ATUALIZACAO >= ?`);
@@ -22,7 +32,7 @@ const buildDateFilter = (tableAlias, start, end, latest) => {
     where.push(`
       ${tableAlias}.DATA_ATUALIZACAO IN (
         SELECT MAX(DATA_ATUALIZACAO)
-        FROM ${tableAlias === "LP" ? "LP" : "PAP"}
+        FROM ${tableName}
         GROUP BY DATE_FORMAT(DATA_ATUALIZACAO, '%Y-%m')
       )
     `);
@@ -186,6 +196,111 @@ export const getPAP = async (req, res) => {
   } catch (err) {
     console.error(err);
     return res.status(500).json({ error: "Erro ao buscar PAP" });
+  }
+};
+
+export const getAA = async (req, res) => {
+  try {
+    let {
+      q,
+      start,
+      end,
+      latest,
+      limit = 2000,
+      offset = 0,
+      orderBy = "ID",
+      orderDir = "DESC",
+    } = req.query;
+
+    limit = Math.min(Number(limit) || 2000, 5000);
+    offset = Number(offset) || 0;
+
+    const validOrder = ["ID", "DATA_CADASTRO", "CIDADE", "IBGE", "NOME"];
+    orderBy = validOrder.includes(orderBy) ? orderBy : "ID";
+    orderDir = orderDir.toUpperCase() === "ASC" ? "ASC" : "DESC";
+
+    const mainFilters = buildDateFilter("PAP", start, end, latest);
+    const where = mainFilters.where;
+    const params = mainFilters.params;
+
+    if (q) {
+      const like = `%${q}%`;
+      where.push(`
+        (AA.CANAL LIKE ? OR AA.IBGE LIKE ? OR AA.CIDADE LIKE ? OR 
+         AA.RAZAO_SOCIAL LIKE ? OR AA.CNPJ LIKE ? OR AA.NOME LIKE ? OR
+         AA.CLASSIFICACAO LIKE ? OR AA.SEGMENTO LIKE ? OR AA.PRODUTO_ATUACAO LIKE ?)
+      `);
+      params.push(like, like, like, like, like, like, like, like, like);
+    }
+
+    const sql = `
+      SELECT AA.*
+      FROM AA
+      ${where.length ? `WHERE ${where.join(" AND ")}` : ""}
+      ORDER BY AA.${orderBy} ${orderDir}
+      LIMIT ? OFFSET ?
+    `;
+
+    params.push(limit, offset);
+
+    const [rows] = await dataBase.query(sql, params);
+    return res.status(200).json(rows);
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ error: "Erro ao buscar AA" });
+  }
+};
+
+
+export const getVAREJO = async (req, res) => {
+  try {
+    let {
+      q,
+      start,
+      end,
+      latest,
+      limit = 2000,
+      offset = 0,
+      orderBy = "ID",
+      orderDir = "DESC",
+    } = req.query;
+
+    limit = Math.min(Number(limit) || 2000, 5000);
+    offset = Number(offset) || 0;
+
+    const validOrder = ["ID", "DATA_CADASTRO", "CIDADE", "IBGE", "NOME"];
+    orderBy = validOrder.includes(orderBy) ? orderBy : "ID";
+    orderDir = orderDir.toUpperCase() === "ASC" ? "ASC" : "DESC";
+
+    const mainFilters = buildDateFilter("VAREJO", start, end, latest);
+    const where = mainFilters.where;
+    const params = mainFilters.params;
+
+    if (q) {
+      const like = `%${q}%`;
+      where.push(`
+        (VAREJO.CANAL LIKE ? OR VAREJO.IBGE LIKE ? OR VAREJO.CIDADE LIKE ? OR 
+         VAREJO.RAZAO_SOCIAL LIKE ? OR VAREJO.CNPJ LIKE ? OR VAREJO.NOME LIKE ? OR
+         VAREJO.CLASSIFICACAO LIKE ? OR VAREJO.SEGMENTO LIKE ? OR VAREJO.PRODUTO_ATUACAO LIKE ?)
+      `);
+      params.push(like, like, like, like, like, like, like, like, like);
+    }
+
+    const sql = `
+      SELECT VAREJO.*
+      FROM VAREJO
+      ${where.length ? `WHERE ${where.join(" AND ")}` : ""}
+      ORDER BY VAREJO.${orderBy} ${orderDir}
+      LIMIT ? OFFSET ?
+    `;
+
+    params.push(limit, offset);
+
+    const [rows] = await dataBase.query(sql, params);
+    return res.status(200).json(rows);
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ error: "Erro ao buscar VAREJO" });
   }
 };
 
