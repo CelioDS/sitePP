@@ -29,6 +29,10 @@ yarn-error.log*
 
 #.env
 
+.env
+.env.local
+.env.development.local
+
 backend/.wwebjs_auth/
 backend/.wwebjs_cache/
 backend/node_modules/
