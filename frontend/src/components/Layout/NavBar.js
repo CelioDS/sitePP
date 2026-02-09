@@ -11,7 +11,7 @@ import RelatorioLogo from "../Item-Layout/RelatorioLogo.js";
 import Logout from "./logout.js";
 import { CgProfile } from "react-icons/cg";
 
-export default function NavBar({ setPermission, permission, loginBD }) {
+export default function NavBar({ setPermission, permission, canalBD }) {
   const checkMobile = useCallback(CheckMobile, []);
   const isMobile = checkMobile();
 
@@ -167,7 +167,7 @@ export default function NavBar({ setPermission, permission, loginBD }) {
                     <CgProfile size={36} />
                   </span>
                 )}
-                {<p>{ loginBD}</p>}
+                {<p>{canalBD}</p>}
               </Link>
             </li>
           )}

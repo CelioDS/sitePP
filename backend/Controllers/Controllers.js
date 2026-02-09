@@ -84,6 +84,59 @@ export const getLP = async (req, res) => {
   }
 };
 
+export const getPME = async (req, res) => {
+  try {
+    let {
+      q,
+      start,
+      end,
+      latest,
+      limit = 1000,
+      offset = 0,
+      orderBy = "ID",
+      orderDir = "DESC",
+    } = req.query;
+
+    limit = Math.min(Number(limit) || 1000, 5000);
+    offset = Number(offset) || 0;
+
+    const validOrder = ["ID", "DATA_ATUALIZACAO", "LOGIN_NET", "LOGIN_CLARO"];
+    orderBy = validOrder.includes(orderBy) ? orderBy : "ID";
+    orderDir = orderDir.toUpperCase() === "ASC" ? "ASC" : "DESC";
+
+    const mainFilters = buildDateFilter("PME", start, end, latest);
+    const where = mainFilters.where;
+    const params = mainFilters.params;
+
+    // --- Search ---
+    if (q) {
+      const like = `%${q}%`;
+      where.push(`
+        (PME.CANAL LIKE ? OR PME.COMTA LIKE ? OR PME.GRUPO LIKE ? OR
+         PME.PARCEIRO_LOJA LIKE ? OR PME.CNPJ LIKE ? OR PME.LOGIN_NET LIKE ? OR
+         PME.PARCEIRO_LOJA LIKE ? OR PME.TERRITORIO LIKE ? OR PME.COMTA LIKE ? OR PME.NOME LIKE ?)
+      `);
+      params.push(like, like, like, like, like, like, like, like, like, like);
+    }
+
+    const sql = `
+      SELECT PME.*
+      FROM PME
+      ${where.length ? `WHERE ${where.join(" AND ")}` : ""}
+      ORDER BY PME.${orderBy} ${orderDir}
+      LIMIT ? OFFSET ?
+    `;
+
+    params.push(limit, offset);
+
+    const [rows] = await dataBase.query(sql, params);
+    return res.status(200).json(rows);
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ error: "Erro ao buscar PME" });
+  }
+};
+
 export const getPAP = async (req, res) => {
   try {
     let {

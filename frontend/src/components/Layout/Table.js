@@ -19,9 +19,12 @@ export default function Table({ canal, login, admin, Url }) {
   const [dataBase, setDatabase] = useState([]);
 
   const rotas = {
+    PME: "pme",
+    Varejo: "varejo",
     LP: "lojapropria",
     PAP: "portaaporta",
-    PAP_PREMIUM: "pap_premium", // caso você venha a usar PEP
+    AA: "agenteautorizado",
+    PAP_PREMIUM: "pap_premium",
   };
 
   const [rota, setRota] = useState(rotas[canal]);
@@ -131,6 +134,14 @@ export default function Table({ canal, login, admin, Url }) {
         toast.success("Arquivo enviado com sucesso!");
         const normalized = toArray(response.data);
         setDatabase(normalized);
+      }
+      if (canal === "PME") {
+        const response = await axios.post(`${Url}/upload-excel-pme`, formData, {
+          headers: { "Content-Type": "multipart/form-data", login: login },
+        });
+        toast.success("Arquivo enviado com sucesso!");
+        const normalized = toArray(response.data);
+        setDatabase(normalized);
       } else {
         const response = await axios.post(`${Url}/upload-excel-lp`, formData, {
           headers: { "Content-Type": "multipart/form-data", login: login },
@@ -163,7 +174,13 @@ export default function Table({ canal, login, admin, Url }) {
     const workbook = XLSX.utils.book_new();
 
     const sheetName =
-      canal === "LP" ? "LojaPropria" : canal === "PAP" ? "PortaAPorta" : "PEP";
+      canal === "LP"
+        ? "LojaPropria"
+        : canal === "PAP"
+          ? "PortaAPorta"
+          : canal === "PME"
+            ? "PME"
+            : "Outro"; // Adicionado o check e um valor padrão
 
     XLSX.utils.book_append_sheet(workbook, worksheet, sheetName);
 
@@ -264,20 +281,16 @@ export default function Table({ canal, login, admin, Url }) {
                   </>
                 )}
 
-                {canal === "PEP" && (
+                {canal === "PME" && (
                   <>
                     <th>CANAL</th>
-                    <th>CIDADE</th>
-                    <th>IBGE</th>
-                    <th>ATIVO</th>
-                    <th>GERENTE</th>
-                    <th>COORD</th>
-                    <th>EXECUTIVO</th>
-                    <th>LOGIN_NET</th>
-                    <th>LOGIN_MPLAY</th>
-                    <th>LOGIN_CLARO</th>
-                    <th>ADMISSAO</th>
-                    <th>TIPO_HC</th>
+                    <th>COMTA</th>
+                    <th>GRUPO</th>
+                    <th>PARCEIRO LOJA</th>
+                    <th>CNPJ</th>
+                    <th>NOME</th>
+                    <th>LOGIN NET</th>
+                    <th>TERRITORIO</th>
                   </>
                 )}
               </tr>
@@ -309,20 +322,16 @@ export default function Table({ canal, login, admin, Url }) {
                     </>
                   )}
 
-                  {canal === "PEP" && (
+                  {canal === "PME" && (
                     <>
                       <td>{item.CANAL}</td>
-                      <td>{item.CIDADE}</td>
-                      <td>{item.IBGE}</td>
-                      <td>{item.ATIVO}</td>
-                      <td>{item.GERENTE}</td>
-                      <td>{item.COORD}</td>
-                      <td>{item.EXECUTIVO}</td>
+                      <td>{item.COMTA}</td>
+                      <td>{item.GRUPO}</td>
+                      <td>{item.PARCEIRO_LOJA}</td>
+                      <td>{item.CNPJ}</td>
+                      <td>{item.NOME}</td>
                       <td>{item.LOGIN_NET}</td>
-                      <td>{item.LOGIN_MPLAY}</td>
-                      <td>{item.LOGIN_CLARO}</td>
-                      <td>{item.ADMISSAO}</td>
-                      <td>{item.TIPO_HC}</td>
+                      <td>{item.TERRITORIO}</td>
                     </>
                   )}
 

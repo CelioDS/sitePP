@@ -10,6 +10,7 @@ import {
 
 import {
   getLP,
+  getPME,
   getPAP,
   getPAP_PREMIUM,
   getPDU,
@@ -22,7 +23,12 @@ import {
 } from "../Controllers/Controllers.js";
 import { LoginDB, validateToken } from "../Controllers/Auth.js";
 
-import { setExcelLP, setExcelPAP, upload } from "../Controllers/ExcelUpload.js";
+import {
+  setExcelLP,
+  setExcelPME,
+  setExcelPAP,
+  upload,
+} from "../Controllers/ExcelUpload.js";
 
 const router = express.Router();
 
@@ -30,6 +36,8 @@ const router = express.Router();
 router.get("/", getLP);
 
 router.get("/lojapropria", getLP);
+
+router.get("/pme", getPME);
 
 router.get("/portaaporta", getPAP);
 
@@ -48,7 +56,11 @@ router.get("/lojapropriaGraficoHistorico", getLP_graficoHistorico);
 
 router.get("/aparelho", getAPARELHO);
 
+/*------------------ EXCEL UPLOAD ------------------*/
+
 router.post("/upload-excel-lp", upload.single("file"), setExcelLP);
+
+router.post("/upload-excel-pme", upload.single("file"), setExcelPME);
 
 router.post("/upload-excel-PAP", upload.single("file"), setExcelPAP);
 

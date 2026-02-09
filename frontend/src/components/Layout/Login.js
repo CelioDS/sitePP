@@ -6,7 +6,7 @@ import { useState } from "react";
 import { toast } from "react-toastify";
 import axios from "axios";
 
-export default function Login({ setPermission, setLoginBD }) {
+export default function Login({ setPermission, setLoginBD, setCanalBD }) {
   const [Text, setText] = useState("Entrar");
   const [login, setLogin] = useState();
   const [senha, setSenha] = useState();
@@ -30,6 +30,7 @@ export default function Login({ setPermission, setLoginBD }) {
         localStorage.setItem("login", user.login);
         localStorage.setItem("permission", true);
         setLoginBD(user.login);
+        setCanalBD(user.canal);
 
         toast.success("Login realizado com sucesso!");
         setPermission(true);
@@ -43,7 +44,7 @@ export default function Login({ setPermission, setLoginBD }) {
         toast.error(err.response.data.message || "Login ou senha inválida!");
       } else {
         toast.error(
-          "Erro ao conectar com o servidor. Tente novamente mais tarde."
+          "Erro ao conectar com o servidor. Tente novamente mais tarde.",
         );
       }
       setText("Entrar");

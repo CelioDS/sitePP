@@ -72,6 +72,11 @@ export default function RelatorioAdmin({ user, DataBase }) {
     if (isSubmit) return;
 
     const dadosForm = ref.current;
+
+    const loginValue = dadosForm.login.value.toLowerCase();
+    const senhaValue = dadosForm.senha.value;
+    const canalValue = dadosForm.canal.value;
+    const adminValue = Number(dadosForm.admin.value);
     e.preventDefault();
 
     if (
@@ -87,7 +92,6 @@ export default function RelatorioAdmin({ user, DataBase }) {
     setTextButtonForm(editUser ? "Editando..." : "Salvando...");
 
     if (editUser) {
-      console.log("oi");
       await axios
         .put(`${Url}/users/${editUser.id}`, {
           login: dadosForm.login.value.toLowerCase(),
@@ -96,7 +100,6 @@ export default function RelatorioAdmin({ user, DataBase }) {
           admin: Number(dadosForm.admin.value),
         })
         .then(({ data }) => {
-          console.log("oi");
           console.log(data.message);
           toast.success(data.message);
           // Atualiza localmente sem precisar buscar no banco
@@ -110,8 +113,8 @@ export default function RelatorioAdmin({ user, DataBase }) {
                     canal: dadosForm.canal.value,
                     admin: Number(dadosForm.admin.value),
                   }
-                : info
-            )
+                : info,
+            ),
           );
         })
         .catch((err) => toast.error(err.message));
@@ -119,7 +122,7 @@ export default function RelatorioAdmin({ user, DataBase }) {
       if (
         dataBaseLogin.some(
           (user) =>
-            user.login.toLowerCase() === dadosForm.login.value.toLowerCase()
+            user.login.toLowerCase() === dadosForm.login.value.toLowerCase(),
         )
       ) {
         toast.warning("Login ja cadastrado!!!");
@@ -151,7 +154,7 @@ export default function RelatorioAdmin({ user, DataBase }) {
         setEditUser(null);
 
         toast.warning(
-          "A senha deve conter letras maiúsculas, minúsculas, números e caracteres especiais."
+          "A senha deve conter letras maiúsculas, minúsculas, números e caracteres especiais.",
         );
         return;
       }
@@ -169,10 +172,10 @@ export default function RelatorioAdmin({ user, DataBase }) {
             ...prev,
             {
               id: data.id,
-              login: dadosForm.login.value.toLowerCase(),
-              senha: dadosForm.senha.value,
-              canal: dadosForm.canal.value,
-              admin: Number(dadosForm.admin.value),
+              login: loginValue,
+              senha: senhaValue,
+              canal: canalValue,
+              admin: adminValue,
             },
           ]);
         })
@@ -228,9 +231,11 @@ export default function RelatorioAdmin({ user, DataBase }) {
             <label htmlFor="canal">canal:</label>
             <select name="canal" id="canal">
               <option value="">Selecione</option>
-              <option value="LP">LP</option>
-              <option value="PAP">PAP</option>
-              <option value="PP">PP</option>
+              <option value="PME">PME</option>
+              <option value="Varejo">Varejo</option>
+              <option value="LP">Loja Propria</option>
+              <option value="PAP">Porta a Porta</option>
+              <option value="AA">Agente Autorizado</option>
             </select>
           </div>
           <div>
@@ -271,7 +276,7 @@ export default function RelatorioAdmin({ user, DataBase }) {
                           handleEdit(info);
                           setHandleNumberEdit(
                             (prevState) => prevState + 1,
-                            info.id
+                            info.id,
                           );
                         }}
                       >
@@ -290,7 +295,7 @@ export default function RelatorioAdmin({ user, DataBase }) {
                       </button>
                     </th>
                   </tr>
-                ) : null
+                ) : null,
               )}
             </tbody>
           </table>

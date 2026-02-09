@@ -11,10 +11,11 @@ import axios from "axios";
 
 function App() {
   const [permission, setPermission] = useState(
-    localStorage.getItem("permission") === "true"
+    localStorage.getItem("permission") === "true",
   );
 
   const [loginBD, setLoginBD] = useState();
+  const [canalBD, setCanalBD] = useState();
 
   const baseURL = process.env.REACT_APP_API_URL || "http://localhost:8000";
 
@@ -36,13 +37,18 @@ function App() {
 
   return (
     <div className="App">
-      <NavBar setPermission={setPermission} permission={permission} loginBD={loginBD} />
+      <NavBar
+        setPermission={setPermission}
+        permission={permission}
+        canalBD={canalBD}
+      />
       {permission && <Outlet context={{ loginBD }} />}
       {!permission && (
         <Login
           permission={permission}
           setPermission={setPermission}
           setLoginBD={setLoginBD}
+          setCanalBD={setCanalBD}
         />
       )}
       <ToastContainer

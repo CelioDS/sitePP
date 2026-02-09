@@ -13,7 +13,7 @@ export default function Perfil() {
   const [loading, setLoading] = useState(true);
   const [userData, setUserData] = useState(null);
 
-  const login = userData?.login;
+  //const login = userData?.login;
   const id = userData?.userId;
 
   useEffect(() => {
@@ -52,10 +52,6 @@ export default function Perfil() {
     <Container>
       <RenameTitle initialTitle={"P&P - Perfil"} />
       <main className={Style.perfil}>
-        <h1>
-          {login} : {id}
-        </h1>
-
         {loading ? (
           <p>Carregando…</p>
         ) : perfilData?.length > 0 ? (

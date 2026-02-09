@@ -5,9 +5,6 @@ import Container from "../Layout/Container";
 import { useEffect, useState } from "react";
 import ValidarToken from "../Tools/ValidarToken";
 import TableAdmin from "../Layout/TableAdmin";
-import { Link } from "react-router-dom";
-import { CgProfile } from "react-icons/cg";
-
 
 export default function Depara() {
   const [dataBase, setDataBase] = useState(null);
@@ -16,7 +13,7 @@ export default function Depara() {
   const admin = userData?.admin;
   const login = userData?.login;
   const canal = userData?.canal;
-  const id = userData?.userId;
+
 
   useEffect(() => {
     async function loadUser() {
@@ -39,17 +36,6 @@ export default function Depara() {
       <p>
         usuario: <span>{login}</span>
       </p>
-
-      <Link
-        to={`/Perfil/${id}/${login}`}
-        alt="Link para o perfil do usuário"
-        title="Perfil do usuário"
-      >
-        <span>
-          <CgProfile size={22} />
-        </span>
-        o{login && <p>{login} </p>}
-      </Link>
 
       {admin && canal === "admin" ? (
         <TableAdmin Url={Url} />
