@@ -6,6 +6,7 @@ import axios from "axios";
 import { toast } from "react-toastify";
 import ValidarToken from "../Tools/ValidarToken";
 import RenameTitle from "../Tools/RenameTitle";
+import Mina from "./mina";
 
 export default function Perfil() {
   const Url = process.env.REACT_APP_API_URL || "http://localhost:8000";
@@ -72,10 +73,13 @@ export default function Perfil() {
                 </tr>
               ))}
             </tbody>
+
           </table>
         ) : (
           <p>Nenhum dado de perfil encontrado.</p>
         )}
+
+        <Mina></Mina>
       </main>
     </Container>
   );
