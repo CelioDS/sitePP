@@ -158,6 +158,8 @@ export default function NavBar({ setPermission, permission, canalBD }) {
             <li>
               <Link
                 className={styleExt.perfil}
+                onClick={() => openMenu("Perfil")}
+                style={linkAtivo === "Perfil" ? { color: colorLink } : {}}
                 to={`/Perfil`}
                 alt="Link para o perfil do usuário"
                 title="Perfil do usuário"

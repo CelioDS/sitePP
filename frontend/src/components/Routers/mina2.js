@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 // ----- helpers -----
 const STORAGE_PREFIX = "todo";
@@ -21,12 +21,54 @@ function normalizeTasks(data) {
   return Array.isArray(data) ? data : [];
 }
 
+// ---- Toast simples (popup) ----
+function Toast({ open, message, onClose }) {
+  useEffect(() => {
+    if (!open) return;
+    const t = setTimeout(onClose, 2500);
+    return () => clearTimeout(t);
+  }, [open, onClose]);
+
+  if (!open) return null;
+  return (
+    <div
+      role="status"
+      aria-live="polite"
+      style={{
+        position: "fixed",
+        right: 16,
+        bottom: 16,
+        maxWidth: 420,
+        background: "#111",
+        color: "#fff",
+        padding: "12px 14px",
+        borderRadius: 10,
+        boxShadow: "0 6px 18px rgba(0,0,0,.3)",
+        display: "flex",
+        alignItems: "center",
+        gap: 10,
+        zIndex: 9999,
+      }}
+      onClick={onClose}
+      title="Clique para fechar"
+    >
+      <span style={{ fontSize: 18 }}>↕</span>
+      <div style={{ lineHeight: 1.2 }}>{message}</div>
+    </div>
+  );
+}
+
 export default function WriterApp() {
   const [userId, setUserId] = useState(
     () => localStorage.getItem("currentUserId") || ""
   );
   const [tasks, setTasks] = useState([]);
-  const [draggingIndex, setDraggingIndex] = useState(null);
+  const [draggingFrom, setDraggingFrom] = useState(null);
+  const [draggingTo, setDraggingTo] = useState(null);
+
+  // Toast
+  const [toastOpen, setToastOpen] = useState(false);
+  const [toastMsg, setToastMsg] = useState("");
 
   // Carrega tarefas quando definir/alterar userId
   useEffect(() => {
@@ -54,24 +96,46 @@ export default function WriterApp() {
   }, [tasks, userId]);
 
   function handleDragStart(index) {
-    setDraggingIndex(index);
+    setDraggingFrom(index);
+    setDraggingTo(index);
   }
 
   function handleDragOver(e, index) {
     e.preventDefault(); // necessário para permitir soltar
-    if (draggingIndex === null || draggingIndex === index) return;
+    // Evita refazer operação quando passar no mesmo item
+    if (draggingTo === index || draggingFrom === null) {
+      setDraggingTo(index);
+      return;
+    }
 
+    // Reordena live durante o drag
     setTasks((prev) => {
       const newTasks = [...prev];
-      const [dragged] = newTasks.splice(draggingIndex, 1);
-      newTasks.splice(index, 0, dragged);
+      const [dragged] = newTasks.splice(draggingTo, 1); // tirar da posição atual
+      newTasks.splice(index, 0, dragged); // inserir na nova posição
       return newTasks;
     });
-    setDraggingIndex(index);
+    setDraggingTo(index);
   }
 
   function handleDragEnd() {
-    setDraggingIndex(null);
+    // Se houve mudança de posição, mostra o toast
+    if (
+      draggingFrom !== null &&
+      draggingTo !== null &&
+      draggingFrom !== draggingTo
+    ) {
+      const movedTask = tasks[draggingTo];
+      const fromPos = draggingFrom + 1;
+      const toPos = draggingTo + 1;
+
+      setToastMsg(`A tarefa "${movedTask?.title}" mudou de posição: ${fromPos} → ${toPos}`);
+      setToastOpen(true);
+      // vibração leve (opcional, em dispositivos que suportam)
+      if (navigator?.vibrate) navigator.vibrate(20);
+    }
+    setDraggingFrom(null);
+    setDraggingTo(null);
   }
 
   const addTask = () => {
@@ -189,7 +253,7 @@ export default function WriterApp() {
               display: "flex",
               alignItems: "center",
               gap: 10,
-              opacity: draggingIndex === index ? 0.6 : 1,
+              opacity: draggingTo === index ? 0.6 : 1,
             }}
           >
             <input
@@ -222,6 +286,13 @@ export default function WriterApp() {
           </li>
         ))}
       </ul>
+
+      {/* Popup (toast) */}
+      <Toast
+        open={toastOpen}
+        message={toastMsg}
+        onClose={() => setToastOpen(false)}
+      />
     </div>
   );
 }

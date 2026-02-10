@@ -498,6 +498,15 @@ export default function Home() {
             coordenario por colaborador
           </li>
           <li>responsividade </li>
+          <li>
+            CRIAR um todo list onde o fantacci vai ter a visão de todo mundo e
+            vai conseguir fazer a movimentação de prioridade e na visão usaria
+            sera uma tabela com responsavel onde vai ter mais de 1 resposavel
+            por tarefa porcentagem e concuida obs 
+
+
+            id tarefa porcentagem obs etapas resposaveis
+          </li>
 
           <li>colocar cache</li>
           <li>criar perfil para o usaurio ver eo admin alterar</li>

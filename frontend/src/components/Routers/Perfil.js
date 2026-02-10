@@ -7,6 +7,7 @@ import { toast } from "react-toastify";
 import ValidarToken from "../Tools/ValidarToken";
 import RenameTitle from "../Tools/RenameTitle";
 import Mina from "./mina";
+import Mina2 from "./mina2";
 
 export default function Perfil() {
   const Url = process.env.REACT_APP_API_URL || "http://localhost:8000";
@@ -14,7 +15,7 @@ export default function Perfil() {
   const [loading, setLoading] = useState(true);
   const [userData, setUserData] = useState(null);
 
-  //const login = userData?.login;
+  const admin = userData?.admin;
   const id = userData?.userId;
 
   useEffect(() => {
@@ -73,13 +74,12 @@ export default function Perfil() {
                 </tr>
               ))}
             </tbody>
-
           </table>
         ) : (
           <p>Nenhum dado de perfil encontrado.</p>
         )}
 
-        <Mina></Mina>
+        {admin === "admin" ? <Mina2></Mina2> : <Mina></Mina>}
       </main>
     </Container>
   );

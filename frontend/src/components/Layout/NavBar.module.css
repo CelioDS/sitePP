@@ -55,6 +55,10 @@
   height: 100%;
 }
 .main nav ul li {
+  display: flex;
+  text-align: center;
+  align-items: center;
+  justify-content: center;
   text-decoration: none;
   list-style: none;
   width: 100%;
@@ -133,6 +137,7 @@ nav > ul > a:hover:before {
   height: 50px;
   border-radius: 50%;
   font-weight: 600;
+
 }
 .main nav ul li .perfil > span > svg {
   width: 100%;
