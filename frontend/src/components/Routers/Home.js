@@ -504,6 +504,7 @@ export default function Home() {
             sera uma tabela com responsavel onde vai ter mais de 1 resposavel
             por tarefa porcentagem e concuida obs 
 
+            criar um area MIS onde so o mis vai ter acesso a esse dados 
 
             id tarefa porcentagem obs etapas resposaveis
           </li>
