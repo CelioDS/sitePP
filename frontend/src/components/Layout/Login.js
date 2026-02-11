@@ -6,7 +6,12 @@ import { useState } from "react";
 import { toast } from "react-toastify";
 import axios from "axios";
 
-export default function Login({ setPermission, setLoginBD, setCanalBD }) {
+export default function Login({
+  setPermission,
+  setLoginBD,
+  setCanalBD,
+  setMisBD,
+}) {
   const [Text, setText] = useState("Entrar");
   const [login, setLogin] = useState();
   const [senha, setSenha] = useState();
@@ -31,6 +36,7 @@ export default function Login({ setPermission, setLoginBD, setCanalBD }) {
         localStorage.setItem("permission", true);
         setLoginBD(user.login);
         setCanalBD(user.canal);
+        setMisBD(user.mis);
 
         toast.success("Login realizado com sucesso!");
         setPermission(true);

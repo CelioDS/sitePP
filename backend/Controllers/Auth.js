@@ -17,8 +17,8 @@ export const LoginDB = async (req, res) => {
 
     // 1) Busca só pelo login
     const [rows] = await dataBase.query(
-      "SELECT id, login, senha AS senha_hash, admin, canal FROM usuariosAgen WHERE login = ? LIMIT 1",
-      [login]
+      "SELECT id, login, senha AS senha_hash, admin, canal, mis FROM usuariosAgen WHERE login = ? LIMIT 1",
+      [login],
     );
 
     if (rows.length === 0) {
@@ -48,10 +48,11 @@ export const LoginDB = async (req, res) => {
         userId: user.id,
         login: user.login,
         admin: user.admin,
+        mis: user.mis,
         canal: user.canal,
       },
       process.env.JWT_SECRET,
-      { expiresIn: "1h" }
+      { expiresIn: "1h" },
     );
 
     // 4) Retorna usuário sem a senha
@@ -63,6 +64,7 @@ export const LoginDB = async (req, res) => {
         id: user.id,
         login: user.login,
         admin: user.admin,
+        mis: user.mis,
         canal: user.canal,
       },
     });

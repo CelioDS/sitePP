@@ -219,7 +219,7 @@ export const getAA = async (req, res) => {
     orderBy = validOrder.includes(orderBy) ? orderBy : "ID";
     orderDir = orderDir.toUpperCase() === "ASC" ? "ASC" : "DESC";
 
-    const mainFilters = buildDateFilter("PAP", start, end, latest);
+    const mainFilters = buildDateFilter("AA", start, end, latest);
     const where = mainFilters.where;
     const params = mainFilters.params;
 

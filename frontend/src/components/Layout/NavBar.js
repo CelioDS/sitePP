@@ -154,13 +154,27 @@ export default function NavBar({ setPermission, permission, canalBD }) {
             </Link>
           </li>
 
+          <li className={styleExt.submenu}>
+            MIS
+            <Link
+            className={styleExt.submenuItem}
+              role="menuitem"
+              to="/TodoList"
+              onClick={() => {
+                openMenu("TodoList");
+              }}
+            >
+              TodoList
+            </Link>
+          </li>
+
           {permission && (
             <li>
               <Link
                 className={styleExt.perfil}
+                to={`/Perfil`}
                 onClick={() => openMenu("Perfil")}
                 style={linkAtivo === "Perfil" ? { color: colorLink } : {}}
-                to={`/Perfil`}
                 alt="Link para o perfil do usuário"
                 title="Perfil do usuário"
               >

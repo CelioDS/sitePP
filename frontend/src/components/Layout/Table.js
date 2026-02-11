@@ -151,6 +151,26 @@ export default function Table({ canal, login, admin, Url }) {
         const normalized = toArray(response.data);
         setDatabase(normalized);
       }
+      if (canal === "Varejo") {
+        const response = await axios.post(
+          `${Url}/upload-excel-varejo`,
+          formData,
+          {
+            headers: { "Content-Type": "multipart/form-data", login: login },
+          },
+        );
+        toast.success("Arquivo enviado com sucesso!");
+        const normalized = toArray(response.data);
+        setDatabase(normalized);
+      }
+      if (canal === "AA") {
+        const response = await axios.post(`${Url}/upload-excel-AA`, formData, {
+          headers: { "Content-Type": "multipart/form-data", login: login },
+        });
+        toast.success("Arquivo enviado com sucesso!");
+        const normalized = toArray(response.data);
+        setDatabase(normalized);
+      }
     } catch (error) {
       console.error(error);
       toast.error(error.response?.data?.sql || "Erro ao enviar o arquivo");
@@ -174,14 +194,7 @@ export default function Table({ canal, login, admin, Url }) {
     const worksheet = XLSX.utils.json_to_sheet(formattedData);
     const workbook = XLSX.utils.book_new();
 
-    const sheetName =
-      canal === "LP"
-        ? "LojaPropria"
-        : canal === "PAP"
-          ? "PortaAPorta"
-          : canal === "PME"
-            ? "PME"
-            : "Outro"; // Adicionado o check e um valor padrão
+    const sheetName = rotas[canal];
 
     XLSX.utils.book_append_sheet(workbook, worksheet, sheetName);
 
@@ -218,8 +231,6 @@ export default function Table({ canal, login, admin, Url }) {
           />
         </div>
 
-        {console.log(latest)}
-        {console.log(lastReqId)}
         <div>
           {!admin && (
             <>
@@ -297,6 +308,44 @@ export default function Table({ canal, login, admin, Url }) {
                     <th>TERRITORIO</th>
                   </>
                 )}
+                {canal === "Varejo" && (
+                  <>
+                    <th>ANOMES</th>
+                    <th>CANAL</th>
+                    <th>IBGE</th>
+                    <th>CIDADE</th>
+                    <th>PARCEIRO_LOJA</th>
+                    <th>CNPJ</th>
+                    <th>NOME</th>
+                    <th>CLASSIFICACAO</th>
+                    <th>SEGMENTO</th>
+                    <th>PRODUTO_ATUACAO</th>
+                    <th>DATA_CADASTRO</th>
+                    <th>SITUACAO</th>
+                    <th>LOGIN_NET</th>
+                    <th>TIPO</th>
+                    <th>LOGIN_CLARO</th>
+                  </>
+                )}
+                {canal === "AA" && (
+                  <>
+                    <th>ANOMES</th>
+                    <th>CANAL</th>
+                    <th>IBGE</th>
+                    <th>CIDADE</th>
+                    <th>PARCEIRO_LOJA</th>
+                    <th>CNPJ</th>
+                    <th>NOME</th>
+                    <th>CLASSIFICACAO</th>
+                    <th>SEGMENTO</th>
+                    <th>PRODUTO_ATUACAO</th>
+                    <th>DATA_CADASTRO</th>
+                    <th>SITUACAO</th>
+                    <th>LOGIN_NET</th>
+                    <th>TIPO</th>
+                    <th>LOGIN_CLARO</th>
+                  </>
+                )}
               </tr>
             )}
           </thead>
@@ -361,6 +410,44 @@ export default function Table({ canal, login, admin, Url }) {
                       <td>{item.COMTA}</td>
                       <td>{item.CABEAMENTO}</td>
                       <td>{item.FILIAL_COORDENADOR}</td>
+                    </>
+                  )}
+                  {canal === "Varejo" && (
+                    <>
+                      <td>{item.ANOMES}</td>
+                      <td>{item.CANAL}</td>
+                      <td>{item.IBGE}</td>
+                      <td>{item.CIDADE}</td>
+                      <td>{item.PARCEIRO_LOJA}</td>
+                      <td>{item.CNPJ}</td>
+                      <td>{item.NOME}</td>
+                      <td>{item.CLASSIFICACAO}</td>
+                      <td>{item.SEGMENTO}</td>
+                      <td>{item.PRODUTO_ATUACAO}</td>
+                      <td>{item.DATA_CADASTRO}</td>
+                      <td>{item.SITUACAO}</td>
+                      <td>{item.LOGIN_NET}</td>
+                      <td>{item.TIPO}</td>
+                      <td>{item.LOGIN_CLARO}</td>
+                    </>
+                  )}
+                  {canal === "AA" && (
+                    <>
+                      <td>{item.ANOMES}</td>
+                      <td>{item.CANAL}</td>
+                      <td>{item.IBGE}</td>
+                      <td>{item.CIDADE}</td>
+                      <td>{item.PARCEIRO_LOJA}</td>
+                      <td>{item.CNPJ}</td>
+                      <td>{item.NOME}</td>
+                      <td>{item.CLASSIFICACAO}</td>
+                      <td>{item.SEGMENTO}</td>
+                      <td>{item.PRODUTO_ATUACAO}</td>
+                      <td>{item.DATA_CADASTRO}</td>
+                      <td>{item.SITUACAO}</td>
+                      <td>{item.LOGIN_NET}</td>
+                      <td>{item.TIPO}</td>
+                      <td>{item.LOGIN_CLARO}</td>
                     </>
                   )}
                 </tr>

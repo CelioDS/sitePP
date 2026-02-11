@@ -64,6 +64,57 @@
   width: 100%;
   margin: 5px;
 }
+/**/
+.main nav ul .menuItem {
+  color: blue;
+  display: flex;
+  flex-direction: column;
+}
+.main nav ul .submenu {
+  display: flex;
+  width: 100%;
+  height: 0;
+  top: 40px;
+  background-color: red;
+  transition: all 1s;
+}
+
+.main nav ul .submenu a {
+  display: none;
+  transition: all 1s;
+}
+
+.main nav ul .submenu:hover a,
+.main nav ul .submenu:active a,
+.main nav ul .submenu:focus a {
+  display: flex;
+  justify-content: start;
+  flex-direction: column;
+  position: absolute;
+  width: 100px;
+  height: 100px;
+  top: 60px;
+  background-color: red;
+  z-index: 100;
+  transition: all 1s;
+}
+
+.main nav ul .submenuItem:hover a,
+.main nav ul .submenuItem:active a,
+.main nav ul .submenuItem:focus a {
+  display: flex;
+  justify-content: start;
+  flex-direction: column;
+  position: absolute;
+  width: 100%;
+  height: 100px;
+  top: 55px;
+  background-color: red;
+  z-index: 100;
+  transition: all 1s;
+}
+
+/**/
 .main nav ul a {
   text-decoration: none;
   color: var(--color-brand-primary-lightest);
@@ -137,7 +188,6 @@ nav > ul > a:hover:before {
   height: 50px;
   border-radius: 50%;
   font-weight: 600;
-
 }
 .main nav ul li .perfil > span > svg {
   width: 100%;

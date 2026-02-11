@@ -10,7 +10,7 @@ import Carteira from "./components/Routers/Carteira";
 import Relatorio from "./components/Routers/Relatorio";
 import Visualizar from "./components/Routers/Visualizar";
 import Perfil from "./components/Routers/Perfil";
-
+import TodoList from "./components/Routers/TodoList";
 
 const router = createBrowserRouter([
   {
@@ -38,7 +38,10 @@ const router = createBrowserRouter([
         path: "/Perfil",
         element: <Perfil />,
       },
-      
+      {
+        path: "/TodoList",
+        element: <TodoList />,
+      },
     ],
   },
 ]);

@@ -6,8 +6,8 @@ import { ToastContainer } from "react-toastify";
 import Footer from "./components/Layout/Footer";
 import NavBar from "./components/Layout/NavBar";
 import Login from "./components/Layout/Login";
-import { useState, useEffect } from "react";
 import axios from "axios";
+import { useState, useEffect } from "react";
 
 function App() {
   const [permission, setPermission] = useState(
@@ -16,6 +16,7 @@ function App() {
 
   const [loginBD, setLoginBD] = useState();
   const [canalBD, setCanalBD] = useState();
+  const [misBD, setMisBD] = useState();
 
   const baseURL = process.env.REACT_APP_API_URL || "http://localhost:8000";
 
@@ -38,28 +39,30 @@ function App() {
   return (
     <div className="App">
       <NavBar
-        setPermission={setPermission}
-        permission={permission}
         canalBD={canalBD}
+        permission={permission}
+        setPermission={setPermission}
+        misBD={misBD}
       />
       {permission && <Outlet context={{ loginBD }} />}
       {!permission && (
         <Login
+          setLoginBD={setLoginBD}
+          setMisBD={setMisBD}
+          setCanalBD={setCanalBD}
           permission={permission}
           setPermission={setPermission}
-          setLoginBD={setLoginBD}
-          setCanalBD={setCanalBD}
         />
       )}
       <ToastContainer
-        pauseHouver={false}
-        autoClose={1000}
-        position="bottom-right"
         limit={2}
-        closeOnClick={true}
-        draggable={true}
-        draggablePercent={1}
         theme="dark"
+        autoClose={1000}
+        draggable={true}
+        pauseHouver={false}
+        closeOnClick={true}
+        draggablePercent={1}
+        position="bottom-right"
       />
       <Footer />
     </div>

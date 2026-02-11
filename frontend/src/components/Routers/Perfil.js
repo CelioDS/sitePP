@@ -6,8 +6,7 @@ import axios from "axios";
 import { toast } from "react-toastify";
 import ValidarToken from "../Tools/ValidarToken";
 import RenameTitle from "../Tools/RenameTitle";
-import Mina from "./mina";
-import Mina2 from "./mina2";
+
 
 export default function Perfil() {
   const Url = process.env.REACT_APP_API_URL || "http://localhost:8000";
@@ -15,8 +14,9 @@ export default function Perfil() {
   const [loading, setLoading] = useState(true);
   const [userData, setUserData] = useState(null);
 
-  const admin = userData?.admin;
+  const mis = userData?.mis;
   const id = userData?.userId;
+  const admin = userData?.admin;
 
   useEffect(() => {
     async function loadUser() {
@@ -63,6 +63,7 @@ export default function Perfil() {
                 <th>Login</th>
                 <th>Canal</th>
                 <th>Admin</th>
+                <th>MIS</th>
               </tr>
             </thead>
             <tbody>
@@ -71,6 +72,7 @@ export default function Perfil() {
                   <td>{item.login}</td>
                   <td>{item.canal}</td>
                   <td>{item.admin ? "Sim" : "Não"}</td>
+                  <td>{item.mis === 1 ? "Sim" : "Não"}</td>
                 </tr>
               ))}
             </tbody>
@@ -79,7 +81,9 @@ export default function Perfil() {
           <p>Nenhum dado de perfil encontrado.</p>
         )}
 
-        {admin === "admin" ? <Mina2></Mina2> : <Mina></Mina>}
+        {admin === "admin" && mis === 'iu' ? 'todo': 'nada'}
+        <h1>{console.log(userData)}</h1>
+        <h1>{mis}a</h1>
       </main>
     </Container>
   );
