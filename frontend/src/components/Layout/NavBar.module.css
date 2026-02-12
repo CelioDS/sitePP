@@ -53,6 +53,7 @@
   text-align: center;
   width: 40%;
   height: 100%;
+  color: #fff;
 }
 .main nav ul li {
   display: flex;
@@ -66,17 +67,16 @@
 }
 /**/
 .main nav ul .menuItem {
-  color: blue;
   display: flex;
   flex-direction: column;
 }
 .main nav ul .submenu {
   display: flex;
   width: 100%;
-  height: 0;
+  height: 60px;
   top: 40px;
-  background-color: red;
   transition: all 1s;
+  padding: 5px;
 }
 
 .main nav ul .submenu a {
