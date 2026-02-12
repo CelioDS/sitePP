@@ -313,18 +313,17 @@ export default function Table({ canal, login, admin, Url }) {
                     <th>ANOMES</th>
                     <th>CANAL</th>
                     <th>IBGE</th>
-                    <th>CIDADE</th>
+                    <th>COD_PDV</th>
                     <th>PARCEIRO_LOJA</th>
                     <th>CNPJ</th>
-                    <th>NOME</th>
-                    <th>CLASSIFICACAO</th>
-                    <th>SEGMENTO</th>
+                    <th>NM_VEND</th>
+                    <th>CARGO</th>
+                    <th>CPF_VEND</th>
                     <th>PRODUTO_ATUACAO</th>
                     <th>DATA_CADASTRO</th>
                     <th>SITUACAO</th>
-                    <th>LOGIN_NET</th>
-                    <th>TIPO</th>
-                    <th>LOGIN_CLARO</th>
+                    <th>FILIAL</th>
+                    <th>GN</th>
                   </>
                 )}
                 {canal === "AA" && (
@@ -417,18 +416,17 @@ export default function Table({ canal, login, admin, Url }) {
                       <td>{item.ANOMES}</td>
                       <td>{item.CANAL}</td>
                       <td>{item.IBGE}</td>
-                      <td>{item.CIDADE}</td>
+                      <td>{item.COD_PDV}</td>
                       <td>{item.PARCEIRO_LOJA}</td>
                       <td>{item.CNPJ}</td>
-                      <td>{item.NOME}</td>
-                      <td>{item.CLASSIFICACAO}</td>
-                      <td>{item.SEGMENTO}</td>
+                      <td>{item.NOME_COLABORADOR}</td>
+                      <td>{item.CARGO}</td>
+                      <td>{item.CPF_COLABORADOR}</td>
                       <td>{item.PRODUTO_ATUACAO}</td>
                       <td>{item.DATA_CADASTRO}</td>
                       <td>{item.SITUACAO}</td>
-                      <td>{item.LOGIN_NET}</td>
-                      <td>{item.TIPO}</td>
-                      <td>{item.LOGIN_CLARO}</td>
+                      <td>{item.FILIAL_COORDENADOR}</td>
+                      <td>{item.GN}</td>
                     </>
                   )}
                   {canal === "AA" && (

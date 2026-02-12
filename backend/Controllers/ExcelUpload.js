@@ -281,7 +281,6 @@ export const setExcelAA = async (req, res) => {
       VALUES ?
     `;
 
-
     await dataBase.query(sql, [values]);
 
     return res.json({
@@ -323,23 +322,18 @@ export const setExcelVarejo = async (req, res) => {
       row.ANOMES,
       row.CANAL,
       row.IBGE,
-      row.CIDADE,
-      row.RAZAO_SOCIAL,
+      row.COD_PDV,
       row.PARCEIRO_LOJA,
       row.CNPJ,
-      row.NOME,
-      row.CLASSIFICACAO,
-      row.SEGMENTO,
+      row.NOME_COLABORADOR,
+      row.CARGO,
+      row.CPF_COLABORADOR,
       row.PRODUTO_ATUACAO,
       row.DATA_CADASTRO,
       row.SITUACAO,
       row.LOGIN_NET,
-      row.TIPO,
-      row.LOGIN_CLARO,
-      row.EXECUTIVO,
-      row.COMTA,
-      row.CABEAMENTO,
       row.FILIAL_COORDENADOR,
+      row.GN,
       TODAY,
       login,
     ]);
@@ -353,7 +347,8 @@ export const setExcelVarejo = async (req, res) => {
 
     const sql = `
       INSERT INTO VAREJO
-      (ANOMES,	CANAL,	IBGE,	CIDADE,	RAZAO_SOCIAL,	PARCEIRO_LOJA,	CNPJ,	NOME,	CLASSIFICACAO,	SEGMENTO,	PRODUTO_ATUACAO,	DATA_CADASTRO,	SITUACAO,	LOGIN_NET,	TIPO,	LOGIN_CLARO,	EXECUTIVO,	COMTA,	CABEAMENTO,	FILIAL_COORDENADOR,
+      (ANOMES,CANAL,IBGE,COD_PDV,PARCEIRO_LOJA,CNPJ,NOME_COLABORADOR
+,CARGO,CPF_COLABORADOR,PRODUTO_ATUACAO,DATA_CADASTRO,SITUACAO,LOGIN_NET,FILIAL_COORDENADOR,GN,
  DATA_ATUALIZACAO, LOGIN_ATUALIZACAO)
       VALUES ?
     `;

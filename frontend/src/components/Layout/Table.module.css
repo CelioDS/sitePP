@@ -128,6 +128,7 @@
   table-layout: fixed;
   font-size: 14px;
   min-width: 800px; /* força o scroll */
+  border-collapse: collapse;
 }
 
 .main table th {
@@ -135,4 +136,8 @@
   font-weight: 600;
   color: #fff;
   height: 30px;
+  height: 60px;
+  text-align: center;
+  justify-content: center;
+  padding: 5px;
 }
