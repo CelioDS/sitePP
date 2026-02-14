@@ -13,7 +13,6 @@ const MAPA_TABELAS = {
   VAREJO: "VAREJO",
 };
 
-
 const buildDateFilter = (tableAlias, start, end, latest) => {
   const where = [];
   const params = [];
@@ -251,7 +250,6 @@ export const getAA = async (req, res) => {
   }
 };
 
-
 export const getVAREJO = async (req, res) => {
   try {
     let {
@@ -372,28 +370,29 @@ export const getPDU = async (req, res) => {
         SP_INT: "SÃO PAULO INTERIOR",
         "SÃO PAULO INTERIOR": "SÃO PAULO INTERIOR",
         "SAO PAULO INTERIOR": "SÃO PAULO INTERIOR",
+        RSI: "SÃO PAULO INTERIOR",
       };
       const key = referencia.toString().toUpperCase().trim();
       const mapped = refMap[key] || referencia;
 
-      // Vamos usar p.REF_NORM (normalizada no subselect)
-      if (["BR", "BRASIL"].includes(key)) {
-        // Igualdade direta
-        joinFilters.push("p.REF_NORM = 'BRASIL'");
+      if (key === "BR" || key === "BRASIL") {
+        joinFilters.push("p.REF_NORM COLLATE utf8mb4_unicode_ci = 'BRASIL'");
       } else if (
-        ["SP_INT", "SÃO PAULO INTERIOR", "SAO PAULO INTERIOR"].includes(key)
+        key === "SP_INT" ||
+        key === "SÃO PAULO INTERIOR" ||
+        key === "SAO PAULO INTERIOR" ||
+        key === "RSI"
       ) {
-        // Aceita SÃO / SAO / S?O
-        joinFilters.push("p.REF_NORM REGEXP '^S.?O PAULO INTERIOR$'");
+        joinFilters.push(
+          "(p.REF_NORM COLLATE utf8mb4_unicode_ci IN ('SÃO PAULO INTERIOR','SAO PAULO INTERIOR'))",
+        );
       } else {
-        // Valor arbitrário informado pelo usuário -> igualdade na forma normalizada
-        joinFilters.push("p.REF_NORM = UPPER(?)");
-        joinParams.push(mapped);
+        joinFilters.push("p.REF_NORM COLLATE utf8mb4_unicode_ci = UPPER(?)");
+        joinParams.push(String(mapped).trim());
       }
     }
 
-    // MOVEL (novo) -> normaliza para boolean (true/false) e compara com DECIMAL(18,6)
-    // Em sua tabela, MOVEL é DECIMAL(18,6) e pode ser NULL. Vamos arredondar e coalescer para evitar NULL.
+    // MOVEL (true/false) -> compara com DECIMAL(18,6); usamos COALESCE no subselect
     let movelFilter = null;
     if (typeof movel !== "undefined") {
       const v = String(movel).trim().toLowerCase();
@@ -423,10 +422,8 @@ export const getPDU = async (req, res) => {
       if (truthy.includes(v)) movelFilter = true;
       else if (falsy.includes(v)) movelFilter = false;
     }
-
     if (movelFilter !== null) {
-      // Ajuste para DECIMAL(18,6): ROUND(COALESCE(MOVEL, -1), 0) = 0/1
-      joinFilters.push("ROUND(COALESCE(p.MOVEL, -1), 0) = ?");
+      joinFilters.push("ROUND(p.MOVEL, 0) = ?");
       joinParams.push(movelFilter ? 1 : 0);
     }
 
@@ -434,7 +431,7 @@ export const getPDU = async (req, res) => {
       ? ` AND ${joinFilters.join(" AND ")}`
       : "";
 
-    // Flags
+    // Flags de referência temporal
     const hasRefDate = !!refDate;
     const hasYear = !!year && /^\d{4}$/.test(String(year));
 
@@ -449,10 +446,7 @@ export const getPDU = async (req, res) => {
     if (hasRefDate) refParams.push(refDate);
     else if (hasYear) refParams.push(String(year));
 
-    // IMPORTANTE:
-    // - Usamos subselect para converter DT (varchar dd/mm/yyyy) -> DT_DATE
-    // - Normalizamos REFERENCIA removendo '\r' e espaços, em maiúsculo -> REF_NORM
-    // - Mantém filtros apenas no JOIN (extraOn)
+    // SQL com datas como DATE, parse robusto de DT e somas com 2 casas
     const sql = `
       WITH
       params AS (
@@ -462,68 +456,7 @@ export const getPDU = async (req, res) => {
       ),
       bounds AS (
         SELECT
-          -- âncora da data de referência (real ou simulada)
-          CASE
-            WHEN ${hasYear ? 1 : 0} = 1 THEN
-              LEAST(
-                DATE_ADD(ref_date_base, INTERVAL (DAY(CURDATE()) - 1) DAY),
-                LAST_DAY(ref_date_base)
-              )
-            ELSE
-              ref_date_base
-          END AS ref_anchor,
-
-          -- mês atual (primeiro/último dia) com base na âncora
-          DATE_FORMAT(
-            CASE
-              WHEN ${hasYear ? 1 : 0} = 1 THEN
-                LEAST(DATE_ADD(ref_date_base, INTERVAL (DAY(CURDATE()) - 1) DAY), LAST_DAY(ref_date_base))
-              ELSE ref_date_base
-            END, '%Y-%m-01'
-          ) AS first_day_cur,
-
-          LAST_DAY(
-            CASE
-              WHEN ${hasYear ? 1 : 0} = 1 THEN
-                LEAST(DATE_ADD(ref_date_base, INTERVAL (DAY(CURDATE()) - 1) DAY), LAST_DAY(ref_date_base))
-              ELSE ref_date_base
-            END
-          ) AS last_day_cur,
-
-          -- mês anterior / próximo
-          DATE_FORMAT(DATE_SUB(
-            CASE
-              WHEN ${hasYear ? 1 : 0} = 1 THEN
-                LEAST(DATE_ADD(ref_date_base, INTERVAL (DAY(CURDATE()) - 1) DAY), LAST_DAY(ref_date_base))
-              ELSE ref_date_base
-            END, INTERVAL 1 MONTH
-          ), '%Y-%m-01') AS first_day_prev,
-
-          LAST_DAY(DATE_SUB(
-            CASE
-              WHEN ${hasYear ? 1 : 0} = 1 THEN
-                LEAST(DATE_ADD(ref_date_base, INTERVAL (DAY(CURDATE()) - 1) DAY), LAST_DAY(ref_date_base))
-              ELSE ref_date_base
-            END, INTERVAL 1 MONTH
-          )) AS last_day_prev,
-
-          DATE_FORMAT(DATE_ADD(
-            CASE
-              WHEN ${hasYear ? 1 : 0} = 1 THEN
-                LEAST(DATE_ADD(ref_date_base, INTERVAL (DAY(CURDATE()) - 1) DAY), LAST_DAY(ref_date_base))
-              ELSE ref_date_base
-            END, INTERVAL 1 MONTH
-          ), '%Y-%m-01') AS first_day_next,
-
-          LAST_DAY(DATE_ADD(
-            CASE
-              WHEN ${hasYear ? 1 : 0} = 1 THEN
-                LEAST(DATE_ADD(ref_date_base, INTERVAL (DAY(CURDATE()) - 1) DAY), LAST_DAY(ref_date_base))
-              ELSE ref_date_base
-            END, INTERVAL 1 MONTH
-          )) AS last_day_next,
-
-          -- hoje efetivo
+          -- hoje efetivo (âncora)
           CASE
             WHEN ${hasYear ? 1 : 0} = 1 THEN
               LEAST(
@@ -532,80 +465,84 @@ export const getPDU = async (req, res) => {
               )
             ELSE
               LEAST(ref_date_base, LAST_DAY(ref_date_base))
-          END AS today_eff,
-
-          -- mês equivalente do ano passado (primeiro/último dia)
-          DATE_SUB(
-            DATE_FORMAT(
-              CASE
-                WHEN ${hasYear ? 1 : 0} = 1 THEN
-                  LEAST(DATE_ADD(ref_date_base, INTERVAL (DAY(CURDATE()) - 1) DAY), LAST_DAY(ref_date_base))
-                ELSE ref_date_base
-              END, '%Y-%m-01'
-            ),
-            INTERVAL 1 YEAR
-          ) AS first_day_cur_prev_year,
-
-          LAST_DAY(
-            DATE_SUB(
-              CASE
-                WHEN ${hasYear ? 1 : 0} = 1 THEN
-                  LEAST(DATE_ADD(ref_date_base, INTERVAL (DAY(CURDATE()) - 1) DAY), LAST_DAY(ref_date_base))
-                ELSE ref_date_base
-              END,
-              INTERVAL 1 YEAR
-            )
-          ) AS last_day_cur_prev_year
+          END AS today_eff
         FROM params
+      ),
+      ranges AS (
+        SELECT
+          -- mês corrente
+          DATE_SUB(b.today_eff, INTERVAL DAY(b.today_eff)-1 DAY) AS first_day_cur,
+          LAST_DAY(b.today_eff)                                  AS last_day_cur,
+
+          -- mês anterior (baseado em today_eff)
+          DATE_SUB(DATE_SUB(b.today_eff, INTERVAL 1 MONTH), INTERVAL DAY(DATE_SUB(b.today_eff, INTERVAL 1 MONTH))-1 DAY) AS first_day_prev,
+          LAST_DAY(DATE_SUB(b.today_eff, INTERVAL 1 MONTH))                                                               AS last_day_prev,
+
+          -- próximo mês
+          DATE_SUB(DATE_ADD(b.today_eff, INTERVAL 1 MONTH), INTERVAL DAY(DATE_ADD(b.today_eff, INTERVAL 1 MONTH))-1 DAY) AS first_day_next,
+          LAST_DAY(DATE_ADD(b.today_eff, INTERVAL 1 MONTH))                                                                AS last_day_next,
+
+          -- mês atual do ano passado
+          DATE_SUB(
+            DATE_SUB(b.today_eff, INTERVAL 1 YEAR),
+            INTERVAL DAY(DATE_SUB(b.today_eff, INTERVAL 1 YEAR))-1 DAY
+          ) AS first_day_cur_prev_year,
+          LAST_DAY(DATE_SUB(b.today_eff, INTERVAL 1 YEAR)) AS last_day_cur_prev_year,
+
+          b.today_eff
+        FROM bounds b
       )
       SELECT
-        b.today_eff AS data_referencia,
+        r.today_eff AS data_referencia,
 
-        DAY(b.last_day_cur) AS dias_no_mes,
-        DATEDIFF(b.today_eff, b.first_day_cur) + 1 AS dias_passados,
-        GREATEST(DAY(b.last_day_cur) - (DATEDIFF(b.today_eff, b.first_day_cur) + 1), 0) AS dias_restantes,
+        DAY(r.last_day_cur) AS dias_no_mes,
+        DATEDIFF(r.today_eff, r.first_day_cur) + 1 AS dias_passados,
+        GREATEST(DAY(r.last_day_cur) - (DATEDIFF(r.today_eff, r.first_day_cur) + 1), 0) AS dias_restantes,
+        CAST(ROUND(100 * (DATEDIFF(r.today_eff, r.first_day_cur) + 1) / DAY(r.last_day_cur), 2) AS DECIMAL(5,2)) AS perc_mes_transcorrido,
 
-        ROUND(100 * (DATEDIFF(b.today_eff, b.first_day_cur) + 1) / DAY(b.last_day_cur), 2) AS perc_mes_transcorrido,
+        /* SOMAS POR JANELA (prev/cur/next) - 2 casas decimais */
+        CAST(ROUND(SUM(CASE WHEN p.DT_DATE BETWEEN r.first_day_cur  AND r.last_day_cur  THEN p.INST ELSE 0 END), 2) AS DECIMAL(18,2)) AS inst_mes_atual,
+        CAST(ROUND(SUM(CASE WHEN p.DT_DATE BETWEEN r.first_day_prev AND r.last_day_prev THEN p.INST ELSE 0 END), 2) AS DECIMAL(18,2)) AS inst_mes_anterior,
+        CAST(ROUND(SUM(CASE WHEN p.DT_DATE BETWEEN r.first_day_next AND r.last_day_next THEN p.INST ELSE 0 END), 2) AS DECIMAL(18,2)) AS inst_prox_mes,
 
-        /* SOMAS POR JANELA (prev/cur/next) */
-        SUM(CASE WHEN p.DT_DATE BETWEEN b.first_day_cur  AND b.last_day_cur  THEN p.INST ELSE 0 END) AS inst_mes_atual,
-        SUM(CASE WHEN p.DT_DATE BETWEEN b.first_day_prev AND b.last_day_prev THEN p.INST ELSE 0 END) AS inst_mes_anterior,
-        SUM(CASE WHEN p.DT_DATE BETWEEN b.first_day_next AND b.last_day_next THEN p.INST ELSE 0 END) AS inst_prox_mes,
+        CAST(ROUND(SUM(CASE WHEN p.DT_DATE BETWEEN r.first_day_cur  AND r.last_day_cur  THEN p.VB ELSE 0 END), 2) AS DECIMAL(18,2)) AS vb_mes_atual,
+        CAST(ROUND(SUM(CASE WHEN p.DT_DATE BETWEEN r.first_day_prev AND r.last_day_prev THEN p.VB ELSE 0 END), 2) AS DECIMAL(18,2)) AS vb_mes_anterior,
+        CAST(ROUND(SUM(CASE WHEN p.DT_DATE BETWEEN r.first_day_next AND r.last_day_next THEN p.VB ELSE 0 END), 2) AS DECIMAL(18,2)) AS vb_prox_mes,
 
-        SUM(CASE WHEN p.DT_DATE BETWEEN b.first_day_cur  AND b.last_day_cur  THEN p.VB ELSE 0 END) AS vb_mes_atual,
-        SUM(CASE WHEN p.DT_DATE BETWEEN b.first_day_prev AND b.last_day_prev THEN p.VB ELSE 0 END) AS vb_mes_anterior,
-        SUM(CASE WHEN p.DT_DATE BETWEEN b.first_day_next AND b.last_day_next THEN p.VB ELSE 0 END) AS vb_prox_mes,
-
-        /* Acumulado até hoje (real ou simulado) */
-        SUM(CASE WHEN p.DT_DATE BETWEEN b.first_day_cur AND b.today_eff THEN p.INST ELSE 0 END) AS inst_ate_hoje,
-        SUM(CASE WHEN p.DT_DATE BETWEEN b.first_day_cur AND b.today_eff THEN p.VB   ELSE 0 END) AS vb_ate_hoje,
+        /* Acumulado até hoje */
+        CAST(ROUND(SUM(CASE WHEN p.DT_DATE BETWEEN r.first_day_cur AND r.today_eff THEN p.INST ELSE 0 END), 2) AS DECIMAL(18,2)) AS inst_ate_hoje,
+        CAST(ROUND(SUM(CASE WHEN p.DT_DATE BETWEEN r.first_day_cur AND r.today_eff THEN p.VB   ELSE 0 END), 2) AS DECIMAL(18,2)) AS vb_ate_hoje,
 
         /* Mês atual do ano passado */
-        SUM(CASE WHEN p.DT_DATE BETWEEN b.first_day_cur_prev_year AND b.last_day_cur_prev_year THEN p.INST ELSE 0 END) AS inst_mes_ano_passado,
-        SUM(CASE WHEN p.DT_DATE BETWEEN b.first_day_cur_prev_year AND b.last_day_cur_prev_year THEN p.VB   ELSE 0 END) AS vb_mes_ano_passado
+        CAST(ROUND(SUM(CASE WHEN p.DT_DATE BETWEEN r.first_day_cur_prev_year AND r.last_day_cur_prev_year THEN p.INST ELSE 0 END), 2) AS DECIMAL(18,2)) AS inst_mes_ano_passado,
+        CAST(ROUND(SUM(CASE WHEN p.DT_DATE BETWEEN r.first_day_cur_prev_year AND r.last_day_cur_prev_year THEN p.VB   ELSE 0 END), 2) AS DECIMAL(18,2)) AS vb_mes_ano_passado
 
-      FROM bounds b
+      FROM ranges r
       LEFT JOIN (
-        /* Converte DT e normaliza REFERENCIA uma única vez */
+        /* Parse robusto de DT (dd/mm/yyyy OU yyyy-mm-dd) + normalização de referência */
         SELECT
-          STR_TO_DATE(DT, '%d/%m/%Y') AS DT_DATE,
-          INST,
-          VB,
-          MOVEL,
-          UPPER(TRIM(REPLACE(REFERENCIA, '\r', ''))) AS REF_NORM
+          CASE
+            WHEN DT LIKE '__/__/____' THEN STR_TO_DATE(DT, '%d/%m/%Y')
+            WHEN DT LIKE '____-__-__' THEN CAST(DT AS DATE)
+            ELSE NULL
+          END AS DT_DATE,
+          CAST(INST AS DECIMAL(18,6)) AS INST,
+          CAST(VB   AS DECIMAL(18,6)) AS VB,
+          CAST(COALESCE(MOVEL, 0) AS DECIMAL(18,6)) AS MOVEL,
+          UPPER(TRIM(REPLACE(REFERENCIA, '\\r', ''))) AS REF_NORM
         FROM pdu
       ) p
         ON (
-             (p.DT_DATE BETWEEN b.first_day_prev AND b.last_day_next)
+             (p.DT_DATE BETWEEN r.first_day_prev AND r.last_day_next)
              OR
-             (p.DT_DATE BETWEEN b.first_day_cur_prev_year AND b.last_day_cur_prev_year)
+             (p.DT_DATE BETWEEN r.first_day_cur_prev_year AND r.last_day_cur_prev_year)
            )
         ${extraOn}
       GROUP BY
-        b.today_eff, b.first_day_cur, b.last_day_cur,
-        b.first_day_prev, b.last_day_prev,
-        b.first_day_next, b.last_day_next,
-        b.first_day_cur_prev_year, b.last_day_cur_prev_year
+        r.today_eff, r.first_day_cur, r.last_day_cur,
+        r.first_day_prev, r.last_day_prev,
+        r.first_day_next, r.last_day_next,
+        r.first_day_cur_prev_year, r.last_day_cur_prev_year
     `;
 
     const [rows] = await dataBase.query(sql, [...refParams, ...joinParams]);
@@ -753,10 +690,6 @@ export const getPDUMovel = async (req, res) => {
     if (hasRefDate) refParams.push(refDate);
     else if (hasYear) refParams.push(String(year));
 
-    // Filtro para otimizar o JOIN (apenas Brasil e SPI)
-    const regionFilter =
-      "(p.REF_NORM = 'BRASIL' OR p.REF_NORM REGEXP '^S.?O PAULO INTERIOR$')";
-
     const sql = `
       WITH
       params AS (
@@ -766,7 +699,6 @@ export const getPDUMovel = async (req, res) => {
       ),
       bounds AS (
         SELECT
-          -- Âncora (hoje efetivo)
           CASE
             WHEN ${hasYear ? 1 : 0} = 1 THEN
               LEAST(
@@ -775,197 +707,136 @@ export const getPDUMovel = async (req, res) => {
               )
             ELSE
               LEAST(ref_date_base, LAST_DAY(ref_date_base))
-          END AS today_eff,
-
-          -- Mês atual (primeiro/último dia)
-          DATE_FORMAT(
-            CASE
-              WHEN ${hasYear ? 1 : 0} = 1 THEN
-                LEAST(DATE_ADD(ref_date_base, INTERVAL (DAY(CURDATE()) - 1) DAY), LAST_DAY(ref_date_base))
-              ELSE ref_date_base
-            END, '%Y-%m-01'
-          ) AS first_day_cur,
-
-          LAST_DAY(
-            CASE
-              WHEN ${hasYear ? 1 : 0} = 1 THEN
-                LEAST(DATE_ADD(ref_date_base, INTERVAL (DAY(CURDATE()) - 1) DAY), LAST_DAY(ref_date_base))
-              ELSE ref_date_base
-            END
-          ) AS last_day_cur,
-
-          -- Mês anterior
-          DATE_FORMAT(DATE_SUB(
-            CASE
-              WHEN ${hasYear ? 1 : 0} = 1 THEN
-                LEAST(DATE_ADD(ref_date_base, INTERVAL (DAY(CURDATE()) - 1) DAY), LAST_DAY(ref_date_base))
-              ELSE ref_date_base
-            END, INTERVAL 1 MONTH
-          ), '%Y-%m-01') AS first_day_prev,
-
-          LAST_DAY(DATE_SUB(
-            CASE
-              WHEN ${hasYear ? 1 : 0} = 1 THEN
-                LEAST(DATE_ADD(ref_date_base, INTERVAL (DAY(CURDATE()) - 1) DAY), LAST_DAY(ref_date_base))
-              ELSE ref_date_base
-            END, INTERVAL 1 MONTH
-          )) AS last_day_prev,
-
-          -- Próximo mês
-          DATE_FORMAT(DATE_ADD(
-            CASE
-              WHEN ${hasYear ? 1 : 0} = 1 THEN
-                LEAST(DATE_ADD(ref_date_base, INTERVAL (DAY(CURDATE()) - 1) DAY), LAST_DAY(ref_date_base))
-              ELSE ref_date_base
-            END, INTERVAL 1 MONTH
-          ), '%Y-%m-01') AS first_day_next,
-
-          LAST_DAY(DATE_ADD(
-            CASE
-              WHEN ${hasYear ? 1 : 0} = 1 THEN
-                LEAST(DATE_ADD(ref_date_base, INTERVAL (DAY(CURDATE()) - 1) DAY), LAST_DAY(ref_date_base))
-              ELSE ref_date_base
-            END, INTERVAL 1 MONTH
-          )) AS last_day_next,
-
-          -- Mês atual do ano passado
-          DATE_SUB(
-            DATE_FORMAT(
-              CASE
-                WHEN ${hasYear ? 1 : 0} = 1 THEN
-                  LEAST(DATE_ADD(ref_date_base, INTERVAL (DAY(CURDATE()) - 1) DAY), LAST_DAY(ref_date_base))
-                ELSE ref_date_base
-              END, '%Y-%m-01'
-            ),
-            INTERVAL 1 YEAR
-          ) AS first_day_cur_prev_year,
-
-          LAST_DAY(
-            DATE_SUB(
-              CASE
-                WHEN ${hasYear ? 1 : 0} = 1 THEN
-                  LEAST(DATE_ADD(ref_date_base, INTERVAL (DAY(CURDATE()) - 1) DAY), LAST_DAY(ref_date_base))
-                ELSE ref_date_base
-              END,
-              INTERVAL 1 YEAR
-            )
-          ) AS last_day_cur_prev_year
+          END AS today_eff
         FROM params
+      ),
+      ranges AS (
+        SELECT
+          DATE_SUB(b.today_eff, INTERVAL DAY(b.today_eff)-1 DAY) AS first_day_cur,
+          LAST_DAY(b.today_eff)                                  AS last_day_cur,
+
+          DATE_SUB(DATE_SUB(b.today_eff, INTERVAL 1 MONTH), INTERVAL DAY(DATE_SUB(b.today_eff, INTERVAL 1 MONTH))-1 DAY) AS first_day_prev,
+          LAST_DAY(DATE_SUB(b.today_eff, INTERVAL 1 MONTH))                                                               AS last_day_prev,
+
+          DATE_SUB(DATE_ADD(b.today_eff, INTERVAL 1 MONTH), INTERVAL DAY(DATE_ADD(b.today_eff, INTERVAL 1 MONTH))-1 DAY) AS first_day_next,
+          LAST_DAY(DATE_ADD(b.today_eff, INTERVAL 1 MONTH))                                                                AS last_day_next,
+
+          DATE_SUB(
+            DATE_SUB(b.today_eff, INTERVAL 1 YEAR),
+            INTERVAL DAY(DATE_SUB(b.today_eff, INTERVAL 1 YEAR))-1 DAY
+          ) AS first_day_cur_prev_year,
+          LAST_DAY(DATE_SUB(b.today_eff, INTERVAL 1 YEAR)) AS last_day_cur_prev_year,
+
+          b.today_eff
+        FROM bounds b
       )
       SELECT
-        b.today_eff AS data_referencia,
+        r.today_eff AS data_referencia,
 
-        DAY(b.last_day_cur) AS dias_no_mes,
-        DATEDIFF(b.today_eff, b.first_day_cur) + 1 AS dias_passados,
-        GREATEST(DAY(b.last_day_cur) - (DATEDIFF(b.today_eff, b.first_day_cur) + 1), 0) AS dias_restantes,
-        ROUND(100 * (DATEDIFF(b.today_eff, b.first_day_cur) + 1) / DAY(b.last_day_cur), 2) AS perc_mes_transcorrido,
+        DAY(r.last_day_cur) AS dias_no_mes,
+        DATEDIFF(r.today_eff, r.first_day_cur) + 1 AS dias_passados,
+        GREATEST(DAY(r.last_day_cur) - (DATEDIFF(r.today_eff, r.first_day_cur) + 1), 0) AS dias_restantes,
+        CAST(ROUND(100 * (DATEDIFF(r.today_eff, r.first_day_cur) + 1) / DAY(r.last_day_cur), 2) AS DECIMAL(5,2)) AS perc_mes_transcorrido,
 
         /* ------------------------------------------------------------------
            MAPEAMENTO:
-           inst_... = BRASIL (Soma de Movel)
-           vb_...   = SPI    (Soma de Movel)
+           inst_... = BRASIL (Soma de MOVEL)
+           vb_...   = SPI    (Soma de MOVEL)
            ------------------------------------------------------------------ */
 
         /* --- MÊS ATUAL --- */
-        -- inst_mes_atual -> BRASIL
-        SUM(CASE 
-            WHEN p.DT_DATE BETWEEN b.first_day_cur AND b.last_day_cur 
-             AND p.REF_NORM = 'BRASIL' 
+        CAST(ROUND(SUM(CASE 
+            WHEN p.DT_DATE BETWEEN r.first_day_cur AND r.last_day_cur 
+             AND p.REF_IS_BR = 1
             THEN p.MOVEL ELSE 0 
-        END) AS inst_mes_atual,
-        
-        -- vb_mes_atual -> SPI
-        SUM(CASE 
-            WHEN p.DT_DATE BETWEEN b.first_day_cur AND b.last_day_cur 
-             AND p.REF_NORM REGEXP '^S.?O PAULO INTERIOR$' 
-            THEN p.MOVEL ELSE 0 
-        END) AS vb_mes_atual,
+        END), 2) AS DECIMAL(18,2)) AS inst_mes_atual,  -- BRASIL (móvel)
 
+        CAST(ROUND(SUM(CASE 
+            WHEN p.DT_DATE BETWEEN r.first_day_cur AND r.last_day_cur 
+             AND p.REF_IS_SPI = 1
+            THEN p.MOVEL ELSE 0 
+        END), 2) AS DECIMAL(18,2)) AS vb_mes_atual,    -- SPI (móvel)
 
         /* --- MÊS ANTERIOR --- */
-        -- inst_mes_anterior -> BRASIL
-        SUM(CASE 
-            WHEN p.DT_DATE BETWEEN b.first_day_prev AND b.last_day_prev 
-             AND p.REF_NORM = 'BRASIL' 
+        CAST(ROUND(SUM(CASE 
+            WHEN p.DT_DATE BETWEEN r.first_day_prev AND r.last_day_prev 
+             AND p.REF_IS_BR = 1
             THEN p.MOVEL ELSE 0 
-        END) AS inst_mes_anterior,
+        END), 2) AS DECIMAL(18,2)) AS inst_mes_anterior,
 
-        -- vb_mes_anterior -> SPI
-        SUM(CASE 
-            WHEN p.DT_DATE BETWEEN b.first_day_prev AND b.last_day_prev 
-             AND p.REF_NORM REGEXP '^S.?O PAULO INTERIOR$' 
+        CAST(ROUND(SUM(CASE 
+            WHEN p.DT_DATE BETWEEN r.first_day_prev AND r.last_day_prev 
+             AND p.REF_IS_SPI = 1
             THEN p.MOVEL ELSE 0 
-        END) AS vb_mes_anterior,
-
+        END), 2) AS DECIMAL(18,2)) AS vb_mes_anterior,
 
         /* --- PRÓXIMO MÊS --- */
-        -- inst_prox_mes -> BRASIL
-        SUM(CASE 
-            WHEN p.DT_DATE BETWEEN b.first_day_next AND b.last_day_next 
-             AND p.REF_NORM = 'BRASIL' 
+        CAST(ROUND(SUM(CASE 
+            WHEN p.DT_DATE BETWEEN r.first_day_next AND r.last_day_next 
+             AND p.REF_IS_BR = 1
             THEN p.MOVEL ELSE 0 
-        END) AS inst_prox_mes,
+        END), 2) AS DECIMAL(18,2)) AS inst_prox_mes,
 
-        -- vb_prox_mes -> SPI
-        SUM(CASE 
-            WHEN p.DT_DATE BETWEEN b.first_day_next AND b.last_day_next 
-             AND p.REF_NORM REGEXP '^S.?O PAULO INTERIOR$' 
+        CAST(ROUND(SUM(CASE 
+            WHEN p.DT_DATE BETWEEN r.first_day_next AND r.last_day_next 
+             AND p.REF_IS_SPI = 1
             THEN p.MOVEL ELSE 0 
-        END) AS vb_prox_mes,
-
+        END), 2) AS DECIMAL(18,2)) AS vb_prox_mes,
 
         /* --- ACUMULADO ATÉ HOJE --- */
-        -- inst_ate_hoje -> BRASIL
-        SUM(CASE 
-            WHEN p.DT_DATE BETWEEN b.first_day_cur AND b.today_eff 
-             AND p.REF_NORM = 'BRASIL' 
+        CAST(ROUND(SUM(CASE 
+            WHEN p.DT_DATE BETWEEN r.first_day_cur AND r.today_eff 
+             AND p.REF_IS_BR = 1
             THEN p.MOVEL ELSE 0 
-        END) AS inst_ate_hoje,
+        END), 2) AS DECIMAL(18,2)) AS inst_ate_hoje,
 
-        -- vb_ate_hoje -> SPI
-        SUM(CASE 
-            WHEN p.DT_DATE BETWEEN b.first_day_cur AND b.today_eff 
-             AND p.REF_NORM REGEXP '^S.?O PAULO INTERIOR$' 
+        CAST(ROUND(SUM(CASE 
+            WHEN p.DT_DATE BETWEEN r.first_day_cur AND r.today_eff 
+             AND p.REF_IS_SPI = 1
             THEN p.MOVEL ELSE 0 
-        END) AS vb_ate_hoje,
-
+        END), 2) AS DECIMAL(18,2)) AS vb_ate_hoje,
 
         /* --- MÊS ATUAL DO ANO PASSADO --- */
-        -- inst_mes_ano_passado -> BRASIL
-        SUM(CASE 
-            WHEN p.DT_DATE BETWEEN b.first_day_cur_prev_year AND b.last_day_cur_prev_year 
-             AND p.REF_NORM = 'BRASIL' 
+        CAST(ROUND(SUM(CASE 
+            WHEN p.DT_DATE BETWEEN r.first_day_cur_prev_year AND r.last_day_cur_prev_year 
+             AND p.REF_IS_BR = 1
             THEN p.MOVEL ELSE 0 
-        END) AS inst_mes_ano_passado,
+        END), 2) AS DECIMAL(18,2)) AS inst_mes_ano_passado,
 
-        -- vb_mes_ano_passado -> SPI
-        SUM(CASE 
-            WHEN p.DT_DATE BETWEEN b.first_day_cur_prev_year AND b.last_day_cur_prev_year 
-             AND p.REF_NORM REGEXP '^S.?O PAULO INTERIOR$' 
+        CAST(ROUND(SUM(CASE 
+            WHEN p.DT_DATE BETWEEN r.first_day_cur_prev_year AND r.last_day_cur_prev_year 
+             AND p.REF_IS_SPI = 1
             THEN p.MOVEL ELSE 0 
-        END) AS vb_mes_ano_passado
+        END), 2) AS DECIMAL(18,2)) AS vb_mes_ano_passado
 
-      FROM bounds b
+      FROM ranges r
       LEFT JOIN (
         SELECT
-          STR_TO_DATE(DT, '%d/%m/%Y') AS DT_DATE,
-          MOVEL,
-          UPPER(TRIM(REPLACE(REFERENCIA, '\r', ''))) AS REF_NORM
+          /* Parse robusto de DT (dd/mm/yyyy OU yyyy-mm-dd) */
+          CASE
+            WHEN DT LIKE '__/__/____' THEN STR_TO_DATE(DT, '%d/%m/%Y')
+            WHEN DT LIKE '____-__-__' THEN CAST(DT AS DATE)
+            ELSE NULL
+          END AS DT_DATE,
+          CAST(COALESCE(MOVEL, 0) AS DECIMAL(18,6)) AS MOVEL,
+          -- normaliza e cria flags de referência
+          CASE WHEN UPPER(TRIM(REPLACE(REFERENCIA, '\\r', ''))) COLLATE utf8mb4_unicode_ci = 'BRASIL' THEN 1 ELSE 0 END AS REF_IS_BR,
+          CASE WHEN UPPER(TRIM(REPLACE(REFERENCIA, '\\r', ''))) COLLATE utf8mb4_unicode_ci IN ('SÃO PAULO INTERIOR','SAO PAULO INTERIOR') THEN 1 ELSE 0 END AS REF_IS_SPI
         FROM pdu
       ) p
         ON (
              (
-               (p.DT_DATE BETWEEN b.first_day_prev AND b.last_day_next)
+               (p.DT_DATE BETWEEN r.first_day_prev AND r.last_day_next)
                OR
-               (p.DT_DATE BETWEEN b.first_day_cur_prev_year AND b.last_day_cur_prev_year)
+               (p.DT_DATE BETWEEN r.first_day_cur_prev_year AND r.last_day_cur_prev_year)
              )
-             AND ${regionFilter}
+             AND (p.REF_IS_BR = 1 OR p.REF_IS_SPI = 1)
            )
       GROUP BY
-        b.today_eff, b.first_day_cur, b.last_day_cur,
-        b.first_day_prev, b.last_day_prev,
-        b.first_day_next, b.last_day_next,
-        b.first_day_cur_prev_year, b.last_day_cur_prev_year
+        r.today_eff, r.first_day_cur, r.last_day_cur,
+        r.first_day_prev, r.last_day_prev,
+        r.first_day_next, r.last_day_next,
+        r.first_day_cur_prev_year, r.last_day_cur_prev_year
     `;
 
     const [rows] = await dataBase.query(sql, refParams);
@@ -1048,6 +919,83 @@ export const getLP_grafico = async (req, res) => {
   }
 };
 
+export const getVAREJO_grafico = async (req, res) => {
+  try {
+    // Aceita ?anomes=202601 ou ?ano=2026&mes=1
+    let { anomes, ano, mes } = req.query || {};
+    anomes = anomes ? Number(anomes) : undefined;
+
+    if (!anomes && ano && mes) {
+      ano = Number(ano);
+      mes = Number(mes);
+      if (!Number.isNaN(ano) && !Number.isNaN(mes) && mes >= 1 && mes <= 12) {
+        anomes = ano * 100 + (mes < 10 ? Number(`0${mes}`) : mes);
+      }
+    }
+
+    let query = "";
+    let params = [];
+
+    if (anomes) {
+      // Máximo dentro do mês selecionado
+      query = `
+        WITH CTE_MAX AS (
+          SELECT MAX(DATA_ATUALIZACAO) AS data_maxima
+          FROM VAREJO
+          WHERE ANOMES = ?
+
+        )
+        select
+        V.anomes,
+        V.filial_coordenador, 
+          count(distinct V.gn) as gn,
+        count(distinct V.ibge) as cidades,
+        count(distinct V.parceiro_loja) as loja,
+        count(distinct V.cnpj) as parceiro,
+        count(distinct V.nome_colaborador) as colaborador,
+        count(distinct V.cargo) as cargo,
+        count(distinct V.situacao) as situacao
+        from db_projetos.varejo  as V
+        join CTE_MAX as m
+        on V.data_atualizacao = m.data_maxima
+        group by V.anomes, V.filial_coordenador
+        order by anomes,filial_coordenador
+      `;
+      params = [anomes, anomes];
+    } else {
+      // Snapshot global (sem filtro)
+      query = `
+        WITH CTE_MAX AS (
+          SELECT MAX(DATA_ATUALIZACAO) AS data_maxima
+          FROM VAREJO
+        )
+        select
+        V.anomes,
+        V.filial_coordenador, 
+          count(distinct V.gn) as gn,
+        count(distinct V.ibge) as cidades,
+        count(distinct V.parceiro_loja) as loja,
+        count(distinct V.cnpj) as parceiro,
+        count(distinct V.nome_colaborador) as colaborador,
+        count(distinct V.cargo) as cargo,
+        count(distinct V.situacao) as situacao
+        from VAREJO  as V
+        join CTE_MAX as m
+        on V.data_atualizacao = m.data_maxima
+        group by V.anomes, V.filial_coordenador
+        order by anomes,filial_coordenador
+              `;
+      params = [];
+    }
+
+    const [rows] = await dataBase.query(query, params);
+    return res.status(200).json(rows);
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ error: "Erro ao buscar getPAP_grafico" });
+  }
+};
+
 export const getAPARELHO = async (req, res) => {
   try {
     const query = `
@@ -1065,7 +1013,42 @@ export const getAPARELHO = async (req, res) => {
   }
 };
 
-// Controller novo
+export const getVAREJO_graficoHistorico = async (req, res) => {
+  try {
+    const query = `
+      WITH max_por_mes AS (
+        SELECT
+          ANOMES,
+          MAX(DATA_ATUALIZACAO) AS data_maxima_mes
+        FROM VAREJO
+        GROUP BY ANOMES
+      )
+      SELECT
+        V.anomes,
+        V.filial_coordenador,
+        count(distinct V.gn) as gn,
+        count(distinct V.ibge) as cidades,
+        count(distinct V.parceiro_loja) as loja,
+        count(distinct V.cnpj) as parceiro,
+        count(distinct V.nome_colaborador) as colaborador,
+        count(distinct V.cargo) as cargo,
+        count(distinct V.situacao) as situacao
+      FROM VAREJO V
+      JOIN max_por_mes m
+        ON V.ANOMES = m.ANOMES
+       AND V.DATA_ATUALIZACAO = m.data_maxima_mes
+      GROUP BY V.ANOMES, V.filial_coordenador
+      ORDER BY V.ANOMES ASC, V.filial_coordenador ASC;
+    `;
+
+    const [rows] = await dataBase.query(query);
+    return res.status(200).json(rows);
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ error: "Erro ao buscar histórico VAREJO" });
+  }
+};
+
 export const getLP_graficoHistorico = async (req, res) => {
   try {
     const query = `

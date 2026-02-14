@@ -19,6 +19,8 @@ import {
   getPDUMovel,
   getAPARELHO,
   getLP_grafico,
+  getVAREJO_grafico,
+  getVAREJO_graficoHistorico,
   getPAP_PREMIUM,
   getPduFullGrafico,
   getLP_graficoHistorico,
@@ -54,6 +56,8 @@ router.get("/aparelho", getAPARELHO);
 router.get("/PduMovel", getPDUMovel);
 router.get("/PduFullGrafico", getPduFullGrafico);
 router.get("/lojapropriaGrafico", getLP_grafico);
+router.get("/VAREJOGrafico", getVAREJO_grafico);
+router.get("/VAREJOGraficoHistorico", getVAREJO_graficoHistorico);
 router.get("/lojapropriaGraficoHistorico", getLP_graficoHistorico);
 
 /*------------------ EXCEL UPLOAD ------------------*/
