@@ -11,6 +11,7 @@ import RelatorioLogo from "../Item-Layout/RelatorioLogo.js";
 import Logout from "./logout.js";
 import { CgProfile } from "react-icons/cg";
 import ValidarToken from "../Tools/ValidarToken.js";
+import { FaMicroscope } from "react-icons/fa";
 
 export default function NavBar({ setPermission, permission }) {
   const checkMobile = useCallback(CheckMobile, []);
@@ -113,6 +114,7 @@ export default function NavBar({ setPermission, permission }) {
     if (linkAtivo === "Carteira") return <WalletLogo />;
     if (linkAtivo === "Relatorio") return <RelatorioLogo />;
     if (linkAtivo === "Perfil") return <CgProfile size={54} />;
+    if (linkAtivo === "MIS") return <FaMicroscope size={50} />;
     return <ClaroLogo />;
   }
 
@@ -185,7 +187,14 @@ export default function NavBar({ setPermission, permission }) {
 
           {!!mis && (
             <li className={styleExt.submenu}>
-              MIS
+              <Link
+                onClick={() => openMenu("MIS")}
+                style={linkAtivo === "MIS" ? { color: colorLink } : {}}
+                to="/MIS"
+              >
+                MIS
+              </Link>
+
               <Link
                 className={styleExt.submenuItem}
                 role="menuitem"

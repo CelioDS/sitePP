@@ -1,6 +1,13 @@
-import { dataBase } from "../DataBase/dataBase.js";
 import dotenv from "dotenv";
 import bcrypt from "bcrypt";
+import { format } from "date-fns";
+import { fromZonedTime } from "date-fns-tz";
+import { dataBase } from "../DataBase/dataBase.js";
+
+const TODAY = format(
+  fromZonedTime(new Date(), "America/Sao_Paulo"),
+  "yyyy-MM-dd HH:mm",
+);
 
 dotenv.config();
 
@@ -32,27 +39,31 @@ export const getDBtarefasID = async (req, res) => {
 // POST: cria usuário
 export const setDBtarefas = async (req, res) => {
   try {
-    const { tarefas, senha, canal, mis, admin } = req.body;
+    const { tarefa, etapas, porcentagem, responsavel, concluido } = req.body;
 
-    if (!tarefas || !senha || canal === undefined || admin === undefined) {
+    if (!tarefa || etapas === undefined || porcentagem === undefined) {
       return res.status(400).json({ error: "Campos obrigatórios ausentes." });
     }
 
-    const hashedPassword = await bcrypt.hash(senha, 10);
-
     const query = `
-      INSERT INTO tarefas (\`tarefas\`, \`senha\`, \`canal\`, \`mis\`, \`admin\`)
-      VALUES (?, ?, ?, ?, ?)
+      INSERT INTO tarefas (\`tarefa\`, \`etapas\`, \`porcentagem\`,\`responsavel\` ,\`concluido\`,\`data_atualizacao\`)
+      VALUES (?, ?, ?, ? , ?, ?)
     `;
 
-    // ⚠️ Ordem corrigida: tarefas, senha, canal, mis, admin
-    const values = [tarefas, hashedPassword, canal, mis, admin];
+    const values = [tarefa, etapas, porcentagem, responsavel, concluido, TODAY];
 
     const [result] = await dataBase.query(query, values);
 
-    return res
-      .status(201)
-      .json({ id: result.insertId, message: "Usuario criado" });
+    return res.status(201).json({
+      id: result.insertId,
+      tarefa,
+      etapas,
+      porcentagem,
+      responsavel,
+      concluido,
+      data_atualizacao: TODAY,
+      message: "Tarefa criada",
+    });
   } catch (err) {
     console.error("Erro setDBtarefas:", err);
     return res.status(500).json({ error: "Erro ao criar usuário." });
@@ -62,49 +73,52 @@ export const setDBtarefas = async (req, res) => {
 // PUT: atualiza usuário
 export const updateDBtarefas = async (req, res) => {
   try {
-    const { tarefas, senha, canal, mis, admin } = req.body;
+    const {
+      tarefa,
+      etapas,
+      porcentagem,
+      concluido,
+      responsavel,
+      DATA_ATUALIZACAO,
+    } = req.body;
     const { id } = req.params;
 
     if (!id) {
       return res.status(400).json({ error: "ID não informado." });
     }
-    if (!tarefas || canal === undefined || admin === undefined) {
+    if (!tarefa || etapas === undefined || porcentagem === undefined) {
       return res.status(400).json({ error: "Campos obrigatórios ausentes." });
     }
 
     // Se senha vier informada, hasheia; se vier vazia/undefined, não altera senha
     let sql, params;
 
-    if (senha) {
-      const hashed = await bcrypt.hash(senha, 10);
-      sql = `
+    sql = `
         UPDATE tarefas
-           SET \`tarefas\` = ?, \`senha\` = ?, \`canal\` = ?, \`mis\` = ?, \`admin\` = ?
+           SET \`tarefa\` = ?, \`etapas\` = ?, \`porcentagem\` = ?, \`concluido\` = ?, \`responsavel\` = ?, \`data_atualizacao\` = ?
          WHERE \`id\` = ?
       `;
-      params = [tarefas, hashed, canal, mis, admin, id];
-    } else {
-      sql = `
-        UPDATE tarefas
-           SET \`tarefas\` = ?, \`canal\` = ?, \`mis\` = ?, \`admin\` = ?
-         WHERE \`id\` = ?
-      `;
-      params = [tarefas, canal, mis, admin, id];
-    }
+    params = [tarefa, etapas, porcentagem, concluido, responsavel, TODAY, id];
 
     const [result] = await dataBase.query(sql, params);
 
-    if (result.affectedRows === 0) {
-      return res.status(404).json({ error: "Usuário não encontrado." });
-    }
-
     return res.status(200).json({
-      message: "usuario atualizado",
-      affectedRows: result.affectedRows,
-      changedRows: result.changedRows ?? undefined,
+      id: result.insertId,
+      tarefa,
+      etapas,
+      porcentagem,
+      responsavel,
+      concluido,
+      data_atualizacao: TODAY,
+      message: "Tarefa atualizada ...",
     });
   } catch (err) {
-    console.error("Erro updateDBtarefas:", err);
+    console.error("Erro updateDBtarefas:", {
+      message: err.message,
+      code: err.code,
+      sqlMessage: err.sqlMessage,
+      stack: err.stack,
+    });
     return res.status(500).json({ error: "Erro ao atualizar usuário." });
   }
 };
@@ -113,7 +127,7 @@ export const updateDBtarefas = async (req, res) => {
 export const deleteDBtarefas = async (req, res) => {
   try {
     const { id } = req.params;
-    if (!id) return res.status(400).json({ error: "ID não informado." });
+    if (!id) return res.status(400).json({ error: "id não informado." });
 
     const query = "DELETE FROM tarefas WHERE `id` = ?";
     const [result] = await dataBase.query(query, [id]);

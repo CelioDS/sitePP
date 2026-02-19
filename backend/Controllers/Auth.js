@@ -46,9 +46,9 @@ export const LoginDB = async (req, res) => {
     const token = jwt.sign(
       {
         userId: user.id,
+        mis: user.mis,
         login: user.login,
         admin: user.admin,
-        mis: user.mis,
         canal: user.canal,
       },
       process.env.JWT_SECRET,

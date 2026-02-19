@@ -23,7 +23,11 @@ export default function TableAdmin({ Url }) {
 
   const lastReqId = useRef(0);
 
-  const colSpan = useMemo(() => (rota === "portaaporta" ? 13 : 10), [rota]);
+  const colSpan = useMemo(() => {
+    if (rota === "portaaporta") return 22;
+    if (rota === "lojapropria") return 10;
+    if (rota === "VAREJO") return 14;
+  }, [rota]);
 
   const toArray = (payload) => {
     if (Array.isArray(payload)) return payload;
@@ -86,8 +90,8 @@ export default function TableAdmin({ Url }) {
 
   useEffect(() => {
     fetchData();
-    
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [Url, rota, search, start, end, latest]);
 
   const handleDownload = () => {
@@ -130,25 +134,57 @@ export default function TableAdmin({ Url }) {
       />
 
       <section style={{ marginTop: 12 }}>
-        
         <section className={Style.asideBTN}>
           <button
+            style={{
+              background: rota === "lojapropria" ? "#740404" : undefined,
+            }}
             disabled={rota === "lojapropria" || isLoading}
             onClick={() => setRota("lojapropria")}
           >
             Loja Própria
           </button>
           <button
+            style={{
+              background: rota === "portaaporta" ? "#740404" : undefined,
+            }}
             disabled={rota === "portaaporta" || isLoading}
             onClick={() => setRota("portaaporta")}
-            style={{ marginLeft: 8 }}
           >
             Porta a Porta
           </button>
           <button
+            style={{
+              background: rota === "Varejo" ? "#740404" : undefined,
+            }}
+            disabled={rota === "Varejo" || isLoading}
+            onClick={() => setRota("Varejo")}
+          >
+            Varejo
+          </button>
+          {console.log(rota)}
+
+          <button
+            style={{
+              background: rota === "PME" ? "#740404" : undefined,
+            }}
+            disabled={rota === "PME" || isLoading}
+            onClick={() => setRota("PME")}
+          >
+            PME
+          </button>
+          <button
+            style={{
+              background: rota === "agenteautorizado" ? "#740404" : undefined,
+            }}
+            disabled={rota === "agenteautorizado" || isLoading}
+            onClick={() => setRota("agenteautorizado")}
+          >
+            Agente Autorizado
+          </button>
+          <button
             onClick={handleDownload}
             disabled={isLoading || dataBase.length === 0}
-            style={{ marginLeft: 16 }}
           >
             Download Excel
           </button>
@@ -166,34 +202,63 @@ export default function TableAdmin({ Url }) {
                 <th colSpan={colSpan}>
                   <LoadingSvg text="Carregando..." />
                 </th>
-              ) : rota === "lojapropria" ? (
-                <>
-                  <th>CANAL</th>
-                  <th>COLABORADOR</th>
-                  <th>LOGIN_CLARO</th>
-                  <th>COMTA</th>
-                  <th>CABEAMENTO</th>
-                  <th>LOGIN_NET</th>
-                  <th>LOJA</th>
-                  <th>CIDADE</th>
-                  <th>COORDENADOR</th>
-                  <th>STATUS</th>
-                </>
               ) : (
+                rota === "lojapropria" && (
+                  <>
+                    <th>CANAL</th>
+                    <th>COLABORADOR</th>
+                    <th>LOGIN_CLARO</th>
+                    <th>COMTA</th>
+                    <th>CABEAMENTO</th>
+                    <th>LOGIN_NET</th>
+                    <th>LOJA</th>
+                    <th>CIDADE</th>
+                    <th>COORDENADOR</th>
+                    <th>STATUS</th>
+                  </>
+                )
+              )}
+
+              {rota === "portaaporta" && (
                 <>
                   <th>CANAL</th>
                   <th>IBGE</th>
                   <th>CIDADE</th>
-                  <th>RAZAO_SOCIAL</th>
+                  <th>PARCEIRO LOJA</th>
                   <th>CNPJ</th>
                   <th>NOME</th>
-                  <th>CLASSIFICACAO</th>
+                  <th>CLASSIFICAÇÃO</th>
                   <th>SEGMENTO</th>
                   <th>PRODUTO_ATUACAO</th>
                   <th>DATA_CADASTRO</th>
                   <th>SITUACAO</th>
-                  <th>LOGIN_NET</th>
                   <th>TIPO</th>
+                  <th>RAZAO_SOCIAL</th>
+                  <th>LOGIN NET</th>
+                  <th>LOGIN CLARO</th>
+                  <th>EXECUTIVO</th>
+                  <th>GRUPO</th>
+                  <th>COMTA</th>
+                  <th>CABEAMENTO</th>
+                  <th>FILIAL COORDENADOR</th>
+                </>
+              )}
+              {rota === "Varejo" && (
+                <>
+                  <th>ANOMES</th>
+                  <th>CANAL</th>
+                  <th>IBGE</th>
+                  <th>COD_PDV</th>
+                  <th>PARCEIRO_LOJA</th>
+                  <th>CNPJ</th>
+                  <th>NM_VEND</th>
+                  <th>CARGO</th>
+                  <th>CPF_VEND</th>
+                  <th>PRODUTO_ATUACAO</th>
+                  <th>DATA_CADASTRO</th>
+                  <th>SITUACAO</th>
+                  <th>FILIAL</th>
+                  <th>GN</th>
                 </>
               )}
             </tr>
@@ -209,7 +274,7 @@ export default function TableAdmin({ Url }) {
             {!isLoading &&
               dataBase.map((item, idx) => (
                 <tr key={idx}>
-                  {rota === "lojapropria" ? (
+                  {rota === "lojapropria" && (
                     <>
                       <td>{item.CANAL}</td>
                       <td>{item.COLABORADOR}</td>
@@ -222,12 +287,13 @@ export default function TableAdmin({ Url }) {
                       <td>{item.COORDENADOR}</td>
                       <td>{item.STATUS}</td>
                     </>
-                  ) : (
+                  )}
+                  {rota === "portaaporta" && (
                     <>
                       <td>{item.CANAL}</td>
                       <td>{item.IBGE}</td>
                       <td>{item.CIDADE}</td>
-                      <td>{item.RAZAO_SOCIAL}</td>
+                      <td>{item.PARCEIRO_LOJA}</td>
                       <td>{item.CNPJ}</td>
                       <td>{item.NOME}</td>
                       <td>{item.CLASSIFICACAO}</td>
@@ -235,8 +301,33 @@ export default function TableAdmin({ Url }) {
                       <td>{item.PRODUTO_ATUACAO}</td>
                       <td>{item.DATA_CADASTRO}</td>
                       <td>{item.SITUACAO}</td>
-                      <td>{item.LOGIN_NET}</td>
                       <td>{item.TIPO}</td>
+                      <td>{item.RAZAO_SOCIAL}</td>
+                      <td>{item.LOGIN_NET}</td>
+                      <td>{item.LOGIN_CLARO}</td>
+                      <td>{item.EXECUTIVO}</td>
+                      <td>{item.GRUPO}</td>
+                      <td>{item.COMTA}</td>
+                      <td>{item.CABEAMENTO}</td>
+                      <td>{item.FILIAL_COORDENADOR}</td>
+                    </>
+                  )}
+                  {rota === "Varejo" && (
+                    <>
+                      <td>{item.ANOMES}</td>
+                      <td>{item.CANAL}</td>
+                      <td>{item.IBGE}</td>
+                      <td>{item.COD_PDV}</td>
+                      <td>{item.PARCEIRO_LOJA}</td>
+                      <td>{item.CNPJ}</td>
+                      <td>{item.NOME_COLABORADOR}</td>
+                      <td>{item.CARGO}</td>
+                      <td>{item.CPF_COLABORADOR}</td>
+                      <td>{item.PRODUTO_ATUACAO}</td>
+                      <td>{item.DATA_CADASTRO}</td>
+                      <td>{item.SITUACAO}</td>
+                      <td>{item.FILIAL_COORDENADOR}</td>
+                      <td>{item.GN}</td>
                     </>
                   )}
                 </tr>

@@ -211,7 +211,7 @@ export default function Home() {
             <div style={kpi.label}>Dias no mês: {row.dias_no_mes}</div>
             <section className={Style.luandesing}>
               <div className={Style.gabidesing} style={kpi.value}>
-                <p>{onlyMovel ? "BRASIL" : "Instalçao"}</p>
+                <p>{onlyMovel ? "BRASIL" : "Instalaçao"}</p>
                 <p>{num(row.inst_mes_atual, 2)}</p>
               </div>
               <div style={kpi.value}>
@@ -506,7 +506,7 @@ export default function Home() {
             mis vai ter acesso a esse dados id tarefa porcentagem obs etapas
             resposaveis
           </li>
-
+          <li>feriados dos meses cidades </li>
           <li>colocar cache</li>
           <li>criar perfil para o usaurio ver eo admin alterar</li>
         </ul>

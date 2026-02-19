@@ -79,14 +79,15 @@
   padding: 5px;
 }
 
-.main nav ul .submenu a {
+
+.main nav ul .submenu a:not(:first-child) {
   display: none;
   transition: all 1s;
 }
 
-.main nav ul .submenu:hover a,
-.main nav ul .submenu:active a,
-.main nav ul .submenu:focus a {
+.main nav ul .submenu:hover a:not(:first-child),
+.main nav ul .submenu:active a:not(:first-child),
+.main nav ul .submenu:focus a:not(:first-child) {
   display: flex;
   justify-content: start;
   flex-direction: column;

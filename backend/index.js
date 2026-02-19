@@ -32,6 +32,7 @@ app.use(express.json({ limit: "10kb" }));
 // ----------------------
 const allowedOrigins = [
   "http://localhost:3000",
+  "http://10.69.152.193:3000",
   "https://ppspi.netlify.app",
   "http://10.89.196.113:3000",
   "http://192.168.1.9:3000",

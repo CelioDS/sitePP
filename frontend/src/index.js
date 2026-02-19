@@ -4,13 +4,14 @@ import App from "./App";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import "./App.css";
 
-import Error from "./components/Routers/Error";
+import MIS from "./components/Routers/MIS";
 import Home from "./components/Routers/Home";
+import Error from "./components/Routers/Error";
+import Perfil from "./components/Routers/Perfil";
+import TodoList from "./components/Routers/TodoList";
 import Carteira from "./components/Routers/Carteira";
 import Relatorio from "./components/Routers/Relatorio";
 import Visualizar from "./components/Routers/Visualizar";
-import Perfil from "./components/Routers/Perfil";
-import TodoList from "./components/Routers/TodoList";
 
 const router = createBrowserRouter([
   {
@@ -29,6 +30,10 @@ const router = createBrowserRouter([
       {
         path: "/Relatorio",
         element: <Relatorio />,
+      },
+      {
+        path: "/MIS",
+        element: <MIS />,
       },
       {
         path: "/Visualizar/:id/:nm_contrato",
