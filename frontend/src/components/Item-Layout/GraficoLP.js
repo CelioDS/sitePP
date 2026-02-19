@@ -8,12 +8,10 @@ import ReactApexChart from "react-apexcharts";
 import { format } from "date-fns";
 import { toZonedTime } from "date-fns-tz";
 import ptBR from "date-fns/locale/pt-BR";
-import { MdManageAccounts} from "react-icons/md";
+import { MdManageAccounts } from "react-icons/md";
 import { RiTeamFill } from "react-icons/ri";
 import { GiShop } from "react-icons/gi";
 import { FaCity } from "react-icons/fa";
-
-
 
 export default function RelatorioUser({ Url }) {
   const [userData, setUserData] = useState(null);
@@ -28,8 +26,6 @@ export default function RelatorioUser({ Url }) {
   const tz = "America/Sao_Paulo";
   const hojeBR = toZonedTime(new Date(), tz);
   const tituloMes = format(hojeBR, "yyyy'-'MM", { locale: ptBR }); // ex.: janeiro de 2026
-
-
 
   const [monthFilter, setMonthFilter] = useState(tituloMes); // exemplo: "2026-01"
 
@@ -66,7 +62,6 @@ export default function RelatorioUser({ Url }) {
           const lastDate = sortedDates[0];
           const formattedDate = format(lastDate, "yyyy'-'MM", { locale: ptBR });
 
-  
           setMonthFilter(formattedDate); // <-- mantém seu comportamento atual
         }
       } catch (err) {
@@ -216,8 +211,21 @@ export default function RelatorioUser({ Url }) {
   const optionsBar = useMemo(
     () => ({
       chart: { type: "bar", toolbar: { show: true } },
-      plotOptions: { bar: { horizontal: false, columnWidth: "55%" } },
-      dataLabels: { enabled: false },
+      plotOptions: {
+        bar: {
+          horizontal: false,
+          columnWidth: "55%",
+          dataLabels: { position: "top" },
+        },
+      },
+      dataLabels: {
+        enabled: true,
+        formatter: (val) =>
+          val >= 1000 ? `${(val / 1000).toFixed(1)}k` : `${val}`,
+        style: { fontSize: "12px", colors: ["#000000"] },
+        offsetY: -20,
+      },
+
       stroke: { show: true, width: 2, colors: ["transparent"] },
       xaxis: {
         categories: byCoord.map((r) => r.coordenador.split(" ")[0]),
@@ -257,6 +265,19 @@ export default function RelatorioUser({ Url }) {
         "#897170",
         "#8BAAAD",
       ], // paleta
+      plotOptions: {
+        pie: {
+          donut: {
+            size: "65%",
+            labels: {
+              show: true,
+              total: {
+                show: true,
+              },
+            },
+          },
+        },
+      },
     }),
     [donut],
   );
@@ -360,7 +381,7 @@ export default function RelatorioUser({ Url }) {
       /* limitLastMonths: 12 */
     });
     return { lineCategories: categories, lineSeries: series };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [byCoordHistory]);
 
   const optionsLine = useMemo(
@@ -486,16 +507,16 @@ export default function RelatorioUser({ Url }) {
             <Kpi
               title="Total de Cidades"
               value={kpis.totalCidades}
-              icon={<FaCity size={26} color="#000000"/>}
+              icon={<FaCity size={26} color="#000000" />}
             />
           </section>
 
           <section className={Style.graficoaside}>
             {/* Barras Agrupadas */}
             <aside className={Style.card}>
-              <h3 style={{ marginBottom: 8 }}>
+              <h5 style={{ marginBottom: 8 }}>
                 Colaboradores × Lojas × Cidades (por Coordenador)
-              </h3>
+              </h5>
               <div
                 style={{ width: "100%", maxWidth: "100%", overflow: "hidden" }}
               >
@@ -511,9 +532,9 @@ export default function RelatorioUser({ Url }) {
 
             {/* Donut */}
             <aside className={Style.card}>
-              <h3 style={{ marginBottom: 8 }}>
+              <h5>
                 Participação por Coordenador (Lojas)
-              </h3>
+              </h5>
               <ReactApexChart
                 options={optionsDonut}
                 series={donut.series}
@@ -555,7 +576,7 @@ export default function RelatorioUser({ Url }) {
                   series={lineSeries}
                   type="line"
                   height={360}
-                  width={1000} // mais largo para linha; ajuste se necessário
+                  width={1000} 
                 />
               </div>
             )}

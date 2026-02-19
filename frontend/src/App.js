@@ -15,8 +15,6 @@ function App() {
   );
 
   const [loginBD, setLoginBD] = useState();
-  const [canalBD, setCanalBD] = useState();
-  const [misBD, setMisBD] = useState();
 
   const baseURL = process.env.REACT_APP_API_URL || "http://localhost:8000";
 
@@ -39,17 +37,13 @@ function App() {
   return (
     <div className="App">
       <NavBar
-        canalBD={canalBD}
         permission={permission}
         setPermission={setPermission}
-        misBD={misBD}
       />
       {permission && <Outlet context={{ loginBD }} />}
       {!permission && (
         <Login
           setLoginBD={setLoginBD}
-          setMisBD={setMisBD}
-          setCanalBD={setCanalBD}
           permission={permission}
           setPermission={setPermission}
         />

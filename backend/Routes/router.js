@@ -2,29 +2,38 @@ import express from "express";
 
 import {
   getDBLogin,
-  getDBLoginID,
   setDBLogin,
-  updateDBLogin,
+  getDBLoginID,
   deleteDBLogin,
+  updateDBLogin,
 } from "../Controllers/CreateUser.js";
+
+import {
+  getDBtarefas,
+  setDBtarefas,
+  getDBtarefasID,
+  updateDBtarefas,
+  deleteDBtarefas,
+} from "../Controllers/Todo.js";
 
 import {
   getAA,
   getLP,
+  getPAP,
   getPDU,
   getPME,
-  getPAP,
   getVAREJO,
   getPduFull,
   getPDUMovel,
   getAPARELHO,
   getLP_grafico,
-  getVAREJO_grafico,
-  getVAREJO_graficoHistorico,
   getPAP_PREMIUM,
+  getVAREJO_grafico,
   getPduFullGrafico,
   getLP_graficoHistorico,
+  getVAREJO_graficoHistorico,
 } from "../Controllers/Controllers.js";
+
 import { LoginDB, validateToken } from "../Controllers/Auth.js";
 
 import {
@@ -60,12 +69,20 @@ router.get("/VAREJOGrafico", getVAREJO_grafico);
 router.get("/VAREJOGraficoHistorico", getVAREJO_graficoHistorico);
 router.get("/lojapropriaGraficoHistorico", getLP_graficoHistorico);
 
+/*------------------ ROTAS RAIZ To Do ------------------*/
+
+router.get("/todo", getDBtarefas);
+router.post("/todo/add", setDBtarefas);
+router.get("/todo/:id", getDBtarefasID);
+router.put("/todo/:id", updateDBtarefas);
+router.delete("/todo/:id", deleteDBtarefas);
+
 /*------------------ EXCEL UPLOAD ------------------*/
 
 router.post("/upload-excel-lp", upload.single("file"), setExcelLP);
+router.post("/upload-excel-AA", upload.single("file"), setExcelAA);
 router.post("/upload-excel-pme", upload.single("file"), setExcelPME);
 router.post("/upload-excel-PAP", upload.single("file"), setExcelPAP);
-router.post("/upload-excel-AA", upload.single("file"), setExcelAA);
 router.post("/upload-excel-Varejo", upload.single("file"), setExcelVarejo);
 
 /*------------------ AUTH ------------------*/
@@ -74,9 +91,8 @@ router.get("/auth/validate", validateToken);
 
 /*------------------ USERS (ADMIN) ------------------*/
 router.get("/users", getDBLogin);
-router.get("/users/:id", getDBLoginID);
-
 router.post("/users/add", setDBLogin);
+router.get("/users/:id", getDBLoginID);
 router.put("/users/:id", updateDBLogin);
 router.delete("/users/:id", deleteDBLogin);
 

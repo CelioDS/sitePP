@@ -3,10 +3,16 @@ import React from "react"; // Necessário para usar React.Fragment
 import styles from "./CalendarGraph.module.css";
 import axios from "axios";
 import { FaCaretDown } from "react-icons/fa";
+import { format } from "date-fns";
+import { toZonedTime } from "date-fns-tz";
+import ptBR from "date-fns/locale/pt-BR";
 
 export default function GraficoPDU({ year, Url, referencia = "BR" }) {
   const [dataFULL, setDataFULL] = useState(null);
-  
+
+  const tz = "America/Sao_Paulo";
+  const hojeBR = toZonedTime(new Date(), tz);
+  const tituloMes = format(hojeBR, "yyyyMM", { locale: ptBR }); // ex.: janeiro de 2026
 
   useEffect(() => {
     const fetchData = async () => {
@@ -71,7 +77,7 @@ export default function GraficoPDU({ year, Url, referencia = "BR" }) {
       Math.max(...yearData.map((d) => Number(d[dataKey]) || 0)) * 1.3;
 
     return (
-      <div className={styles.rowContainer}>
+      <main className={styles.rowContainer}>
         <div className={styles.rowHeader} style={{ backgroundColor: color }}>
           {title}
         </div>
@@ -97,7 +103,7 @@ export default function GraficoPDU({ year, Url, referencia = "BR" }) {
 
                 {/* Conector com Seta (aparece a partir do segundo item) */}
                 {index > 0 && (
-                  <div className={styles.connectorWrapper}>
+                  <div className={styles.connectorWrapper} >
                     <div className={styles.connectorLine}>
                       <div className={styles.percentBadge}>
                         {percentChange > 0 ? "+" : ""}
@@ -110,8 +116,6 @@ export default function GraficoPDU({ year, Url, referencia = "BR" }) {
                   </div>
                 )}
 
-               
-
                 <div className={styles.barWrapper}>
                   <span className={styles.barValue}>
                     {currentVal?.toFixed(2).replace(".", ",")}
@@ -120,7 +124,7 @@ export default function GraficoPDU({ year, Url, referencia = "BR" }) {
                     className={styles.bar}
                     style={{
                       height: `${barHeight}%`,
-                      backgroundColor: year === "FEV" ? "#D35F65" : "#A9A9A9",
+                      backgroundColor: Number(tituloMes) === item.anomes ? "#D35F65" : "#A9A9A9",
                     }}
                   />
                   <span className={styles.barLabel}>
@@ -131,7 +135,7 @@ export default function GraficoPDU({ year, Url, referencia = "BR" }) {
             );
           })}
         </div>
-      </div>
+      </main>
     );
   };
 

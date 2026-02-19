@@ -921,78 +921,54 @@ export const getLP_grafico = async (req, res) => {
 
 export const getVAREJO_grafico = async (req, res) => {
   try {
-    // Aceita ?anomes=202601 ou ?ano=2026&mes=1
-    let { anomes, ano, mes } = req.query || {};
-    anomes = anomes ? Number(anomes) : undefined;
-
-    if (!anomes && ano && mes) {
-      ano = Number(ano);
-      mes = Number(mes);
-      if (!Number.isNaN(ano) && !Number.isNaN(mes) && mes >= 1 && mes <= 12) {
-        anomes = ano * 100 + (mes < 10 ? Number(`0${mes}`) : mes);
-      }
-    }
-
+    let { anomes } = req.query;
     let query = "";
     let params = [];
 
-    if (anomes) {
-      // Máximo dentro do mês selecionado
+    if (anomes && anomes !== "undefined") {
+      const anomesNum = Number(anomes);
       query = `
         WITH CTE_MAX AS (
           SELECT MAX(DATA_ATUALIZACAO) AS data_maxima
           FROM VAREJO
           WHERE ANOMES = ?
-
         )
-        select
-        V.anomes,
-        V.filial_coordenador, 
-          count(distinct V.gn) as gn,
-        count(distinct V.ibge) as cidades,
-        count(distinct V.parceiro_loja) as loja,
-        count(distinct V.cnpj) as parceiro,
-        count(distinct V.nome_colaborador) as colaborador,
-        count(distinct V.cargo) as cargo,
-        count(distinct V.situacao) as situacao
-        from db_projetos.varejo  as V
-        join CTE_MAX as m
-        on V.data_atualizacao = m.data_maxima
-        group by V.anomes, V.filial_coordenador
-        order by anomes,filial_coordenador
+        SELECT
+          V.anomes,
+          V.filial_coordenador, 
+          COUNT(DISTINCT V.gn) as gn,
+          COUNT(DISTINCT V.ibge) as cidades,
+          COUNT(DISTINCT V.parceiro_loja) as loja,
+          COUNT(DISTINCT V.cnpj) as parceiro,
+          COUNT(DISTINCT V.nome_colaborador) as colaborador,
+          COUNT(DISTINCT V.cargo) as cargo,
+          COUNT(DISTINCT V.situacao) as situacao
+        FROM VAREJO AS V
+        JOIN CTE_MAX AS m ON V.data_atualizacao = m.data_maxima
+        WHERE V.anomes = ? -- Adicione este filtro aqui também para garantir performance
+        GROUP BY V.anomes, V.filial_coordenador
+        ORDER BY anomes, filial_coordenador
       `;
-      params = [anomes, anomes];
+      params = [anomesNum, anomesNum]; // Agora sim, dois parâmetros para dois "?"
     } else {
-      // Snapshot global (sem filtro)
+      // Query sem filtro (Snapshot global)
       query = `
         WITH CTE_MAX AS (
           SELECT MAX(DATA_ATUALIZACAO) AS data_maxima
           FROM VAREJO
         )
-        select
-        V.anomes,
-        V.filial_coordenador, 
-          count(distinct V.gn) as gn,
-        count(distinct V.ibge) as cidades,
-        count(distinct V.parceiro_loja) as loja,
-        count(distinct V.cnpj) as parceiro,
-        count(distinct V.nome_colaborador) as colaborador,
-        count(distinct V.cargo) as cargo,
-        count(distinct V.situacao) as situacao
-        from VAREJO  as V
-        join CTE_MAX as m
-        on V.data_atualizacao = m.data_maxima
-        group by V.anomes, V.filial_coordenador
-        order by anomes,filial_coordenador
-              `;
+        SELECT ... -- (mesmos campos)
+        FROM VAREJO AS V
+        JOIN CTE_MAX AS m ON V.data_atualizacao = m.data_maxima
+        GROUP BY V.anomes, V.filial_coordenador
+      `;
       params = [];
     }
 
     const [rows] = await dataBase.query(query, params);
     return res.status(200).json(rows);
   } catch (err) {
-    console.error(err);
-    return res.status(500).json({ error: "Erro ao buscar getPAP_grafico" });
+    // ... erro
   }
 };
 

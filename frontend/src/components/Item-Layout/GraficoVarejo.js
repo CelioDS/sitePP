@@ -1,6 +1,6 @@
 // Varejo.jsx
 import LoadingSvg from "./Loading";
-import Style from "./GraficoLP.module.css";
+import Style from "./GraficoVarejo.module.css";
 import { useMemo, useState, useEffect } from "react";
 import { toast } from "react-toastify";
 import axios from "axios";
@@ -23,8 +23,6 @@ import { FaCity } from "react-icons/fa";
  */
 
 export default function Varejo({ Url }) {
-  const [userData, setUserData] = useState(null);
-
   // Dados filtrados pelo mês
   const [dataBase, setDataBase] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -44,23 +42,6 @@ export default function Varejo({ Url }) {
   const hojeBR = toZonedTime(new Date(), tz);
   const mesAtualYYYYMM = format(hojeBR, "yyyy'-'MM", { locale: ptBR });
   const [monthFilter, setMonthFilter] = useState(mesAtualYYYYMM);
-
-  // -------- Helpers de data/ANOMES --------
-  const parseAnomes = (value) => {
-    // Aceita número (202602), string "202602" ou "2026-02"
-    if (!value) return null;
-    const s = String(value).trim();
-    if (/\[value-/i.test(s)) return null; // ignora placeholders
-    const onlyDigits = s.replace(/\D/g, "");
-    if (onlyDigits.length === 6) {
-      const ano = parseInt(onlyDigits.slice(0, 4), 10);
-      const mes = parseInt(onlyDigits.slice(4, 6), 10) - 1;
-      const d = new Date(ano, mes, 1);
-      return isNaN(d) ? null : d;
-    }
-    const d = new Date(value);
-    return isNaN(d) ? null : d;
-  };
 
   const toAnomesNum = (yyyyMM) => {
     if (!yyyyMM) return undefined;
@@ -84,11 +65,7 @@ export default function Varejo({ Url }) {
     // Ignora placeholders "[value-x]"
     if (!anomesNum || /\[value-/i.test(String(rawAnoMes ?? ""))) return null;
 
-    const coordenador = (
-      r?.filial_coordenador ??
-      r?.coordenador ??
-      ""
-    )
+    const coordenador = (r?.filial_coordenador ?? r?.coordenador ?? "")
       .toString()
       .trim();
 
@@ -118,7 +95,6 @@ export default function Varejo({ Url }) {
         window.location.href = "/Error";
         return;
       }
-      setUserData(data);
     })();
     return () => {
       ignore = true;
@@ -216,7 +192,10 @@ export default function Varejo({ Url }) {
     const totalColab = byCoord.reduce((acc, r) => acc + (r.colab || 0), 0);
     const totalLojas = byCoord.reduce((acc, r) => acc + (r.lojas || 0), 0);
     const totalCidades = byCoord.reduce((acc, r) => acc + (r.cidades || 0), 0);
-    const totalParceiro = byCoord.reduce((acc, r) => acc + (r.parceiro || 0), 0);
+    const totalParceiro = byCoord.reduce(
+      (acc, r) => acc + (r.parceiro || 0),
+      0,
+    );
     return { coords, totalColab, totalLojas, totalCidades, totalParceiro };
   }, [byCoord]);
 
@@ -254,8 +233,10 @@ export default function Varejo({ Url }) {
       },
       dataLabels: {
         enabled: true,
-        formatter: (val) => (val >= 1000 ? `${(val / 1000).toFixed(1)}k` : `${val}`),
-        style: { fontSize: "10px", colors: ["#374151"] },
+        formatter: (val) =>
+          val >= 1000 ? `${(val / 1000).toFixed(1)}k` : `${val}`,
+        style: { fontSize: "10px", colors: ["#000000"] },
+        offsetY: -20,
       },
       stroke: { show: true, width: 1, colors: ["#ffffff"] },
       xaxis: {
@@ -294,10 +275,10 @@ export default function Varejo({ Url }) {
       donutMetric === "colab"
         ? "colab"
         : donutMetric === "cidades"
-        ? "cidades"
-        : donutMetric === "parceiro"
-        ? "parceiro"
-        : "lojas";
+          ? "cidades"
+          : donutMetric === "parceiro"
+            ? "parceiro"
+            : "lojas";
 
     const labels = byCoord.map((r) => r.coordenador.split(" ")[0]);
     const series = byCoord.map((r) => Number(r[metricKey] || 0));
@@ -340,12 +321,15 @@ export default function Varejo({ Url }) {
                   donutMetric === "colab"
                     ? "Colab."
                     : donutMetric === "cidades"
-                    ? "Cidades"
-                    : donutMetric === "parceiro"
-                    ? "Parceiros"
-                    : "Lojas",
+                      ? "Cidades"
+                      : donutMetric === "parceiro"
+                        ? "Parceiros"
+                        : "Lojas",
                 formatter: (w) => {
-                  const total = w.globals.seriesTotals.reduce((a, b) => a + b, 0);
+                  const total = w.globals.seriesTotals.reduce(
+                    (a, b) => a + b,
+                    0,
+                  );
                   return `${total}`;
                 },
               },
@@ -359,7 +343,9 @@ export default function Varejo({ Url }) {
 
   // -------- Construção da linha (histórico) --------
   const buildLineSeries = (rows, limitLastMonths = null) => {
-    const anomesUniq = Array.from(new Set(rows.map((r) => r.anomes))).filter(Boolean);
+    const anomesUniq = Array.from(new Set(rows.map((r) => r.anomes))).filter(
+      Boolean,
+    );
     anomesUniq.sort((a, b) => a - b);
 
     const xAnomes = limitLastMonths
@@ -400,6 +386,7 @@ export default function Varejo({ Url }) {
   const { lineCategories, lineSeries } = useMemo(() => {
     const { categories, series } = buildLineSeries(byCoordHistory, lineRange);
     return { lineCategories: categories, lineSeries: series };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [byCoordHistory, lineRange]);
 
   const optionsLine = useMemo(
@@ -408,7 +395,11 @@ export default function Varejo({ Url }) {
       stroke: { width: 2, curve: "smooth" },
       dataLabels: { enabled: false },
       xaxis: { categories: lineCategories, title: { text: "Mês/Ano" } },
-      yaxis: { title: { text: "Colaboradores" }, decimalsInFloat: 0, forceNiceScale: true },
+      yaxis: {
+        title: { text: "Colaboradores" },
+        decimalsInFloat: 0,
+        forceNiceScale: true,
+      },
       tooltip: { shared: true, intersect: false },
       legend: { position: "bottom" },
       grid: { strokeDashArray: 4 },
@@ -440,29 +431,6 @@ export default function Varejo({ Url }) {
   );
 
   // -------- Exportar CSV --------
-  const exportCSV = () => {
-    try {
-      if (!byCoord.length) {
-        toast.info("Sem dados para exportar.");
-        return;
-      }
-      const headers = ["ANOMES", "Coordenador", "Colaboradores", "Lojas", "Cidades", "Parceiros"];
-      const lines = byCoord.map((r) =>
-        [r.anomes, `"${r.coordenador}"`, r.colab, r.lojas, r.cidades, r.parceiro].join(","),
-      );
-      const csv = [headers.join(","), ...lines].join("\n");
-      const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `Varejo_${monthFilter || "todos"}.csv`;
-      a.click();
-      URL.revokeObjectURL(url);
-    } catch (e) {
-      console.error("Erro ao exportar CSV:", e);
-      toast.error("Falha ao exportar CSV.");
-    }
-  };
 
   return (
     <main className={Style.main}>
@@ -476,10 +444,20 @@ export default function Varejo({ Url }) {
           flexWrap: "wrap",
         }}
       >
-        <h2 style={{ margin: 0 }}>Varejo – Lojas Próprias + ATP</h2>
+        <h2 style={{ margin: 0 }}>Varejo</h2>
 
-        <div style={{ marginLeft: "auto", display: "flex", gap: 8, alignItems: "center" }}>
-          <label className={Style.btn} style={{ fontSize: 12, color: "#6b7280" }}>
+        <div
+          style={{
+            marginLeft: "auto",
+            display: "flex",
+            gap: 8,
+            alignItems: "center",
+          }}
+        >
+          <label
+            className={Style.btn}
+            style={{ fontSize: 12, color: "#6b7280" }}
+          >
             Filtrar por mês
           </label>
           <input
@@ -500,10 +478,6 @@ export default function Varejo({ Url }) {
               Limpar
             </button>
           )}
-
-          <button type="button" className={Style.linkBtn} onClick={exportCSV} title="Exportar CSV">
-            Exportar CSV
-          </button>
         </div>
       </section>
 
@@ -527,47 +501,76 @@ export default function Varejo({ Url }) {
               marginBottom: 16,
             }}
           >
-            <Kpi title="Coordenadores" value={kpis.coords} icon={<MdManageAccounts size={26} />} />
-            <Kpi title="Total de Colaboradores" value={kpis.totalColab} icon={<RiTeamFill size={26} />} />
-            <Kpi title="Total de Lojas" value={kpis.totalLojas} icon={<GiShop size={26} />} />
-            <Kpi title="Total de Cidades" value={kpis.totalCidades} icon={<FaCity size={26} color="#000000" />} />
-            <Kpi title="Total de Parceiros" value={kpis.totalParceiro} icon={<GiShop size={26} />} />
+            <Kpi
+              title="Coordenadores"
+              value={kpis.coords}
+              icon={<MdManageAccounts size={26} />}
+            />
+            <Kpi
+              title="Total de Colaboradores"
+              value={kpis.totalColab}
+              icon={<RiTeamFill size={26} />}
+            />
+            <Kpi
+              title="Total de Lojas"
+              value={kpis.totalLojas}
+              icon={<GiShop size={26} />}
+            />
+            <Kpi
+              title="Total de Cidades"
+              value={kpis.totalCidades}
+              icon={<FaCity size={26} color="#000000" />}
+            />
+            <Kpi
+              title="Total de Parceiros"
+              value={kpis.totalParceiro}
+              icon={<GiShop size={26} />}
+            />
           </section>
 
           {/* Gráficos principais */}
           <section className={Style.graficoaside}>
             {/* Barras Agrupadas */}
             <aside className={Style.card}>
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
-                <h3 style={{ margin: 0 }}>Colaboradores × Lojas × Cidades × Parceiros (por Coordenador)</h3>
-                <small style={{ color: "#6b7280" }}>
-                  {monthFilter ? `Período: ${monthFilter}` : "Todos os meses"}
-                </small>
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  marginBottom: 8,
+                }}
+              >
+                <h5 style={{ margin: 0 }}>
+                  Colaboradores × Lojas × Cidades × Parceiros (por Coordenador)
+                </h5>
               </div>
 
               <div style={{ width: "100%", maxWidth: "100%" }}>
-                <ReactApexChart options={optionsBar} series={seriesBar} type="bar" height={barHeight} width="100%" />
+                <ReactApexChart
+                  options={optionsBar}
+                  series={seriesBar}
+                  type="bar"
+                  height={360}
+                  width={420}
+                />
               </div>
             </aside>
 
             {/* Donut com seletor de métrica */}
             <aside className={Style.card}>
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
-                <h3 style={{ margin: 0 }}>
-                  Participação por Coordenador (
-                  {donutMetric === "colab"
-                    ? "Colaboradores"
-                    : donutMetric === "cidades"
-                    ? "Cidades"
-                    : donutMetric === "parceiro"
-                    ? "Parceiros"
-                    : "Lojas"}
-                  )
-                </h3>
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  marginBottom: 8,
+                }}
+              >
+                <h5 style={{ margin: 0 }}>Participação por Coordenador</h5>
                 <select
                   value={donutMetric}
                   onChange={(e) => setDonutMetric(e.target.value)}
-                  style={{ padding: "6px 8px", borderRadius: 6 }}
+                  style={{ padding: "1px 1px", width: 120, borderRadius: 6 }}
                   aria-label="Selecione a métrica do donut"
                 >
                   <option value="lojas">Lojas</option>
@@ -577,47 +580,65 @@ export default function Varejo({ Url }) {
                 </select>
               </div>
 
-              <ReactApexChart options={optionsDonut} series={donut.series} type="donut" height={360} width="100%" />
+              <ReactApexChart
+                options={optionsDonut}
+                series={donut.series}
+                type="donut"
+                height={360}
+                width={420}
+              />
             </aside>
           </section>
 
           {/* Linha: Evolução de Colaboradores (Histórico Completo) */}
           <aside className={Style.card}>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
-              <h3 style={{ margin: 0 }}>Evolução de Colaboradores por Coordenador</h3>
-              <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-                <label style={{ fontSize: 12, color: "#6b7280" }}>Período</label>
-                <select
-                  value={String(lineRange)}
-                  onChange={(e) => {
-                    const v = e.target.value;
-                    setLineRange(v === "null" ? null : Number(v));
-                  }}
-                  style={{ padding: "6px 8px", borderRadius: 6 }}
-                  aria-label="Seletor do período da evolução"
-                >
-                  <option value="6">Últimos 6 meses</option>
-                  <option value="12">Últimos 12 meses</option>
-                  <option value="null">Todos</option>
-                </select>
-              </div>
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                textAlign: "center",
+                justifyContent: "center",
+                marginBottom: 8,
+              }}
+            >
+              <h3>Evolução de Colaboradores por Coordenador (ANOMES)</h3>
             </div>
 
             {isLoadingHistory ? (
-              <div style={{ display: "grid", placeItems: "center", height: 260 }}>
+              <div
+                style={{ display: "grid", placeItems: "center", height: 260 }}
+              >
                 <LoadingSvg />
-                <p style={{ marginTop: 8, color: "#6b7280" }}>Carregando histórico...</p>
+                <p style={{ marginTop: 8, color: "#6b7280" }}>
+                  Carregando histórico...
+                </p>
               </div>
             ) : (
-              <div style={{ width: "100%", maxWidth: "100%" }}>
-                <ReactApexChart options={optionsLine} series={lineSeries} type="line" height={380} width="100%" />
+              <div
+                style={{
+                  width: "100%",
+                  maxWidth: "100%",
+                  overflow: "hidden",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <ReactApexChart
+                  options={optionsLine}
+                  series={lineSeries}
+                  type="line"
+                  height={360}
+                  width={1000}
+                />
               </div>
             )}
 
             {/* Dica para muitos coordenadores */}
             {!isLoadingHistory && lineSeries.length > 10 && (
               <p style={{ marginTop: 8, color: "#6b7280", fontSize: 12 }}>
-                Dica: use a legenda para ocultar/mostrar coordenadores e o zoom para focar em períodos.
+                Dica: use a legenda para ocultar/mostrar coordenadores e o zoom
+                para focar em períodos.
               </p>
             )}
           </aside>
@@ -630,6 +651,7 @@ export default function Varejo({ Url }) {
                   <tr>
                     <th>ANOMES</th>
                     <th>Coordenador</th>
+                    <th>gn</th>
                     <th>Colaboradores</th>
                     <th>Lojas</th>
                     <th>Cidades</th>
@@ -641,6 +663,7 @@ export default function Varejo({ Url }) {
                     <tr key={idx}>
                       <td>{r.anomes}</td>
                       <td>{r.coordenador}</td>
+                      <td>{r.gn}</td>
                       <td>{r.colab}</td>
                       <td>{r.lojas}</td>
                       <td>{r.cidades}</td>
@@ -648,17 +671,6 @@ export default function Varejo({ Url }) {
                     </tr>
                   ))}
                 </tbody>
-                <tfoot>
-                  <tr>
-                    <td colSpan={2} style={{ textAlign: "right", fontWeight: 600 }}>
-                      Totais:
-                    </td>
-                    <td style={{ fontWeight: 600 }}>{kpis.totalColab}</td>
-                    <td style={{ fontWeight: 600 }}>{kpis.totalLojas}</td>
-                    <td style={{ fontWeight: 600 }}>{kpis.totalCidades}</td>
-                    <td style={{ fontWeight: 600 }}>{kpis.totalParceiro}</td>
-                  </tr>
-                </tfoot>
               </table>
             </div>
           </section>
@@ -672,7 +684,9 @@ function Kpi({ title, value, icon }) {
   return (
     <main className={Style.card} style={{ padding: 12 }}>
       {icon}
-      <section style={{ fontSize: 12, color: "#6b7280", marginBottom: 4 }}>{title}</section>
+      <section style={{ fontSize: 12, color: "#6b7280", marginBottom: 4 }}>
+        {title}
+      </section>
       <section style={{ fontSize: 28, fontWeight: 700 }}>{value}</section>
     </main>
   );

@@ -7,7 +7,7 @@ import axios from "axios";
 import { format } from "date-fns";
 import { toZonedTime, formatInTimeZone } from "date-fns-tz";
 import ptBR from "date-fns/locale/pt-BR";
-import BrRsiApex from "../Tools/grafico";
+import GraficoLinhaPDU from "../Tools/GraficoLinhaPDU";
 import Loading from "../Item-Layout/Loading";
 import GraficoPDU from "../Item-Layout/GraficoPDU";
 
@@ -462,12 +462,12 @@ export default function Home() {
             </tbody>
           </table>
           <GraficoPDU year={year} Url={Url} />
-          <BrRsiApex
+          <GraficoLinhaPDU
             dataFULL={dataFULL}
             loading={loading}
             year={year}
             referencia={referencia}
-          ></BrRsiApex>
+          />
         </section>
 
         {/* Roadmap (mantido) */}
@@ -502,11 +502,9 @@ export default function Home() {
             CRIAR um todo list onde o fantacci vai ter a visão de todo mundo e
             vai conseguir fazer a movimentação de prioridade e na visão usaria
             sera uma tabela com responsavel onde vai ter mais de 1 resposavel
-            por tarefa porcentagem e concuida obs 
-
-            criar um area MIS onde so o mis vai ter acesso a esse dados 
-
-            id tarefa porcentagem obs etapas resposaveis
+            por tarefa porcentagem e concuida obs criar um area MIS onde so o
+            mis vai ter acesso a esse dados id tarefa porcentagem obs etapas
+            resposaveis
           </li>
 
           <li>colocar cache</li>

@@ -9,8 +9,6 @@ import axios from "axios";
 export default function Login({
   setPermission,
   setLoginBD,
-  setCanalBD,
-  setMisBD,
 }) {
   const [Text, setText] = useState("Entrar");
   const [login, setLogin] = useState();
@@ -35,8 +33,6 @@ export default function Login({
         localStorage.setItem("login", user.login);
         localStorage.setItem("permission", true);
         setLoginBD(user.login);
-        setCanalBD(user.canal);
-        setMisBD(user.mis);
 
         toast.success("Login realizado com sucesso!");
         setPermission(true);

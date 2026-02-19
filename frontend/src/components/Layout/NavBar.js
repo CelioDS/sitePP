@@ -10,20 +10,49 @@ import WalletLogo from "../Item-Layout/WalletLogo.js";
 import RelatorioLogo from "../Item-Layout/RelatorioLogo.js";
 import Logout from "./logout.js";
 import { CgProfile } from "react-icons/cg";
+import ValidarToken from "../Tools/ValidarToken.js";
 
-export default function NavBar({ setPermission, permission, canalBD, misDB }) {
+export default function NavBar({ setPermission, permission }) {
   const checkMobile = useCallback(CheckMobile, []);
   const isMobile = checkMobile();
+  const [userData, setUserData] = useState();
 
   const sizeBtn = 36;
   const colorBtn = "#b98639";
   const colorLink = "#E3262E";
+
+  const mis = userData?.mis;
+  const canal = userData?.canal;
+  const login = userData?.login;
 
   // REMOVIDO: const [iconMenu, setIconMenu]...
   const [menuUp, setMenuUp] = useState(false);
   const [menuDown, setMenuDown] = useState(null);
   const [MenuOpen, setMenuOpen] = useState(false);
   const [linkAtivo, setLinkAtivo] = useState("Home");
+
+  useEffect(() => {
+    let isMounted = true; // Garante que não vamos atualizar estado se o componente desmontar
+
+    async function fetchUserData() {
+      try {
+        const data = await ValidarToken();
+
+        // Só atualiza se o componente ainda estiver na tela e o dado for válido
+        if (isMounted && data) {
+          setUserData(data);
+        }
+      } catch (error) {
+        console.error("Erro ao validar token:", error);
+      }
+    }
+
+    fetchUserData();
+
+    return () => {
+      isMounted = false; // Limpeza para evitar vazamento de memória
+    };
+  }, [setPermission, permission]); // Array vazio garante que rode apenas uma vez ao montar
 
   function openMenu(linkclick) {
     // Verifica se linkclick é um evento (acontece quando vem do Link) ou string
@@ -154,19 +183,21 @@ export default function NavBar({ setPermission, permission, canalBD, misDB }) {
             </Link>
           </li>
 
-          <li className={styleExt.submenu}>
-            MIS
-            <Link
-            className={styleExt.submenuItem}
-              role="menuitem"
-              to="/TodoList"
-              onClick={() => {
-                openMenu("TodoList");
-              }}
-            >
-              TodoList
-            </Link>
-          </li>
+          {!!mis && (
+            <li className={styleExt.submenu}>
+              MIS
+              <Link
+                className={styleExt.submenuItem}
+                role="menuitem"
+                to={`/TodoList/${login}`}
+                onClick={() => {
+                  openMenu("TodoList");
+                }}
+              >
+                TodoList
+              </Link>
+            </li>
+          )}
 
           {permission && (
             <li>
@@ -183,11 +214,11 @@ export default function NavBar({ setPermission, permission, canalBD, misDB }) {
                     <CgProfile size={36} />
                   </span>
                 )}
-                {<p>{canalBD}</p>}
+                {<h2 style={{ fontSize: "13px" }}>{canal}</h2>}
               </Link>
             </li>
           )}
-          
+
           <li>
             <Logout setPermission={setPermission} />
           </li>

@@ -257,6 +257,7 @@ export default function RelatorioAdmin({ user, DataBase }) {
                 <th>Login</th>
                 <th>Senha</th>
                 <th>Canal</th>
+                <th>mis</th>
                 <th>Admin</th>
                 <th>Editar</th>
                 <th>Excluir</th>
@@ -269,6 +270,7 @@ export default function RelatorioAdmin({ user, DataBase }) {
                     <td>{info.login}</td>
                     <td>{"*".repeat(10)}</td>
                     <td>{info.canal}</td>
+                    <td>{info.mis}</td>
                     <td>{info.admin === 1 ? "Sim" : "Não"}</td>
                     <th>
                       <button

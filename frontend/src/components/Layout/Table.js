@@ -243,7 +243,7 @@ export default function Table({ canal, login, admin, Url }) {
         <div>
           <p>
             <strong>Última atualização:</strong> {DATA_ATUALIZACAO_info || "—"}
-            {LOGIN_ATUALIZACAO_info ? `por ${LOGIN_ATUALIZACAO_info}` : ""}
+            {LOGIN_ATUALIZACAO_info ? ` ${LOGIN_ATUALIZACAO_info.toUpperCase()}` : ""}
           </p>
         </div>
       </section>
