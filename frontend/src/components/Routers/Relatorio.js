@@ -36,7 +36,7 @@ export default function Relatorio() {
       <main className={Style.main}>
         <RenameTitle initialTitle={"P&P - Relatorio"} />
         {admin && canal === "admin" ? (
-          <RelatorioAdmin />
+          <RelatorioAdmin Url={Url} />
         ) : (
           <RelatorioUser Url={Url} user={user} today={today} admin={admin} />
         )}

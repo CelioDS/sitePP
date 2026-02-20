@@ -189,7 +189,11 @@ export default function NavBar({ setPermission, permission }) {
             <li className={styleExt.submenu}>
               <Link
                 onClick={() => openMenu("MIS")}
-                style={linkAtivo === "MIS" ? { color: colorLink } : {}}
+                style={
+                  linkAtivo === "MIS" || linkAtivo === "TodoList"
+                    ? { color: colorLink }
+                    : {}
+                }
                 to="/MIS"
               >
                 MIS
@@ -197,6 +201,7 @@ export default function NavBar({ setPermission, permission }) {
 
               <Link
                 className={styleExt.submenuItem}
+                style={linkAtivo === "TodoList" ? { color: colorLink } : {}}
                 role="menuitem"
                 to={`/TodoList/${login}`}
                 onClick={() => {

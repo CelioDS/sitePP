@@ -3,7 +3,7 @@ import TabelaUsuarios from "../Item-Layout/tabelaUsuarios";
 import TabelaResponsavel from "../Item-Layout/tabelaResponsavel";
 import { useState } from "react";
 
-export default function RelatorioAdmin() {
+export default function RelatorioAdmin(Url) {
   const [pagina, setPagina] = useState(false);
 
   return (
@@ -12,9 +12,9 @@ export default function RelatorioAdmin() {
         {pagina ? "Relatorio" : "usuarios"}
       </button>
 
-      {pagina && <TabelaUsuarios></TabelaUsuarios>}
+      {pagina && <TabelaUsuarios Url={Url}></TabelaUsuarios>}
 
-      {!pagina && <TabelaResponsavel></TabelaResponsavel>}
+      {!pagina && <TabelaResponsavel Url={Url}></TabelaResponsavel>}
     </main>
   );
 }
