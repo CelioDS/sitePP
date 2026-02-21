@@ -99,7 +99,7 @@ export default function Table({ canal, login, admin, Url }) {
     const ultima = datasValidas.at(-1);
     const zoned = fromZonedTime(ultima, "America/Sao_Paulo");
 
-    return format(zoned, "HH:mm dd-MM-yyyy");
+    return format(zoned, "HH:mm dd/MM/yyyy");
   }, [dataBase]);
 
   const LOGIN_ATUALIZACAO_info = useMemo(() => {

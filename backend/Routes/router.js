@@ -14,6 +14,8 @@ import {
   getDBtarefasID,
   updateDBtarefas,
   deleteDBtarefas,
+  setDBtarefasEtapas,
+  updateDBtarefasEtapas,
 } from "../Controllers/Todo.js";
 
 import {
@@ -76,6 +78,9 @@ router.post("/todo/add", setDBtarefas);
 router.get("/todo/:id", getDBtarefasID);
 router.put("/todo/:id", updateDBtarefas);
 router.delete("/todo/:id", deleteDBtarefas);
+
+router.post("/todo/etapas/add", setDBtarefasEtapas);
+router.put("/todo/etapas/:id", updateDBtarefasEtapas);
 
 /*------------------ EXCEL UPLOAD ------------------*/
 

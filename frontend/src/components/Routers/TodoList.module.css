@@ -1,0 +1,102 @@
+.main {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+}
+
+.main form {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  flex-direction: row;
+  margin: 30px;
+  background-color: #a09999;
+  width: 100%;
+  border-radius: 5px;
+  filter: drop-shadow(3px 3px 3px rgba(0, 0, 0, 0.667));
+}
+.main form div {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  flex-direction: column;
+  margin: 30px;
+}
+.main form > div > label {
+  color: #ffffff;
+  margin-bottom: 5px;
+}
+.main form > div > input {
+  outline: none;
+  padding: 5px;
+  color: #000000;
+  border-radius: 5px;
+  border: none;
+}
+.main .btnSubmit {
+  height: 30px;
+  border: none;
+  border-radius: 5px;
+  width: 70px;
+  cursor: pointer;
+  margin: 5px;
+}
+.main .btnEdit {
+  color: #00193d;
+  height: 30px;
+  border: none;
+  border-radius: 5px;
+  width: 70px;
+  cursor: pointer;
+  margin: 5px;
+  background-color: #a8c8f8;
+}
+.main .btnDelete {
+  color: #f56767;
+  height: 30px;
+  border: none;
+  border-radius: 5px;
+  width: 70px;
+  cursor: pointer;
+  margin: 5px;
+  background-color: #ffc9c9;
+}
+
+
+
+.etapasList {
+  margin: 0;
+  padding-left: 1.2rem; /* recuo padrão de lista */
+}
+
+.main .btnFinished {
+  color: #114e2f;
+  height: 30px;
+  border: none;
+  border-radius: 5px;
+  width: 70px;
+  cursor: pointer;
+  margin: 5px;
+  background-color: #afffaf;
+}
+.main form select {
+  padding: 5px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.main section {
+  display: flex;
+  border: 1px solid red;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  width: 100%;
+  height: 100%;
+}
+.main section > table {
+}
