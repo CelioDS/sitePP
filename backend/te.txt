@@ -1,0 +1,12 @@
+CREATE TABLE IF NOT EXISTS usuariosAgen (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    login VARCHAR(50) NOT NULL UNIQUE,
+    senha VARCHAR(255) NOT NULL, -- Armazena o hash do bcrypt
+    admin BOOLEAN DEFAULT FALSE,
+    canal VARCHAR(50),
+    mis VARCHAR(50),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+
+
