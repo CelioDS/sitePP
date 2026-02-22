@@ -1,29 +1,30 @@
 import mysql from "mysql2/promise";
 import dotenv from "dotenv";
 
-dotenv.config(); // <-- Carrega o arquivo .env
+dotenv.config();
 
+// Criando o pool de conexões
 export const dataBase = mysql.createPool({
+  host: process.env.DB_HOST || "localhost",
+  user: process.env.DB_USER || "root",
+  password: process.env.DB_PASS || "",
+  database: process.env.DB_NAME || 'local',
+  waitForConnections: true,
   connectionLimit: 10,
-  host: process.env.DB_HOST,
-  user: process.env.DB_USER,
-  password: process.env.DB_PASS,
-  database: process.env.DB_NAME,
-  connectTimeout: 10000,
+  queueLimit: 0,
   timezone: "-03:00",
-  /*
-  host : "db4free.net",
-  user : "teste01ada",
-  password : "PZXvAFdxa.bh2Yg",
-  database : "teste01ada",
-  */
 });
 
-dataBase.getConnection((err, connection) => {
-  if (err) {
-    console.error("ERROR ao conectar ao banco de dados", err);
-    return;
+// Testando a conexão (Forma correta para 'promise')
+const testConnection = async () => {
+  try {
+    const connection = await dataBase.getConnection();
+    console.log("✅ Conexão bem-sucedida ao MySQL Local (Workbench)!");
+    connection.release();
+  } catch (err) {
+    console.error("❌ Erro ao conectar ao banco de dados:", err.message);
+    console.log("Dica: Verifique se o MySQL Server está rodando e se a senha no .env está correta.");
   }
-  console.log("Conexão bem-sucedida ao banco de dados");
-  connection.release(); // devolve a conexão ao pool
-});
+};
+
+testConnection();
