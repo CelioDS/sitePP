@@ -1,5 +1,4 @@
 import dotenv from "dotenv";
-import bcrypt from "bcrypt";
 import { format } from "date-fns";
 import { fromZonedTime } from "date-fns-tz";
 import { dataBase } from "../DataBase/dataBase.js";
@@ -16,12 +15,49 @@ dotenv.config();
 // GET: lista todos
 export const getDBtarefas = async (_, res) => {
   try {
-    const query = "SELECT * FROM tarefas";
-    const [rows] = await dataBase.query(query);
-    return res.status(200).json(rows);
+    // 1) Aumenta o limite do GROUP_CONCAT na sessão atual (query separado)
+    await dataBase.query('SET SESSION group_concat_max_len = 1000000');
+
+    // 2) Faz o SELECT (apenas uma instrução SQL aqui)
+    const sql = `
+      SELECT
+        t.*,
+        COALESCE((
+          SELECT CONCAT(
+            '[',
+            GROUP_CONCAT(
+              JSON_OBJECT(
+                'tarefa_id',        e.tarefa_id,
+                'etapas',           e.etapas,
+                'peso',             e.peso,
+                'status',           e.status,
+                'concluido',        e.concluido,
+                'data_atualizacao', DATE_FORMAT(e.data_atualizacao, '%Y-%m-%d %H:%i:%s'),
+                'criado_em',        DATE_FORMAT(e.criado_em, '%Y-%m-%d %H:%i:%s')
+              )
+              ORDER BY e.criado_em
+              SEPARATOR ','
+            ),
+            ']'
+          )
+          FROM tarefasetapas e
+          WHERE e.tarefa_id = t.id
+        ), '[]') AS etapas
+      FROM tarefas t
+    `;
+
+    const [rows] = await dataBase.query(sql);
+
+    // 3) Converte etapas (string JSON) -> array/obj
+    const result = rows.map(r => ({
+      ...r,
+      etapas: typeof r.etapas === 'string' ? JSON.parse(r.etapas) : r.etapas
+    }));
+
+    return res.status(200).json(result);
   } catch (err) {
-    console.error("Erro getDBtarefas:", err);
-    return res.status(500).json({ error: "Erro ao buscar usuários." });
+    console.error('Erro getDBtarefas:', err);
+    return res.status(500).json({ error: 'Erro ao buscar tarefas.' });
   }
 };
 
@@ -39,26 +75,24 @@ export const getDBtarefasID = async (req, res) => {
 // POST: cria usuário
 export const setDBtarefas = async (req, res) => {
   try {
-    const { tarefa, etapas, porcentagem, responsavel, concluido } = req.body;
+    const { tarefa, responsavel, concluido } = req.body;
 
-    if (!tarefa || etapas === undefined || porcentagem === undefined) {
+    if (!tarefa) {
       return res.status(400).json({ error: "Campos obrigatórios ausentes." });
     }
 
     const query = `
-      INSERT INTO tarefas (\`tarefa\`, \`etapas\`, \`porcentagem\`,\`responsavel\` ,\`concluido\`,\`data_atualizacao\`)
-      VALUES (?, ?, ?, ? , ?, ?)
+      INSERT INTO tarefas (\`tarefa\`,\`responsavel\` ,\`concluido\`,\`data_atualizacao\`)
+      VALUES (?, ?, ?, ? )
     `;
 
-    const values = [tarefa, etapas, porcentagem, responsavel, concluido, TODAY];
+    const values = [tarefa, responsavel, concluido, TODAY];
 
     const [result] = await dataBase.query(query, values);
 
     return res.status(201).json({
       id: result.insertId,
       tarefa,
-      etapas,
-      porcentagem,
       responsavel,
       concluido,
       data_atualizacao: TODAY,
@@ -73,20 +107,13 @@ export const setDBtarefas = async (req, res) => {
 // PUT: atualiza usuário
 export const updateDBtarefas = async (req, res) => {
   try {
-    const {
-      tarefa,
-      etapas,
-      porcentagem,
-      concluido,
-      responsavel,
-      DATA_ATUALIZACAO,
-    } = req.body;
+    const { tarefa, concluido, responsavel, DATA_ATUALIZACAO } = req.body;
     const { id } = req.params;
 
     if (!id) {
       return res.status(400).json({ error: "ID não informado." });
     }
-    if (!tarefa || etapas === undefined || porcentagem === undefined) {
+    if (!tarefa) {
       return res.status(400).json({ error: "Campos obrigatórios ausentes." });
     }
 
@@ -95,18 +122,16 @@ export const updateDBtarefas = async (req, res) => {
 
     sql = `
         UPDATE tarefas
-           SET \`tarefa\` = ?, \`etapas\` = ?, \`porcentagem\` = ?, \`concluido\` = ?, \`responsavel\` = ?, \`data_atualizacao\` = ?
+           SET \`tarefa\` = ?, \`concluido\` = ?, \`responsavel\` = ?, \`data_atualizacao\` = ?
          WHERE \`id\` = ?
       `;
-    params = [tarefa, etapas, porcentagem, concluido, responsavel, TODAY, id];
+    params = [tarefa, concluido, responsavel, TODAY, id];
 
     const [result] = await dataBase.query(sql, params);
 
     return res.status(200).json({
       id: result.insertId,
       tarefa,
-      etapas,
-      porcentagem,
       responsavel,
       concluido,
       data_atualizacao: TODAY,
@@ -144,6 +169,46 @@ export const deleteDBtarefas = async (req, res) => {
 };
 
 /**************** ETAPAS TAREFAS*************************************/
+// POST: cria usuário
+export const setDBtarefasEtapas = async (req, res) => {
+  try {
+    const { tarefa_id, etapas, peso, status, concluido } = req.body;
+
+    if (
+      !etapas ||
+      tarefa_id === undefined ||
+      peso === undefined ||
+      status === undefined ||
+      concluido === undefined
+    ) {
+      return res.status(400).json({ error: "Campos obrigatórios ausentes." });
+    }
+
+    const query = `
+      INSERT INTO tarefasetapas (\`tarefa_id\`,\`etapas\`, \`peso\`, \`status\`,\`concluido\`,\`data_atualizacao\` ,\`criado_em\`)
+      VALUES (?, ?, ?, ? , ?, ?,?)
+    `;
+
+    const values = [tarefa_id, etapas, peso, status, concluido, TODAY, TODAY];
+
+    const [result] = await dataBase.query(query, values);
+
+    return res.status(201).json({
+      id: result.insertId,
+      tarefa_id,
+      etapas,
+      peso,
+      status,
+      concluido,
+      data_atualizacao: TODAY,
+      criado_em: TODAY,
+      message: "Tarefa criada",
+    });
+  } catch (err) {
+    console.error("Erro setDBtarefas:", err);
+    return res.status(500).json({ error: "Erro ao criar usuário." });
+  }
+};
 
 export const updateDBtarefasEtapas = async (req, res) => {
   try {
@@ -193,45 +258,5 @@ export const updateDBtarefasEtapas = async (req, res) => {
       stack: err.stack,
     });
     return res.status(500).json({ error: "Erro ao atualizar usuário." });
-  }
-};
-
-// POST: cria usuário
-export const setDBtarefasEtapas = async (req, res) => {
-  try {
-    const { etapas, peso, status, concluido, md5, data_atualizacao } = req.body;
-
-    if (
-      !etapas ||
-      peso === undefined ||
-      status === undefined ||
-      md5 === undefined ||
-      data_atualizacao === undefined
-    ) {
-      return res.status(400).json({ error: "Campos obrigatórios ausentes." });
-    }
-
-    const query = `
-      INSERT INTO tarefas (\`etapas\`, \`peso\`, \`status\`,\`concluido\` ,\`md5\`,\`data_atualizacao\`)
-      VALUES (?, ?, ?, ? , ?, ?)
-    `;
-
-    const values = [etapas, peso, status, concluido, md5, TODAY];
-
-    const [result] = await dataBase.query(query, values);
-
-    return res.status(201).json({
-      id: result.insertId,
-      etapas,
-      peso,
-      status,
-      concluido,
-      md5,
-      data_atualizacao: TODAY,
-      message: "Tarefa criada",
-    });
-  } catch (err) {
-    console.error("Erro setDBtarefas:", err);
-    return res.status(500).json({ error: "Erro ao criar usuário." });
   }
 };

@@ -10,3 +10,47 @@ CREATE TABLE IF NOT EXISTS usuariosAgen (
 
 
 
+USE db_projetos;
+
+-- ----------------------------------------------------------
+-- Tabela: tarefas
+-- Campos usados pelo seu código:
+--   id, tarefa, etapas, porcentagem, responsavel, concluido, data_atualizacao
+-- ----------------------------------------------------------
+
+DROP TABLE IF EXISTS tarefas;
+CREATE TABLE tarefas (
+  id               INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  tarefa           VARCHAR(200) NOT NULL,
+  responsavel      VARCHAR(100) NULL,
+  concluido        TINYINT(1)   NOT NULL DEFAULT 0,      -- 0 = não, 1 = sim
+  data_atualizacao       DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  KEY idx_tarefas_concluido (concluido),
+  KEY idx_tarefas_responsavel (responsavel)
+) ENGINE=InnoDB;
+-- ----------------------------------------------------------
+-- Tabela: tarefasEtapas
+-- Seu update usa: peso, etapas, status, concluido, md5, data_atualizacao
+-- Recomendo relacionar com tarefas (tarefa_id)
+-- ----------------------------------------------------------
+use db_projetos;
+DROP TABLE IF EXISTS tarefasEtapas;
+CREATE TABLE tarefasEtapas (
+  id               INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  tarefa_id        INT UNSIGNED NOT NULL,               -- FK -> tarefas.id
+  etapas           VARCHAR(200) NOT NULL,               -- descrição da etapa (se preferir número, mude para INT)
+  peso             DECIMAL(6,2) NOT NULL DEFAULT 0.00,  -- peso da etapa (ex.: 10.00)
+  status           TINYINT      NOT NULL DEFAULT 0,     -- 0=pending, 1=doing, 2=done (ajuste conforme regra)
+  concluido        TINYINT(1)   NOT NULL DEFAULT 0,     -- 0/1
+  data_atualizacao DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  criado_em        DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  KEY idx_tarefasEtapas_tarefa (tarefa_id),
+  CONSTRAINT fk_tarefasEtapas_tarefa
+    FOREIGN KEY (tarefa_id) REFERENCES tarefas(id)
+    ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB;
+
+
+

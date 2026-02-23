@@ -6,7 +6,7 @@ export default function TabelaResponsavel(Url) {
     <main style={{ padding: "1rem" }} className={Style.main}>
       <h2>📊 Relatório por Responsável</h2>
 
-      <GraficoLP Url={Url}/>
+    
     </main>
   );
 }
