@@ -378,164 +378,181 @@ export default function ToDo() {
           </button>
         </form>
 
-        <section className={Style.sectionTarefas}>
+        <section className={Style.section}>
           {!dataBase ? (
             <Loading />
           ) : dataBase.length === 0 ? (
-            <p style={{ color: "#888" }}>Nenhuma tarefa cadastrada.</p>
+            <p style={{ color: "#757171" }}>Nenhuma tarefa cadastrada.</p>
           ) : (
-            <table>
-              <thead>
-                <tr>
-                  <th>Tarefa</th>
-                  <th>porcentagem</th>
-                  <th>concluido</th>
-                  <th>DATA_ATUALIZACAO</th>
-                  <th>Finalizar</th>
-                  <th>Excluir</th>
-                  <th>Editar</th>
-                  <th>Etapas</th>
-                  <th>Etapas</th>
-                </tr>
-              </thead>
+            <aside className={Style.sectionTarefas}>
+              <table>
+                <thead>
+                  <tr>
+                    <th>Tarefa</th>
+                    <th>Finalizar</th>
+                    <th>Excluir</th>
+                    <th>Editar </th>
+                    <th>Etapas</th>
+                    <th>Etapas</th>
+                  </tr>
+                </thead>
 
-              <tbody>
-                {dataBase &&
-                  dataBase
-                    .filter((tarefa) => tarefa.responsavel === login)
-                    .map((tarefa) => {
-                      const isOpen = expanded.has(tarefa.id);
+                <tbody>
+                  {dataBase &&
+                    dataBase
+                      .filter((tarefa) => tarefa.responsavel === login)
+                      .map((tarefa) => {
+                        const isOpen = expanded.has(tarefa.id);
 
-                      return (
-                        <tr key={tarefa.id}>
-                          <td
-                            style={{
-                              background:
-                                idFirst === tarefa.id && editTarefa
-                                  ? "#b80b0b"
-                                  : undefined,
-                            }}
-                          >
-                            {tarefa.tarefa}
-                          </td>
-
-                          {/* Percentual ponderado da própria tarefa */}
-                          <td>
-                            {porcentagemPonderada(tarefa.etapas).toFixed(2)}%
-                          </td>
-
-                          <td>{tarefa.concluido}</td>
-
-                          {/* Renderiza com fallback para evitar quebra de chave */}
-                          <td>
-                            {tarefa?.DATA_ATUALIZACAO ??
-                              tarefa?.data_atualizacao ??
-                              ""}
-                          </td>
-
-                          {/* Finalizar (mantido sem handler, como no seu código) */}
-                          <td>
-                            <button className={Style.btnFinished}>
-                              <BsCheck size={28} />
-                            </button>
-                          </td>
-
-                          {/* Excluir */}
-                          <td>
-                            <button
-                              className={Style.btnDelete}
-                              onClick={() => handleDelete(tarefa.id)}
-                            >
-                              <BsTrashFill size={20} />
-                            </button>
-                          </td>
-
-                          {/* Editar */}
-                          <td>
-                            <button
-                              className={Style.btnEdit}
-                              onClick={() => {
-                                handlaEdit(tarefa);
-                                setHandleNumberEdit((prev) => prev + 1);
+                        return (
+                          <tr key={tarefa.id}>
+                            <td
+                              style={{
+                                background:
+                                  idFirst === tarefa.id && editTarefa
+                                    ? "#b80b0b"
+                                    : undefined,
                               }}
                             >
-                              {editTarefa?.id === tarefa?.id ? (
-                                <BsXCircle />
-                              ) : (
-                                <BsPenFill />
-                              )}
-                            </button>
-                          </td>
+                              <p>{tarefa.tarefa}</p>
+                              {
+                                <h6 style={{ color: " #929090" }}>
+                                  {tarefa?.DATA_ATUALIZACAO
+                                    ? new Date(
+                                        tarefa.DATA_ATUALIZACAO,
+                                      ).toLocaleDateString("pt-BR")
+                                    : tarefa?.data_atualizacao
+                                      ? new Date(
+                                          tarefa.data_atualizacao,
+                                        ).toLocaleDateString("pt-BR")
+                                      : ""}
+                                  <span
+                                    style={{
+                                      color:
+                                        porcentagemPonderada(tarefa.etapas) <=
+                                        80
+                                          ? "#3ba820"
+                                          : "#929090",
+                                    }}
+                                  >
+                                     &nbsp;
+                                    {porcentagemPonderada(
+                                      tarefa.etapas,
+                                    ).toFixed(2)}
+                                  </span>
+                                  %
+                                </h6>
+                              }
+                            </td>
 
-                          {/* Botão para expandir/ocultar etapas */}
-                          <td>
-                            <button
-                              type="button"
-                              onClick={() => toggleEtapas(tarefa.id)}
-                              aria-expanded={isOpen}
-                              aria-controls={`detalhe-etapas-${tarefa.id}`}
-                            >
-                              {isOpen ? <BsEyeSlashFill /> : <BsEyeFill />}
-                            </button>
-                          </td>
+                            <td>
+                              <button className={Style.btnFinished}>
+                                <BsCheck size={28} />
+                              </button>
+                            </td>
 
-                          {/* Form para adicionar etapa à tarefa da linha */}
-                          <td>
-                            <form
-                              className={Style.formEtapas}
-                              onSubmit={(e) =>
-                                handleSubmitEtapas(e, tarefa.id, tarefa.etapas)
-                              } // <-- passa o id aqui + etapas da tarefa
-                            >
-                              <div>
-                                <input
-                                  type="text"
-                                  id={`etapas-${tarefa.id}`}
-                                  name="etapas"
-                                  placeholder="Nova etapa"
-                                />
-                              </div>
-                              <div>
-                                <label htmlFor={`peso-${tarefa.id}`}>
-                                  peso
-                                </label>
-                                <select
-                                  id={`peso-${tarefa.id}`}
-                                  name="peso"
-                                  defaultValue=""
-                                >
-                                  <option value="">Selecione</option>
-                                  <option value="1">1</option>
-                                  <option value="2">2</option>
-                                  <option value="3">3</option>
-                                </select>
-                              </div>
-                              <div>
-                                <label htmlFor={`status-${tarefa.id}`}>
-                                  status
-                                </label>
-                                <select
-                                  id={`status-${tarefa.id}`}
-                                  name="status"
-                                  defaultValue=""
-                                >
-                                  <option value="">Selecione</option>
-                                  <option value="Pendente">Pendente</option>
-                                  <option value="Andamento">
-                                    Em Andamento
-                                  </option>
-                                  <option value="Concluido">Concluido</option>
-                                </select>
-                              </div>
+                            {/* Excluir */}
+                            <td>
+                              <button
+                                className={Style.btnDelete}
+                                onClick={() => handleDelete(tarefa.id)}
+                              >
+                                <BsTrashFill size={20} />
+                              </button>
+                            </td>
 
-                              <button type="submit">salvar</button>
-                            </form>
-                          </td>
-                        </tr>
-                      );
-                    })}
-              </tbody>
-            </table>
+                            {/* Editar */}
+                            <td>
+                              <button
+                                className={Style.btnEdit}
+                                onClick={() => {
+                                  handlaEdit(tarefa);
+                                  setHandleNumberEdit((prev) => prev + 1);
+                                }}
+                              >
+                                {editTarefa?.id === tarefa?.id ? (
+                                  <BsXCircle />
+                                ) : (
+                                  <BsPenFill />
+                                )}
+                              </button>
+                            </td>
+
+                            {/* Botão para expandir/ocultar etapas */}
+                            <td>
+                              <button
+                                type="button"
+                                disabled={tarefa?.etapas.length === 0}
+                                onClick={() => toggleEtapas(tarefa.id)}
+                                aria-expanded={isOpen}
+                                aria-controls={`detalhe-etapas-${tarefa.id}`}
+                              >
+                                {isOpen ? <BsEyeSlashFill /> : <BsEyeFill />}
+                              </button>
+                            </td>
+
+                            {/* Form para adicionar etapa à tarefa da linha */}
+                            <td>
+                              <form
+                                className={Style.formEtapas}
+                                onSubmit={(e) =>
+                                  handleSubmitEtapas(
+                                    e,
+                                    tarefa.id,
+                                    tarefa.etapas,
+                                  )
+                                } // <-- passa o id aqui + etapas da tarefa
+                              >
+                                <div>
+                                  <input
+                                    type="text"
+                                    id={`etapas-${tarefa.id}`}
+                                    name="etapas"
+                                    placeholder="Nova etapa"
+                                  />
+                                </div>
+                                <div>
+                                  <label htmlFor={`peso-${tarefa.id}`}>
+                                    peso
+                                  </label>
+                                  <select
+                                    id={`peso-${tarefa.id}`}
+                                    name="peso"
+                                    defaultValue=""
+                                  >
+                                    <option value="">Selecione</option>
+                                    <option value="1">1</option>
+                                    <option value="2">2</option>
+                                    <option value="3">3</option>
+                                  </select>
+                                </div>
+                                <div>
+                                  <label htmlFor={`status-${tarefa.id}`}>
+                                    status
+                                  </label>
+                                  <select
+                                    id={`status-${tarefa.id}`}
+                                    name="status"
+                                    defaultValue=""
+                                  >
+                                    <option value="">Selecione</option>
+                                    <option value="Pendente">Pendente</option>
+                                    <option value="Andamento">
+                                      Em Andamento
+                                    </option>
+                                    <option value="Concluido">Concluido</option>
+                                  </select>
+                                </div>
+
+                                <button type="submit">salvar</button>
+                              </form>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                </tbody>
+              </table>
+            </aside>
           )}
           {dataBase &&
             dataBase
@@ -546,19 +563,19 @@ export default function ToDo() {
                 if (t.etapas.length === 0) return <div>sem dados..</div>;
 
                 return (
-                  <div
+                  <aside
                     className={Style.sectionEtapas}
                     key={`detalhe-${t.id}`}
                     id={`detalhe-etapas-${t.id}`}
-                    style={{ width: isOpen ? 240 : "none" }}
                   >
+                    <h4>ETAPAS</h4>
                     {Array.isArray(t.etapas) && t.etapas.length > 0 ? (
                       <ul>
                         {t.etapas.map((et, i) => {
                           const st = normalize(et.status);
+                          <h4>ETAPAS</h4>;
                           return (
                             <>
-                              <h4>ETAPAS</h4>
                               <li
                                 key={et.id ?? i}
                                 style={{
@@ -605,7 +622,7 @@ export default function ToDo() {
                     ) : (
                       <em style={{ color: "#888" }}>Sem etapas</em>
                     )}
-                  </div>
+                  </aside>
                 );
               })}
         </section>
