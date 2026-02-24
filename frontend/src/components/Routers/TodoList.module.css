@@ -93,12 +93,48 @@
 }
 
 .main section {
+  position: relative;
   display: flex;
   border: 1px solid red;
-  flex-direction: column;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: start;
+  text-align: center;
+  width: 100%;
+  height: 100%;
+  gap: 10px;
+}
+.main .sectionEtapas {
+  display: flex;
+  position: relative;
+  border: 1px solid red;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  width: 230px;
+  height: 100%;
+  font-size: 12px;
+}
+
+.main .sectionEtapas h4 {
+  text-align: center;
+}
+.main .sectionEtapas li {
+  list-style: none;
+  text-decoration: none;
+
+  text-align: center;
+}
+.main .sectionTarefas {
+  display: flex;
+  position: relative;
+  border: 1px solid red;
+  flex-direction: row;
   justify-content: center;
   align-items: center;
   text-align: center;
   width: 100%;
   height: 100%;
+  font-size: 12px;
 }
