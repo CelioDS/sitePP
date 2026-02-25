@@ -7,7 +7,40 @@
   height: 100%;
   overflow: hidden;
 }
+.main .formTarefa {
+  margin-bottom: 30px;
+}
 
+.main .formTarefa input {
+  outline: none;
+  padding: 5px;
+  width: 300px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  margin-bottom: 5px;
+}
+
+.main .formTarefa button {
+  outline: none;
+  font-weight: bolder;
+  padding: 5px;
+  color: #ffff;
+  height: 35%;
+  width: 100px;
+  border: none;
+  background-color: #f31414;
+  border-radius: 5px;
+  margin-bottom: 5px;
+  cursor: pointer;
+}
+
+.main button:hover {
+  opacity: 0.9;
+  cursor: pointer;
+}
+.main ul {
+  list-style: none;
+}
 .main .section {
   display: flex;
   width: 100%;
@@ -19,17 +52,162 @@
   text-align: center;
   flex-direction: row;
 }
+.main .section table {
+  border-collapse: collapse;
+}
+
+.main .section th,
+.main .section h4 {
+  height: 60px;
+  background-color: red;
+  color: #ffff;
+}
+.main .section h4 {
+  display: flex;
+  width: 400px;
+  flex-direction: column;
+  text-align: center;
+  align-self: center;
+  justify-content: center;
+  border-radius: 5px;
+}
 
 .main .sectionTarefas {
   width: 80%;
   table-layout: fixed; /* evita expansão */
-  font-size: 14px;
-  table-layout: fixed;
-  font-size: 14px;
 }
 .main .sectionTarefas td:first-child {
   white-space: normal;
   overflow-wrap: break-word; /* quebra dentro de palavras */
   word-break: break-all;
   width: 300px;
+}
+
+.main .btnDelete,
+.main .btnEdit,
+.main .btnFinished,
+.main .btnHidden {
+  display: flex;
+  font-size: 13px;
+  background-color: rgb(247, 226, 226);
+  width: 25px;
+  justify-content: center;
+  align-items: center;
+  height: 25px;
+  text-align: center;
+  border-radius: 5px;
+  border: none;
+}
+.main .btnDelete {
+  color: #f31414;
+  background-color: rgb(252, 215, 215);
+}
+
+.main .btnFinished {
+  color: #1448f3;
+  background-color: rgb(215, 234, 252);
+  font-size: 22px;
+}
+
+.main .btnEdit {
+  color: #27f314;
+  background-color: rgb(218, 252, 215);
+}
+.main .btnHidden {
+  color: #f3ac14;
+  background-color: rgb(246, 252, 215);
+}
+.main .btnHidden:disabled {
+  color: #d8d8d8;
+  background-color: rgb(141, 141, 141);
+  cursor: not-allowed;
+}
+
+.main .formEtapas {
+  background: rgb(207, 205, 205);
+  padding: 5px;
+  margin: 5px;
+  border-radius: 5px;
+}
+.main .formEtapas input {
+  outline: none;
+  padding: 5px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  margin-bottom: 5px;
+}
+
+.main .formEtapas button {
+  margin: 5px;
+  outline: none;
+  font-weight: bolder;
+  padding: 5px;
+  color: #ffff;
+  height: 35%;
+  width: 100px;
+  border: none;
+  background-color: #f31414;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.main .formEtapas select {
+  outline: none;
+  padding: 5px;
+  height: 35%;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.main .sectionEtapas {
+}
+
+.main .sectionEtapas .divEtapas {
+  background-color: #ffffff;
+  margin-bottom: 5px;
+  padding: 5px;
+  display: flex;
+  align-items: center;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  filter: drop-shadow(2px 4px 2px #ccc);
+  justify-content: space-between;
+  flex-direction: row;
+}
+.main .sectionEtapas .divEtapas .etapasLine {
+  display: inline-flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+.main .sectionEtapas .divEtapas .etapasLine span {
+  display: inline-flex;
+  flex-direction: column;
+  font-size: 12px;
+}
+.main .sectionEtapas .divEtapas aside {
+  display: inline-flex;
+}
+
+.main .finalizadoCard {
+  background-color: red;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+}
+
+.main .finalizadoCard {
+  background-color: rgb(221, 240, 218);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: row;
+  width: 100vw;
+  height: 100%;
+  margin: 5px;
 }

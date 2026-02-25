@@ -12,6 +12,7 @@ import {
   getDBtarefas,
   setDBtarefas,
   getDBtarefasID,
+  patchDBtarefas,
   updateDBtarefas,
   deleteDBtarefas,
   setDBtarefasEtapas,
@@ -77,6 +78,7 @@ router.get("/todo", getDBtarefas);
 router.post("/todo/add", setDBtarefas);
 router.get("/todo/:id", getDBtarefasID);
 router.put("/todo/:id", updateDBtarefas);
+router.patch("/todo/:id", patchDBtarefas);
 router.delete("/todo/:id", deleteDBtarefas);
 
 router.post("/todo/etapas/add", setDBtarefasEtapas);

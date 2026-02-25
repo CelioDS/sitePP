@@ -27,6 +27,7 @@ export default function ToDo() {
   const [handleNumberEdit, setHandleNumberEdit] = useState(1);
   const [idFirst, setIdFirst] = useState();
   const [etapasId, setEtapasId] = useState();
+  const [etapasShow, setEtapasShow] = useState();
 
   const Url = process.env.REACT_APP_API_URL || "http://localhost:8000";
 
@@ -331,7 +332,7 @@ export default function ToDo() {
     setIsSubmit(true);
 
     try {
-      await axios.delete(`${Url}/todo/${id}`).then(({ data }) => {
+      await axios.delete(`${Url}/todo/${id}`, {}).then(({ data }) => {
         setDataBase((prev) => (prev || []).filter((item) => item.id !== id));
         toast.success(data?.message ?? "Tarefa excluída!");
       });
@@ -359,11 +360,28 @@ export default function ToDo() {
     }
   }
 
+  async function handleFinished(tarefa) {
+    try {
+      await axios
+        .patch(`${Url}/todo/${tarefa.id}`, {
+          concluido: 1,
+        })
+        .then(({ data }) => {
+          setDataBase((prev) =>
+            (prev || []).filter((item) => item.id !== tarefa.id),
+          );
+          toast.success(data?.message ?? "Tarefa Concluida!");
+        });
+    } catch (err) {
+      toast.error(err.response?.data || err.message);
+    } finally {
+      setIsSubmit(false);
+    }
+  }
   return (
     <Container>
       <main className={Style.main}>
         <h1>Tarefas</h1>
-
         <form ref={ref} onSubmit={handleSubmit} className={Style.formTarefa}>
           <div>
             <input
@@ -377,7 +395,6 @@ export default function ToDo() {
             {textBTN}
           </button>
         </form>
-
         <section className={Style.section}>
           {!dataBase ? (
             <Loading />
@@ -389,18 +406,22 @@ export default function ToDo() {
                 <thead>
                   <tr>
                     <th>Tarefa</th>
-                    <th>Finalizar</th>
-                    <th>Excluir</th>
-                    <th>Editar </th>
-                    <th>Etapas</th>
-                    <th>Etapas</th>
+                    <th>Finalizar &nbsp;</th>
+                    <th>Excluir &nbsp;</th>
+                    <th>Editar &nbsp;</th>
+                    <th>Etapas &nbsp;</th>
+                    <th>Etapas &nbsp;</th>
                   </tr>
                 </thead>
 
                 <tbody>
                   {dataBase &&
                     dataBase
-                      .filter((tarefa) => tarefa.responsavel === login)
+                      .filter(
+                        (tarefa) =>
+                          tarefa.responsavel === login &&
+                          tarefa.concluido !== 1,
+                      )
                       .map((tarefa) => {
                         const isOpen = expanded.has(tarefa.id);
 
@@ -409,12 +430,16 @@ export default function ToDo() {
                             <td
                               style={{
                                 background:
-                                  idFirst === tarefa.id && editTarefa
+                                  Number(idFirst) === Number(tarefa.id) &&
+                                  editTarefa
                                     ? "#b80b0b"
-                                    : undefined,
+                                    : Number(tarefa.id) === Number(etapasShow)
+                                      ? "#cebebe"
+                                      : "#fff",
                               }}
                             >
                               <p>{tarefa.tarefa}</p>
+
                               {
                                 <h6 style={{ color: " #929090" }}>
                                   {tarefa?.DATA_ATUALIZACAO
@@ -435,7 +460,7 @@ export default function ToDo() {
                                           : "#929090",
                                     }}
                                   >
-                                     &nbsp;
+                                    &nbsp;
                                     {porcentagemPonderada(
                                       tarefa.etapas,
                                     ).toFixed(2)}
@@ -446,8 +471,13 @@ export default function ToDo() {
                             </td>
 
                             <td>
-                              <button className={Style.btnFinished}>
-                                <BsCheck size={28} />
+                              <button
+                                className={Style.btnFinished}
+                                onClick={() => {
+                                  handleFinished(tarefa);
+                                }}
+                              >
+                                <BsCheck />
                               </button>
                             </td>
 
@@ -457,7 +487,7 @@ export default function ToDo() {
                                 className={Style.btnDelete}
                                 onClick={() => handleDelete(tarefa.id)}
                               >
-                                <BsTrashFill size={20} />
+                                <BsTrashFill />
                               </button>
                             </td>
 
@@ -467,6 +497,7 @@ export default function ToDo() {
                                 className={Style.btnEdit}
                                 onClick={() => {
                                   handlaEdit(tarefa);
+
                                   setHandleNumberEdit((prev) => prev + 1);
                                 }}
                               >
@@ -482,8 +513,15 @@ export default function ToDo() {
                             <td>
                               <button
                                 type="button"
+                                className={Style.btnHidden}
                                 disabled={tarefa?.etapas.length === 0}
-                                onClick={() => toggleEtapas(tarefa.id)}
+                                onClick={() => {
+                                  toggleEtapas(tarefa.id);
+                                  console.log(tarefa);
+                                  setEtapasShow(
+                                    isOpen ? 0 : tarefa?.etapas[0]?.tarefa_id,
+                                  );
+                                }}
                                 aria-expanded={isOpen}
                                 aria-controls={`detalhe-etapas-${tarefa.id}`}
                               >
@@ -576,7 +614,8 @@ export default function ToDo() {
                           <h4>ETAPAS</h4>;
                           return (
                             <>
-                              <li
+                              <div
+                                className={Style.divEtapas}
                                 key={et.id ?? i}
                                 style={{
                                   textDecoration:
@@ -593,28 +632,39 @@ export default function ToDo() {
                                         : "#a2b91f",
                                 }}
                               >
-                                <strong>{et.etapas}</strong>
-                                {et.peso && <> — peso: {et.peso}</>}
-                                {et.status && <> — {et.status}</>}
-                              </li>
-                              {/* Finalizar (mantido sem handler, como no seu código) */}
+                                <strong className={Style.etapasLine}>
+                                  {et.etapas}
+                                  <span>
+                                    {et.peso && <> peso: {et.peso}</>}
+                                    <br />
+                                    {et.status && <> {et.status}</>}
+                                  </span>
+                                </strong>
 
-                              <button className={Style.btnFinished}>
-                                <BsCheck size={28} />
-                              </button>
+                                {/* Finalizar (mantido sem handler, como no seu código) */}
+                                <aside>
+                                  <button className={Style.btnFinished}>
+                                    <BsCheck />
+                                  </button>
 
-                              {/* Excluir */}
+                                  {/* Excluir */}
 
-                              <button
-                                className={Style.btnDelete}
-                                onClick={() => handleDeleteEtapas(et.etapas.id)}
-                              >
-                                <BsTrashFill size={20} />
-                              </button>
+                                  <button
+                                    className={Style.btnDelete}
+                                    onClick={() =>
+                                      handleDeleteEtapas(et.etapas.id)
+                                    }
+                                  >
+                                    <BsTrashFill />
+                                  </button>
 
-                              {/* Editar */}
+                                  {/* Editar */}
 
-                              <button>ç</button>
+                                  <button className={Style.btnEdit}>
+                                    <BsPenFill />
+                                  </button>
+                                </aside>
+                              </div>
                             </>
                           );
                         })}
@@ -626,8 +676,102 @@ export default function ToDo() {
                 );
               })}
         </section>
+        <h4>FINALIZADOS</h4>
 
-        {/* Lista de etapas por tarefa (colapsável) renderizada abaixo da tabela, mantendo sua ideia de expandir */}
+        <section>
+          {Array.isArray(dataBase) &&
+            dataBase
+              .filter(
+                (tarefa) =>
+                  tarefa.responsavel === login &&
+                  Number(tarefa.concluido) === 1,
+              )
+              .map((tarefa) => (
+                <aside
+                  className={Style.sectionEtapas}
+                  key={`finalizado-${tarefa.id}`}
+                  id={`finalizado-${tarefa.id}`}
+                >
+                  <main className={Style.finalizadoCard}>
+                    {/* Cabeçalho da tarefa */}
+                    <div className={Style.finalizadoHeader}>
+                      <div className={Style.finalizadoTitulo}>
+                        {tarefa.tarefa}
+                      </div>
+                      <div className={Style.finalizadoData}>
+                        {(() => {
+                          const dt =
+                            tarefa?.DATA_ATUALIZACAO ||
+                            tarefa?.data_atualizacao ||
+                            "";
+                          return dt
+                            ? new Date(dt).toLocaleDateString("pt-BR")
+                            : "";
+                        })()}
+                      </div>
+                    </div>
+
+                    {/* Lista de etapas (se houver) */}
+                    {Array.isArray(tarefa.etapas) &&
+                    tarefa.etapas.length > 0 ? (
+                      <ul className={Style.finalizadoEtapas}>
+                        {tarefa.etapas.map((et) => {
+                          const statusNorm = (et?.status || "")
+                            .normalize("NFD")
+                            .replace(/[\u0300-\u036f]/g, "")
+                            .toLowerCase()
+                            .trim();
+
+                          return (
+                            <li
+                              key={et.id ?? `${tarefa.id}-${et.etapas}`}
+                              className={Style.finalizadoEtapaItem}
+                              style={{
+                                textDecoration:
+                                  statusNorm === "concluido"
+                                    ? "line-through"
+                                    : "none",
+                                color:
+                                  statusNorm === "concluido"
+                                    ? "#968b8b"
+                                    : statusNorm === "pendente"
+                                      ? "#79d45d"
+                                      : "#a2b91f",
+                                fontStyle:
+                                  statusNorm === "concluido"
+                                    ? "italic"
+                                    : "normal",
+                              }}
+                            >
+                              <strong className={Style.etapasLine}>
+                                {et.etapas}
+                                <span>
+                                  {et.peso && <> peso: {et.peso}</>}
+                                  <br />
+                                  {et.status && <> {et.status}</>}
+                                </span>
+                              </strong>
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    ) : (
+                      <em style={{ color: "#888" }}>Sem etapas</em>
+                    )}
+                  </main>
+                </aside>
+              ))}
+
+          {/* Caso não haja finalizados para este usuário */}
+          {Array.isArray(dataBase) &&
+            dataBase.filter(
+              (t) => t.responsavel === login && Number(t.concluido) === 1,
+            ).length === 0 && (
+              <p style={{ color: "#757171", padding: "8px 0" }}>
+                Nenhuma tarefa finalizada.
+              </p>
+            )}
+        </section>
       </main>
     </Container>
   );

@@ -53,4 +53,63 @@ CREATE TABLE tarefasEtapas (
 ) ENGINE=InnoDB;
 
 
+use db_projetos;
+
+-- Ajuste o schema se necessário:
+-- CREATE DATABASE IF NOT EXISTS seu_schema DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
+-- USE seu_schema;
+
+DROP TABLE IF EXISTS `aa`;
+CREATE TABLE `aa` (
+  `ID` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+
+  `ANOMES`           CHAR(6)            NOT NULL,                      -- Ex: 202602 (YYYYMM)
+  `CANAL`            VARCHAR(100)       NULL,
+  `IBGE`             CHAR(7)            NULL,                          -- Código IBGE do município (7 dígitos)
+  `CIDADE`           VARCHAR(120)       NULL,
+  `RAZAO_SOCIAL`     VARCHAR(200)       NULL,
+  `PARCEIRO_LOJA`    VARCHAR(200)       NULL,
+  `CNPJ`             CHAR(14)           NULL,                          -- CNPJ sem máscara
+  `NOME`             VARCHAR(200)       NULL,
+  `CLASSIFICACAO`    VARCHAR(100)       NULL,
+  `SEGMENTO`         VARCHAR(100)       NULL,
+  `PRODUTO_ATUACAO`  VARCHAR(150)       NULL,
+  `DATA_CADASTRO`    VARCHAR(100)       NULL,
+  `SITUACAO`         VARCHAR(100)       NULL,
+  `LOGIN_NET`        VARCHAR(100)       NULL,
+  `TIPO`             VARCHAR(100)       NULL,
+  `LOGIN_CLARO`      VARCHAR(100)       NULL,
+  `EXECUTIVO`        VARCHAR(150)       NULL,
+  `COMTA`            VARCHAR(100)       NULL,
+  `CABEAMENTO`       VARCHAR(100)       NULL,
+  `FILIAL_COORDENADOR` VARCHAR(150)     NULL,
+
+  `DATA_ATUALIZACAO` DATETIME           NOT NULL,                      -- vindo do servidor (yyyy-MM-dd-HH-mm -> ajuste para datetime no insert, se quiser)
+  `LOGIN_ATUALIZACAO` VARCHAR(100)      NOT NULL,                      -- header login
+
+  PRIMARY KEY (`ID`),
+
+  -- Índices auxiliares para performance
+  KEY `idx_aa_anomes`        (`ANOMES`),
+  KEY `idx_aa_cnpj`          (`CNPJ`),
+  KEY `idx_aa_cidade`        (`CIDADE`),
+  KEY `idx_aa_canal`         (`CANAL`),
+  KEY `idx_aa_login_net`     (`LOGIN_NET`),
+  KEY `idx_aa_login_claro`   (`LOGIN_CLARO`)
+
+  -- Se quiser evitar duplicidade por mês + CNPJ + loja (ajuste conforme sua regra):
+  -- UNIQUE KEY `uk_aa_anomes_cnpj_loja` (`ANOMES`, `CNPJ`, `PARCEIRO_LOJA`)
+  
+  -- Alternativa de unicidade (ex.: mês + login_net + login_claro):
+  -- UNIQUE KEY `uk_aa_anomes_logins` (`ANOMES`, `LOGIN_NET`, `LOGIN_CLARO`)
+  
+  -- Se IBGE sempre vem numérico (7 dígitos), você pode mudar `CHAR(7)` para `INT` e ajustar o índice
+  -- e.g., `IBGE` INT UNSIGNED, KEY `idx_aa_ibge` (`IBGE`)
+  
+  -- Você também pode normalizar cidade e executivo em tabelas de dimensão e referenciar por FK
+  -- Exemplo de FK (se houver tabela cidades):
+  -- CONSTRAINT `fk_aa_cidade` FOREIGN KEY (`IBGE`) REFERENCES `cidades`(`ibge`)
+) ENGINE=InnoDB;
+
+
 

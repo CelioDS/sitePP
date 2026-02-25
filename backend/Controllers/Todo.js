@@ -16,7 +16,7 @@ dotenv.config();
 export const getDBtarefas = async (_, res) => {
   try {
     // 1) Aumenta o limite do GROUP_CONCAT na sessão atual (query separado)
-    await dataBase.query('SET SESSION group_concat_max_len = 1000000');
+    await dataBase.query("SET SESSION group_concat_max_len = 1000000");
 
     // 2) Faz o SELECT (apenas uma instrução SQL aqui)
     const sql = `
@@ -49,15 +49,15 @@ export const getDBtarefas = async (_, res) => {
     const [rows] = await dataBase.query(sql);
 
     // 3) Converte etapas (string JSON) -> array/obj
-    const result = rows.map(r => ({
+    const result = rows.map((r) => ({
       ...r,
-      etapas: typeof r.etapas === 'string' ? JSON.parse(r.etapas) : r.etapas
+      etapas: typeof r.etapas === "string" ? JSON.parse(r.etapas) : r.etapas,
     }));
 
     return res.status(200).json(result);
   } catch (err) {
-    console.error('Erro getDBtarefas:', err);
-    return res.status(500).json({ error: 'Erro ao buscar tarefas.' });
+    console.error("Erro getDBtarefas:", err);
+    return res.status(500).json({ error: "Erro ao buscar tarefas." });
   }
 };
 
@@ -104,10 +104,77 @@ export const setDBtarefas = async (req, res) => {
   }
 };
 
+// PATCH: atualização parcial de tarefa (só campos enviados)
+export const patchDBtarefas = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!id) {
+      return res.status(400).json({ error: "ID não informado." });
+    }
+
+    // Campos permitidos para update parcial
+    const allowed = ["tarefa", "responsavel", "concluido"];
+
+    // Monta dinamicamente o SET somente com campos presentes
+    const setClauses = [];
+    const params = [];
+
+    for (const key of allowed) {
+      if (Object.prototype.hasOwnProperty.call(req.body, key)) {
+        setClauses.push(`\`${key}\` = ?`);
+        params.push(req.body[key]);
+      }
+    }
+
+    // Se nada foi enviado, retorna 400
+    if (setClauses.length === 0) {
+      return res
+        .status(400)
+        .json({ error: "Nenhum campo válido para atualizar." });
+    }
+
+    // Sempre atualiza o timestamp (mantendo sua lógica do PUT)
+    setClauses.push("`data_atualizacao` = ?");
+    params.push(TODAY); // você já declarou o const TODAY no topo do arquivo
+
+    // WHERE id
+    const sql = `
+      UPDATE tarefas
+         SET ${setClauses.join(", ")}
+       WHERE \`id\` = ?
+    `;
+    params.push(id);
+
+    const [result] = await dataBase.query(sql, params);
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: "Tarefa não encontrada." });
+    }
+
+    return res.status(200).json({
+      id: Number(id),
+      ...req.body,
+      data_atualizacao: TODAY,
+      message: "Tarefa Concluida",
+    });
+  } catch (err) {
+    console.error("Erro patchDBtarefas:", {
+      message: err.message,
+      code: err.code,
+      sqlMessage: err.sqlMessage,
+      stack: err.stack,
+    });
+    return res
+      .status(500)
+      .json({ error: "Erro ao atualizar tarefa (parcial)." });
+  }
+};
+
 // PUT: atualiza usuário
 export const updateDBtarefas = async (req, res) => {
   try {
-    const { tarefa, concluido, responsavel, DATA_ATUALIZACAO } = req.body;
+    const { tarefa, concluido, responsavel, TODAY } = req.body;
     const { id } = req.params;
 
     if (!id) {
@@ -260,3 +327,5 @@ export const updateDBtarefasEtapas = async (req, res) => {
     return res.status(500).json({ error: "Erro ao atualizar usuário." });
   }
 };
+
+
