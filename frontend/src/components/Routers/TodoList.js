@@ -26,8 +26,8 @@ export default function ToDo() {
   const [textBTN, setTextBTN] = useState("Salvar");
   const [handleNumberEdit, setHandleNumberEdit] = useState(1);
   const [idFirst, setIdFirst] = useState();
-  const [etapasId, setEtapasId] = useState();
   const [etapasShow, setEtapasShow] = useState();
+  const [tarefaShow, setTarefaShow] = useState(0);
 
   const Url = process.env.REACT_APP_API_URL || "http://localhost:8000";
 
@@ -65,12 +65,24 @@ export default function ToDo() {
     return (pesoConcluido / totalPeso) * 100;
   }
 
+  function countTarefas(db, user) {
+    if (!Array.isArray(db)) return { pendentes: 0, concluidos: 0, total: 0 };
+    const total = db.filter((t) => t.responsavel === user).length;
+    const pendentes = db.filter(
+      (t) => t.responsavel === user && Number(t.concluido) === 0,
+    ).length;
+    const finalizados = db.filter(
+      (t) => t.responsavel === user && Number(t.concluido) === 1,
+    ).length;
+
+    return { pendentes, finalizados, total };
+  }
+
   function toggleEtapas(tarefaId) {
     setExpanded((prev) => {
       //const next = new Set(prev);
       //if (next.has(tarefaId)) next.delete(tarefaId);
       //else next.add(tarefaId);
-      setEtapasId(tarefaId);
       if (prev.has(tarefaId)) {
         return new Set();
       }
@@ -382,19 +394,40 @@ export default function ToDo() {
     <Container>
       <main className={Style.main}>
         <h1>Tarefas</h1>
-        <form ref={ref} onSubmit={handleSubmit} className={Style.formTarefa}>
+        <section>
           <div>
-            <input
-              id="tarefa"
-              name="tarefa"
-              type="text"
-              placeholder="Digite a sua terefa aqui..."
-            />
+            <h1>{countTarefas(dataBase, login).pendentes}</h1>
           </div>
-          <button className={Style.btnSubmit} disabled={isSubmit}>
-            {textBTN}
-          </button>
-        </form>
+          <form ref={ref} onSubmit={handleSubmit} className={Style.formTarefa}>
+            <div>
+              <input
+                id="tarefa"
+                name="tarefa"
+                type="text"
+                placeholder="Digite a sua terefa aqui..."
+              />
+            </div>
+            <button className={Style.btnSubmit} disabled={isSubmit}>
+              {textBTN}
+            </button>
+          </form>
+
+          <div>
+            <h1>{countTarefas(dataBase, login).finalizados}</h1>
+          </div>
+        </section>
+
+        <h4>Ver terafas</h4>
+        <button
+          className={Style.btnTarefa}
+          onClick={() => {
+            setTarefaShow((prev) => !prev);
+            toggleEtapas(0);
+            setEtapasShow(0);
+          }}
+        >
+          {tarefaShow ? "Pendente" : "Concluido"}
+        </button>
         <section className={Style.section}>
           {!dataBase ? (
             <Loading />
@@ -406,11 +439,15 @@ export default function ToDo() {
                 <thead>
                   <tr>
                     <th>Tarefa</th>
-                    <th>Finalizar &nbsp;</th>
-                    <th>Excluir &nbsp;</th>
-                    <th>Editar &nbsp;</th>
-                    <th>Etapas &nbsp;</th>
-                    <th>Etapas &nbsp;</th>
+                    {!tarefaShow && (
+                      <>
+                        <th>Finalizar </th>
+                        <th>Excluir </th>
+                        <th>Editar </th>
+                        <th>Etapas </th>
+                      </>
+                    )}
+                    <th>Etapas </th>
                   </tr>
                 </thead>
 
@@ -420,11 +457,10 @@ export default function ToDo() {
                       .filter(
                         (tarefa) =>
                           tarefa.responsavel === login &&
-                          tarefa.concluido !== 1,
+                          tarefa.concluido === Number(tarefaShow),
                       )
                       .map((tarefa) => {
                         const isOpen = expanded.has(tarefa.id);
-
                         return (
                           <tr key={tarefa.id}>
                             <td
@@ -470,44 +506,48 @@ export default function ToDo() {
                               }
                             </td>
 
-                            <td>
-                              <button
-                                className={Style.btnFinished}
-                                onClick={() => {
-                                  handleFinished(tarefa);
-                                }}
-                              >
-                                <BsCheck />
-                              </button>
-                            </td>
+                            {!tarefaShow && (
+                              <>
+                                <td>
+                                  <button
+                                    className={Style.btnFinished}
+                                    onClick={() => {
+                                      handleFinished(tarefa);
+                                    }}
+                                  >
+                                    <BsCheck />
+                                  </button>
+                                </td>
 
-                            {/* Excluir */}
-                            <td>
-                              <button
-                                className={Style.btnDelete}
-                                onClick={() => handleDelete(tarefa.id)}
-                              >
-                                <BsTrashFill />
-                              </button>
-                            </td>
+                                {/* Excluir */}
+                                <td>
+                                  <button
+                                    className={Style.btnDelete}
+                                    onClick={() => handleDelete(tarefa.id)}
+                                  >
+                                    <BsTrashFill />
+                                  </button>
+                                </td>
 
-                            {/* Editar */}
-                            <td>
-                              <button
-                                className={Style.btnEdit}
-                                onClick={() => {
-                                  handlaEdit(tarefa);
+                                {/* Editar */}
+                                <td>
+                                  <button
+                                    className={Style.btnEdit}
+                                    onClick={() => {
+                                      handlaEdit(tarefa);
 
-                                  setHandleNumberEdit((prev) => prev + 1);
-                                }}
-                              >
-                                {editTarefa?.id === tarefa?.id ? (
-                                  <BsXCircle />
-                                ) : (
-                                  <BsPenFill />
-                                )}
-                              </button>
-                            </td>
+                                      setHandleNumberEdit((prev) => prev + 1);
+                                    }}
+                                  >
+                                    {editTarefa?.id === tarefa?.id ? (
+                                      <BsXCircle />
+                                    ) : (
+                                      <BsPenFill />
+                                    )}
+                                  </button>
+                                </td>
+                              </>
+                            )}
 
                             {/* Botão para expandir/ocultar etapas */}
                             <td>
@@ -530,61 +570,70 @@ export default function ToDo() {
                             </td>
 
                             {/* Form para adicionar etapa à tarefa da linha */}
-                            <td>
-                              <form
-                                className={Style.formEtapas}
-                                onSubmit={(e) =>
-                                  handleSubmitEtapas(
-                                    e,
-                                    tarefa.id,
-                                    tarefa.etapas,
-                                  )
-                                } // <-- passa o id aqui + etapas da tarefa
-                              >
-                                <div>
-                                  <input
-                                    type="text"
-                                    id={`etapas-${tarefa.id}`}
-                                    name="etapas"
-                                    placeholder="Nova etapa"
-                                  />
-                                </div>
-                                <div>
-                                  <label htmlFor={`peso-${tarefa.id}`}>
-                                    peso
-                                  </label>
-                                  <select
-                                    id={`peso-${tarefa.id}`}
-                                    name="peso"
-                                    defaultValue=""
-                                  >
-                                    <option value="">Selecione</option>
-                                    <option value="1">1</option>
-                                    <option value="2">2</option>
-                                    <option value="3">3</option>
-                                  </select>
-                                </div>
-                                <div>
-                                  <label htmlFor={`status-${tarefa.id}`}>
-                                    status
-                                  </label>
-                                  <select
-                                    id={`status-${tarefa.id}`}
-                                    name="status"
-                                    defaultValue=""
-                                  >
-                                    <option value="">Selecione</option>
-                                    <option value="Pendente">Pendente</option>
-                                    <option value="Andamento">
-                                      Em Andamento
-                                    </option>
-                                    <option value="Concluido">Concluido</option>
-                                  </select>
-                                </div>
 
-                                <button type="submit">salvar</button>
-                              </form>
-                            </td>
+                            {!tarefaShow && (
+                              <>
+                                <td>
+                                  <form
+                                    className={Style.formEtapas}
+                                    onSubmit={(e) =>
+                                      handleSubmitEtapas(
+                                        e,
+                                        tarefa.id,
+                                        tarefa.etapas,
+                                      )
+                                    } // <-- passa o id aqui + etapas da tarefa
+                                  >
+                                    <div>
+                                      <input
+                                        type="text"
+                                        id={`etapas-${tarefa.id}`}
+                                        name="etapas"
+                                        placeholder="Nova etapa"
+                                      />
+                                    </div>
+                                    <div>
+                                      <label htmlFor={`peso-${tarefa.id}`}>
+                                        peso
+                                      </label>
+                                      <select
+                                        id={`peso-${tarefa.id}`}
+                                        name="peso"
+                                        defaultValue=""
+                                      >
+                                        <option value="">Selecione</option>
+                                        <option value="1">1</option>
+                                        <option value="2">2</option>
+                                        <option value="3">3</option>
+                                      </select>
+                                    </div>
+                                    <div>
+                                      <label htmlFor={`status-${tarefa.id}`}>
+                                        status
+                                      </label>
+                                      <select
+                                        id={`status-${tarefa.id}`}
+                                        name="status"
+                                        defaultValue=""
+                                      >
+                                        <option value="">Selecione</option>
+                                        <option value="Pendente">
+                                          Pendente
+                                        </option>
+                                        <option value="Andamento">
+                                          Em Andamento
+                                        </option>
+                                        <option value="Concluido">
+                                          Concluido
+                                        </option>
+                                      </select>
+                                    </div>
+
+                                    <button type="submit">salvar</button>
+                                  </form>
+                                </td>
+                              </>
+                            )}
                           </tr>
                         );
                       })}
@@ -630,6 +679,8 @@ export default function ToDo() {
                                       : st === "pendente"
                                         ? "#79d45d"
                                         : "#a2b91f",
+
+                                  justifyContent: tarefaShow ? "center" : "",
                                 }}
                               >
                                 <strong className={Style.etapasLine}>
@@ -640,30 +691,33 @@ export default function ToDo() {
                                     {et.status && <> {et.status}</>}
                                   </span>
                                 </strong>
+                                {!tarefaShow && (
+                                  <>
+                                    {/* Finalizar (mantido sem handler, como no seu código) */}
+                                    <aside>
+                                      <button className={Style.btnFinished}>
+                                        <BsCheck />
+                                      </button>
 
-                                {/* Finalizar (mantido sem handler, como no seu código) */}
-                                <aside>
-                                  <button className={Style.btnFinished}>
-                                    <BsCheck />
-                                  </button>
+                                      {/* Excluir */}
 
-                                  {/* Excluir */}
+                                      <button
+                                        className={Style.btnDelete}
+                                        onClick={() =>
+                                          handleDeleteEtapas(et.etapas.id)
+                                        }
+                                      >
+                                        <BsTrashFill />
+                                      </button>
 
-                                  <button
-                                    className={Style.btnDelete}
-                                    onClick={() =>
-                                      handleDeleteEtapas(et.etapas.id)
-                                    }
-                                  >
-                                    <BsTrashFill />
-                                  </button>
+                                      {/* Editar */}
 
-                                  {/* Editar */}
-
-                                  <button className={Style.btnEdit}>
-                                    <BsPenFill />
-                                  </button>
-                                </aside>
+                                      <button className={Style.btnEdit}>
+                                        <BsPenFill />
+                                      </button>
+                                    </aside>
+                                  </>
+                                )}
                               </div>
                             </>
                           );
@@ -675,102 +729,6 @@ export default function ToDo() {
                   </aside>
                 );
               })}
-        </section>
-        <h4>FINALIZADOS</h4>
-
-        <section>
-          {Array.isArray(dataBase) &&
-            dataBase
-              .filter(
-                (tarefa) =>
-                  tarefa.responsavel === login &&
-                  Number(tarefa.concluido) === 1,
-              )
-              .map((tarefa) => (
-                <aside
-                  className={Style.sectionEtapas}
-                  key={`finalizado-${tarefa.id}`}
-                  id={`finalizado-${tarefa.id}`}
-                >
-                  <main className={Style.finalizadoCard}>
-                    {/* Cabeçalho da tarefa */}
-                    <div className={Style.finalizadoHeader}>
-                      <div className={Style.finalizadoTitulo}>
-                        {tarefa.tarefa}
-                      </div>
-                      <div className={Style.finalizadoData}>
-                        {(() => {
-                          const dt =
-                            tarefa?.DATA_ATUALIZACAO ||
-                            tarefa?.data_atualizacao ||
-                            "";
-                          return dt
-                            ? new Date(dt).toLocaleDateString("pt-BR")
-                            : "";
-                        })()}
-                      </div>
-                    </div>
-
-                    {/* Lista de etapas (se houver) */}
-                    {Array.isArray(tarefa.etapas) &&
-                    tarefa.etapas.length > 0 ? (
-                      <ul className={Style.finalizadoEtapas}>
-                        {tarefa.etapas.map((et) => {
-                          const statusNorm = (et?.status || "")
-                            .normalize("NFD")
-                            .replace(/[\u0300-\u036f]/g, "")
-                            .toLowerCase()
-                            .trim();
-
-                          return (
-                            <li
-                              key={et.id ?? `${tarefa.id}-${et.etapas}`}
-                              className={Style.finalizadoEtapaItem}
-                              style={{
-                                textDecoration:
-                                  statusNorm === "concluido"
-                                    ? "line-through"
-                                    : "none",
-                                color:
-                                  statusNorm === "concluido"
-                                    ? "#968b8b"
-                                    : statusNorm === "pendente"
-                                      ? "#79d45d"
-                                      : "#a2b91f",
-                                fontStyle:
-                                  statusNorm === "concluido"
-                                    ? "italic"
-                                    : "normal",
-                              }}
-                            >
-                              <strong className={Style.etapasLine}>
-                                {et.etapas}
-                                <span>
-                                  {et.peso && <> peso: {et.peso}</>}
-                                  <br />
-                                  {et.status && <> {et.status}</>}
-                                </span>
-                              </strong>
-                            </li>
-                          );
-                        })}
-                      </ul>
-                    ) : (
-                      <em style={{ color: "#888" }}>Sem etapas</em>
-                    )}
-                  </main>
-                </aside>
-              ))}
-
-          {/* Caso não haja finalizados para este usuário */}
-          {Array.isArray(dataBase) &&
-            dataBase.filter(
-              (t) => t.responsavel === login && Number(t.concluido) === 1,
-            ).length === 0 && (
-              <p style={{ color: "#757171", padding: "8px 0" }}>
-                Nenhuma tarefa finalizada.
-              </p>
-            )}
         </section>
       </main>
     </Container>

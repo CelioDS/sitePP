@@ -9,6 +9,7 @@
 }
 .main .formTarefa {
   margin-bottom: 30px;
+  width: 100%;
 }
 
 .main .formTarefa input {
@@ -35,7 +36,7 @@
 }
 
 .main button:hover {
-  opacity: 0.9;
+  opacity: 0.6;
   cursor: pointer;
 }
 .main ul {
@@ -47,13 +48,14 @@
   height: 100%;
   gap: 10px;
   align-items: center;
-  justify-content: start;
+  justify-content: center;
   align-items: start;
   text-align: center;
   flex-direction: row;
 }
 .main .section table {
   border-collapse: collapse;
+  width: 100%;
 }
 
 .main .section th,
@@ -61,6 +63,7 @@
   height: 60px;
   background-color: red;
   color: #ffff;
+  padding: 5px;
 }
 .main .section h4 {
   display: flex;
@@ -73,7 +76,7 @@
 }
 
 .main .sectionTarefas {
-  width: 80%;
+  width: 100%;
   table-layout: fixed; /* evita expansão */
 }
 .main .sectionTarefas td:first-child {
@@ -87,7 +90,6 @@
 .main .btnEdit,
 .main .btnFinished,
 .main .btnHidden {
-  display: flex;
   font-size: 13px;
   background-color: rgb(247, 226, 226);
   width: 25px;
@@ -122,7 +124,17 @@
   background-color: rgb(141, 141, 141);
   cursor: not-allowed;
 }
-
+.main .btnTarefa {
+  padding: 5px 8px;
+  margin: 5px;
+  background-color: #f31414;
+  outline: none;
+  border: none;
+  font-weight: bold;
+  border-radius: 5px;
+  color: #fff;
+  width: 100px;
+}
 .main .formEtapas {
   background: rgb(207, 205, 205);
   padding: 5px;
@@ -160,9 +172,6 @@
   cursor: pointer;
 }
 
-.main .sectionEtapas {
-}
-
 .main .sectionEtapas .divEtapas {
   background-color: #ffffff;
   margin-bottom: 5px;
@@ -192,22 +201,29 @@
 }
 
 .main .finalizadoCard {
-  background-color: red;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-direction: column;
-  width: 100%;
-  height: 100%;
+  border: 1px solid #ccc;
 }
 
-.main .finalizadoCard {
+.main .finalizadoEtapas {
   background-color: rgb(221, 240, 218);
   display: flex;
   align-items: center;
   justify-content: center;
   flex-direction: row;
-  width: 100vw;
-  height: 100%;
   margin: 5px;
+}
+.main .finalizadoEtapas {
+  position: relative;
+  flex-direction: column;
+  width: 300px;
+  padding: 5px;
+}
+
+.main .finalizadoEtapas li {
+  background: rgb(236, 234, 234);
+  width: 100%;
 }
