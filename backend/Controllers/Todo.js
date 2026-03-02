@@ -27,6 +27,7 @@ export const getDBtarefas = async (_, res) => {
             '[',
             GROUP_CONCAT(
               JSON_OBJECT(
+                'id',               e.id,
                 'tarefa_id',        e.tarefa_id,
                 'etapas',           e.etapas,
                 'peso',             e.peso,
@@ -328,4 +329,90 @@ export const updateDBtarefasEtapas = async (req, res) => {
   }
 };
 
+// PATCH: atualização parcial de tarefa (só campos enviados)
+export const patchDBtarefasEtapas = async (req, res) => {
+  try {
+    const { id, status, concluido } = req.params;
 
+    if (!id) {
+      return res.status(400).json({ error: "ID não informado." });
+    }
+
+    // Campos permitidos para update parcial
+    const allowed = ["etapas", "status", "concluido"];
+
+    // Monta dinamicamente o SET somente com campos presentes
+    const setClauses = [];
+    const params = [];
+
+    for (const key of allowed) {
+      if (Object.prototype.hasOwnProperty.call(req.body, key)) {
+        setClauses.push(`\`${key}\` = ?`);
+        params.push(req.body[key]);
+      }
+    }
+
+    // Se nada foi enviado, retorna 400
+    if (setClauses.length === 0) {
+      return res
+        .status(400)
+        .json({ error: "Nenhum campo válido para atualizar." });
+    }
+
+    // Sempre atualiza o timestamp (mantendo sua lógica do PUT)
+    setClauses.push("`data_atualizacao` = ?");
+    params.push(TODAY); // você já declarou o const TODAY no topo do arquivo
+
+    // WHERE id
+    const sql = `
+      UPDATE tarefasEtapas
+         SET ${setClauses.join(", ")}
+       WHERE \`id\` = ?
+    `;
+    params.push(id);
+
+    const [result] = await dataBase.query(sql, params);
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: "Tarefa não encontrada." });
+    }
+
+    return res.status(200).json({
+      id: Number(id),
+      ...req.body,
+      id: id,
+      status: status,
+      concluido: concluido,
+      message: "Etapa Concluida",
+    });
+  } catch (err) {
+    console.error("Erro patchDBtarefasEtapas:", {
+      message: err.message,
+      code: err.code,
+      sqlMessage: err.sqlMessage,
+      stack: err.stack,
+    });
+    return res
+      .status(500)
+      .json({ error: "Erro ao atualizar Etapa (parcial)." });
+  }
+};
+
+export const deleteDBtarefasEtapas = async (req, res) => {
+  try {
+    const { id } = req.params;
+    if (!id) return res.status(400).json({ error: "id não informado." });
+
+    const query = "DELETE FROM tarefasEtapas WHERE `id` = ?";
+    const [result] = await dataBase.query(query, [id]);
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: "Usuário não encontrado." });
+    }
+
+    return res.status(200).json({ message: "deletado" });
+  } catch (err) {
+    console.error("Erro deleteDBtarefas:", err);
+    return res.status(500).json({ error: "Erro ao deletar usuário." });
+  }
+};

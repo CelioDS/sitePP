@@ -10,6 +10,8 @@ import {
   BsXCircle,
   BsEyeSlashFill,
   BsEyeFill,
+  BsClockFill,
+  BsCheckCircleFill,
 } from "react-icons/bs";
 import Style from "./TodoList.module.css";
 import Loading from "../Item-Layout/Loading";
@@ -23,6 +25,7 @@ export default function ToDo() {
   const [dataBase, setDataBase] = useState();
   const [isSubmit, setIsSubmit] = useState(false);
   const [editTarefa, setEditTarefa] = useState();
+  const [editEtapas, setEditEtapas] = useState();
   const [textBTN, setTextBTN] = useState("Salvar");
   const [handleNumberEdit, setHandleNumberEdit] = useState(1);
   const [idFirst, setIdFirst] = useState();
@@ -224,62 +227,97 @@ export default function ToDo() {
     const existe = (etapasDaTarefa || []).some(
       (data) => normalize(data.etapas) === normalize(etapaValue),
     );
-    if (existe && !editTarefa) {
+    if (existe && !editEtapas) {
       toast.warning("Etapas ja cadastrada...");
       return;
     }
 
-    await axios
-      .post(`${Url}/todo/etapas/add`, {
-        tarefa_id: tarefaId,
-        etapas: etapaValue,
-        peso: sanitizePeso(pesoValue),
-        status: statusValue,
-        concluido: 0,
-      })
-      .then(({ data }) => {
-        toast.success(data?.message ?? "Etapa adicionada!");
-        setDataBase((prev) =>
-          (prev || []).map((t) =>
-            t.id === tarefaId
-              ? {
-                  ...t,
-                  etapas: Array.isArray(t.etapas)
-                    ? [
-                        ...t.etapas,
-                        {
-                          id: data?.id,
-                          tarefa_id: tarefaId,
-                          etapas: data?.etapas ?? etapaValue,
-                          peso: data?.peso ?? pesoValue,
-                          status: data?.status ?? statusValue,
-                          concluido: data?.concluido ?? 0,
-                          data_atualizacao:
-                            data?.data_atualizacao ?? new Date().toISOString(),
-                        },
-                      ]
-                    : [
-                        {
-                          id: data?.id,
-                          tarefa_id: tarefaId,
-                          etapas: data?.etapas ?? etapaValue,
-                          peso: data?.peso ?? pesoValue,
-                          status: data?.status ?? statusValue,
-                          concluido: data?.concluido ?? 0,
-                          data_atualizacao:
-                            data?.data_atualizacao ?? new Date().toISOString(),
-                        },
-                      ],
-                }
-              : t,
-          ),
-        );
+    if (editEtapas) {
+      await axios
+        .put(`${Url}/todo/etapas/${editEtapas.id}`, {
+          tarefa: e.etapa.value, // <-- usa a variável segura
+          responsavel: login,
+          concluido: editEtapas.concluido,
+          DATA_ATUALIZACAO:
+            editEtapas?.DATA_ATUALIZACAO ?? editEtapas?.data_atualizacao,
+        })
+        .then(({ data }) => {
+          toast.success(data?.message ?? "Tarefa atualizada!");
+          setDataBase((prev) =>
+            prev.map((info) =>
+              info.id === editEtapas.id
+                ? {
+                    ...info,
+                    id: editEtapas.id,
+                    tarefa: e.etapa.value,
+                    responsavel: login,
+                    concluido: data?.concluido ?? info.concluido,
+                    // guarda nos dois campos para não quebrar telas antigas
+                    DATA_ATUALIZACAO:
+                      data?.data_atualizacao ?? new Date().toISOString(),
+                    data_atualizacao:
+                      data?.data_atualizacao ?? new Date().toISOString(),
+                  }
+                : info,
+            ),
+          );
+        })
+        .catch((err) => toast.error(err.response?.data || err.message));
+    } else {
+      await axios
+        .post(`${Url}/todo/etapas/add`, {
+          tarefa_id: tarefaId,
+          etapas: etapaValue,
+          peso: sanitizePeso(pesoValue),
+          status: statusValue,
+          concluido: 0,
+        })
+        .then(({ data }) => {
+          toast.success(data?.message ?? "Etapa adicionada!");
+          setDataBase((prev) =>
+            (prev || []).map((t) =>
+              t.id === tarefaId
+                ? {
+                    ...t,
+                    etapas: Array.isArray(t.etapas)
+                      ? [
+                          ...t.etapas,
+                          {
+                            id: data?.id,
+                            tarefa_id: tarefaId,
+                            etapas: data?.etapas ?? etapaValue,
+                            peso: data?.peso ?? pesoValue,
+                            status: data?.status ?? statusValue,
+                            concluido: data?.concluido ?? 0,
+                            data_atualizacao:
+                              data?.data_atualizacao ??
+                              new Date().toISOString(),
+                          },
+                        ]
+                      : [
+                          {
+                            id: data?.id,
+                            tarefa_id: tarefaId,
+                            etapas: data?.etapas ?? etapaValue,
+                            peso: data?.peso ?? pesoValue,
+                            status: data?.status ?? statusValue,
+                            concluido: data?.concluido ?? 0,
+                            data_atualizacao:
+                              data?.data_atualizacao ??
+                              new Date().toISOString(),
+                          },
+                        ],
+                  }
+                : t,
+            ),
+          );
 
-        form.reset(); // limpa o form da linha
-      })
-      .catch((err) => {
-        toast.error(err.response?.data || err.message);
-      });
+          form.reset(); // limpa o form da linha
+        })
+        .catch((err) => {
+          toast.error(err.response?.data || err.message);
+        });
+    }
   }
 
   async function handlaEdit(tarefa) {
@@ -305,27 +343,28 @@ export default function ToDo() {
       setIdFirst(tarefa.id);
     }
   }
-  async function handlaEditEtapas(tarefa) {
-    setEditTarefa(tarefa);
+
+  async function handlaEditEtapas(etapa) {
+    setEditEtapas(etapa);
+    console.log(etapa);
     setTextBTN("Editando");
 
     if (!idFirst) {
-      setIdFirst(tarefa.id);
+      setIdFirst(etapa.id); // id da etapa
     }
 
-    if (idFirst === tarefa.id) {
-      // verifica se o id recebeu 2 click e cancela a edição
+    if (idFirst === etapa.id) {
+      // verifica se recebeu 2 clicks e cancela a edição
       if (handleNumberEdit % 2 === 0) {
-        if (ref.current?.tarefa) ref.current.tarefa.value = "";
+        if (ref.current?.etapas) ref.current.etapas.value = "";
         setTextBTN("Salvar");
-        setEditTarefa(null);
+        setEditEtapas(null);
       } else {
-        setEditTarefa(tarefa);
+        setEditEtapas(etapa);
       }
     } else {
-      // se nenhuma condição é antiginda, nova tarefa, novo id e nova cotagem inicia
-      setEditTarefa(tarefa);
-      setIdFirst(tarefa.id);
+      setEditEtapas(etapa);
+      setIdFirst(etapa.id);
     }
   }
 
@@ -355,14 +394,23 @@ export default function ToDo() {
     }
   }
 
-  async function handleDeleteEtapas(id) {
+  async function handleDeleteEtapas(etapa) {
     if (isSubmit) return;
 
     setIsSubmit(true);
 
     try {
-      await axios.delete(`${Url}/todo/${id}`).then(({ data }) => {
-        setDataBase((prev) => (prev || []).filter((item) => item.id !== id));
+      await axios.delete(`${Url}/todo/etapas/${etapa.id}`).then(({ data }) => {
+        setDataBase((prev) =>
+          (prev || []).map((t) => {
+            if (t.id !== etapa.tarefa_id) return t;
+            return {
+              ...t,
+              etapas: (t.etapas || []).filter((e) => e.id !== etapa.id),
+            };
+          }),
+        );
+
         toast.success(data?.message ?? "Tarefa excluída!");
       });
     } catch (err) {
@@ -372,7 +420,58 @@ export default function ToDo() {
     }
   }
 
+  async function handleFinishedEtapas(etapa) {
+    setIsSubmit(true);
+
+    try {
+      const { data } = await axios.patch(`${Url}/todo/etapas/${etapa.id}`, {
+        concluido: 1,
+        status: "Concluido",
+      });
+
+      setDataBase((prev) =>
+        (prev || []).map((t) => {
+          if (t.id !== etapa.tarefa_id) return t;
+          return {
+            ...t,
+            etapas: (t.etapas || []).map((e) =>
+              e.id === etapa.id
+                ? {
+                    ...e,
+                    concluido: 1,
+                    status: "Concluido",
+                    data_atualizacao:
+                      data?.data_atualizacao ?? new Date().toISOString(),
+                  }
+                : e,
+            ),
+          };
+        }),
+      );
+
+      toast.success(data?.message ?? "Etapa Concluida!");
+    } catch (err) {
+      toast.error(err.response?.data || err.message);
+    } finally {
+      setIsSubmit(false);
+    }
+  }
+
   async function handleFinished(tarefa) {
+    const etapas = Array.isArray(tarefa?.etapas) ? tarefa.etapas : [];
+
+    const hasPendente = etapas.some((et) => {
+      const byFlag = Number(et?.concluido) === 0;
+      const byStatus = (et?.status ?? "").toLowerCase() === "pendente";
+
+      return byFlag || byStatus;
+    });
+
+    if (hasPendente) {
+      toast.warn("Existe etapas pendentes!!!");
+      return;
+    }
+
     try {
       await axios
         .patch(`${Url}/todo/${tarefa.id}`, {
@@ -394,31 +493,41 @@ export default function ToDo() {
     <Container>
       <main className={Style.main}>
         <h1>Tarefas</h1>
-        <section>
+        <header className={Style.card}>
           <div>
+            <span>pendente</span>
+            <BsClockFill color="#9fa11a" />
             <h1>{countTarefas(dataBase, login).pendentes}</h1>
           </div>
           <form ref={ref} onSubmit={handleSubmit} className={Style.formTarefa}>
-            <div>
-              <input
-                id="tarefa"
-                name="tarefa"
-                type="text"
-                placeholder="Digite a sua terefa aqui..."
-              />
-            </div>
-            <button className={Style.btnSubmit} disabled={isSubmit}>
+            <input
+              id="tarefa"
+              name="tarefa"
+              type="text"
+              placeholder="Digite a sua terefa aqui..."
+            />
+
+            <button
+              className={Style.btnSubmit}
+              disabled={isSubmit}
+              aria-label="Salvar tarefa"
+              title="Salvar tarefa"
+            >
               {textBTN}
             </button>
           </form>
 
           <div>
+            <span>Concluidos</span>
+            <BsCheckCircleFill color="#25a11a" />
             <h1>{countTarefas(dataBase, login).finalizados}</h1>
           </div>
-        </section>
+        </header>
 
         <h4>Ver terafas</h4>
         <button
+          aria-label="ver tarefa"
+          title="ver tarefa"
           className={Style.btnTarefa}
           onClick={() => {
             setTarefaShow((prev) => !prev);
@@ -447,7 +556,7 @@ export default function ToDo() {
                         <th>Etapas </th>
                       </>
                     )}
-                    <th>Etapas </th>
+                    <th>Criar Etapas </th>
                   </tr>
                 </thead>
 
@@ -490,10 +599,17 @@ export default function ToDo() {
                                   <span
                                     style={{
                                       color:
-                                        porcentagemPonderada(tarefa.etapas) <=
-                                        80
+                                        Number(
+                                          porcentagemPonderada(tarefa.etapas),
+                                        ) >= 80
                                           ? "#3ba820"
-                                          : "#929090",
+                                          : Number(
+                                                porcentagemPonderada(
+                                                  tarefa.etapas,
+                                                ),
+                                              ) >= 50
+                                            ? "#b92828"
+                                            : "#585c1c",
                                     }}
                                   >
                                     &nbsp;
@@ -510,6 +626,8 @@ export default function ToDo() {
                               <>
                                 <td>
                                   <button
+                                    aria-label="Concluir tarefa"
+                                    title="Concluir tarefa"
                                     className={Style.btnFinished}
                                     onClick={() => {
                                       handleFinished(tarefa);
@@ -522,6 +640,8 @@ export default function ToDo() {
                                 {/* Excluir */}
                                 <td>
                                   <button
+                                    aria-label="Salvar tarefa"
+                                    title="Salvar tarefa"
                                     className={Style.btnDelete}
                                     onClick={() => handleDelete(tarefa.id)}
                                   >
@@ -532,10 +652,11 @@ export default function ToDo() {
                                 {/* Editar */}
                                 <td>
                                   <button
+                                    aria-label="Editar tarefa"
+                                    title="Editar tarefa"
                                     className={Style.btnEdit}
                                     onClick={() => {
                                       handlaEdit(tarefa);
-
                                       setHandleNumberEdit((prev) => prev + 1);
                                     }}
                                   >
@@ -552,12 +673,13 @@ export default function ToDo() {
                             {/* Botão para expandir/ocultar etapas */}
                             <td>
                               <button
+                                aria-label="ver etapas"
+                                title="ver etapas"
                                 type="button"
                                 className={Style.btnHidden}
                                 disabled={tarefa?.etapas.length === 0}
                                 onClick={() => {
                                   toggleEtapas(tarefa.id);
-                                  console.log(tarefa);
                                   setEtapasShow(
                                     isOpen ? 0 : tarefa?.etapas[0]?.tarefa_id,
                                   );
@@ -629,7 +751,13 @@ export default function ToDo() {
                                       </select>
                                     </div>
 
-                                    <button type="submit">salvar</button>
+                                    <button
+                                      aria-label="Salvar tarefa"
+                                      title="Salvar tarefa"
+                                      type="submit"
+                                    >
+                                      salvar
+                                    </button>
                                   </form>
                                 </td>
                               </>
@@ -647,15 +775,17 @@ export default function ToDo() {
               .map((t) => {
                 const isOpen = expanded.has(t.id);
                 if (!isOpen) return null;
-                if (t.etapas.length === 0) return <div>sem dados..</div>;
-
                 return (
                   <aside
                     className={Style.sectionEtapas}
                     key={`detalhe-${t.id}`}
                     id={`detalhe-etapas-${t.id}`}
                   >
-                    <h4>ETAPAS</h4>
+                    <h4>VER ETAPAS</h4>
+                    {Array.isArray(t.etapas) &&
+                      t.etapas.length > 0 &&
+                      t.etapas.map((etapa, i) => <button>{etapa[i]}</button>)}
+
                     {Array.isArray(t.etapas) && t.etapas.length > 0 ? (
                       <ul>
                         {t.etapas.map((et, i) => {
@@ -694,26 +824,49 @@ export default function ToDo() {
                                 {!tarefaShow && (
                                   <>
                                     {/* Finalizar (mantido sem handler, como no seu código) */}
+
                                     <aside>
-                                      <button className={Style.btnFinished}>
-                                        <BsCheck />
-                                      </button>
+                                      {
+                                        <button
+                                          aria-label="Marcar etapa como concluída"
+                                          disabled={et.concluido === 1}
+                                          key={et.id ?? i}
+                                          className={Style.btnFinished}
+                                          onClick={() =>
+                                            handleFinishedEtapas(et)
+                                          }
+                                          title="Marcar etapa como concluída"
+                                        >
+                                          <BsCheck />
+                                        </button>
+                                      }
 
                                       {/* Excluir */}
-
                                       <button
+                                        aria-label="deletar Etapa"
+                                        title="deletar Etapa"
                                         className={Style.btnDelete}
-                                        onClick={() =>
-                                          handleDeleteEtapas(et.etapas.id)
-                                        }
+                                        onClick={() => handleDeleteEtapas(et)}
                                       >
                                         <BsTrashFill />
                                       </button>
-
                                       {/* Editar */}
-
-                                      <button className={Style.btnEdit}>
-                                        <BsPenFill />
+                                      <button
+                                        aria-label="Editar Etapa"
+                                        title="Editar Etapa"
+                                        className={Style.btnEdit}
+                                        onClick={() => {
+                                          handlaEditEtapas(et); // <- passe a etapa
+                                          setHandleNumberEdit(
+                                            (prev) => prev + 1,
+                                          );
+                                        }}
+                                      >
+                                        {editEtapas?.id === et?.id ? (
+                                          <BsXCircle />
+                                        ) : (
+                                          <BsPenFill />
+                                        )}
                                       </button>
                                     </aside>
                                   </>

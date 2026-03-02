@@ -7,6 +7,29 @@
   height: 100%;
   overflow: hidden;
 }
+.main .card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-direction: row;
+  width: 80%;
+  height: 100%;
+}
+
+.main .card div {
+  border: 1px solid #a5a1a1;
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  justify-content: center;
+  text-align: center;
+  width: 100px;
+  height: 80px;
+  border-radius: 5px;
+  background-color: #ffffff;
+  filter: drop-shadow(3px 3px 3px #000000cc);
+}
+
 .main .formTarefa {
   margin-bottom: 30px;
   width: 100%;
@@ -33,6 +56,7 @@
   border-radius: 5px;
   margin-bottom: 5px;
   cursor: pointer;
+  filter: drop-shadow(3px 3px 3px #000000cc);
 }
 
 .main button:hover {
@@ -99,6 +123,7 @@
   text-align: center;
   border-radius: 5px;
   border: none;
+  filter: drop-shadow(3px 3px 3px #000000cc);
 }
 .main .btnDelete {
   color: #f31414;
@@ -119,7 +144,7 @@
   color: #f3ac14;
   background-color: rgb(246, 252, 215);
 }
-.main .btnHidden:disabled {
+.main button:disabled {
   color: #d8d8d8;
   background-color: rgb(141, 141, 141);
   cursor: not-allowed;
@@ -132,6 +157,7 @@
   border: none;
   font-weight: bold;
   border-radius: 5px;
+  filter: drop-shadow(3px 3px 3px #000000cc);
   color: #fff;
   width: 100px;
 }
@@ -161,6 +187,7 @@
   background-color: #f31414;
   border-radius: 5px;
   cursor: pointer;
+  filter: drop-shadow(3px 3px 3px #000000cc);
 }
 
 .main .formEtapas select {

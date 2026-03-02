@@ -16,7 +16,9 @@ import {
   updateDBtarefas,
   deleteDBtarefas,
   setDBtarefasEtapas,
+  patchDBtarefasEtapas,
   updateDBtarefasEtapas,
+  deleteDBtarefasEtapas,
 } from "../Controllers/Todo.js";
 
 import {
@@ -83,12 +85,14 @@ router.delete("/todo/:id", deleteDBtarefas);
 
 router.post("/todo/etapas/add", setDBtarefasEtapas);
 router.put("/todo/etapas/:id", updateDBtarefasEtapas);
+router.patch("/todo/etapas/:id", patchDBtarefasEtapas);
+router.delete("/todo/etapas/:id", deleteDBtarefasEtapas);
 
 /*------------------ EXCEL UPLOAD ------------------*/
 
-router.post("/upload-excel-lp", upload.single("file"), setExcelLP);
+router.post("/upload-excel-LP", upload.single("file"), setExcelLP);
 router.post("/upload-excel-AA", upload.single("file"), setExcelAA);
-router.post("/upload-excel-pme", upload.single("file"), setExcelPME);
+router.post("/upload-excel-PME", upload.single("file"), setExcelPME);
 router.post("/upload-excel-PAP", upload.single("file"), setExcelPAP);
 router.post("/upload-excel-Varejo", upload.single("file"), setExcelVarejo);
 
