@@ -162,7 +162,7 @@ export const getPAP = async (req, res) => {
     limit = Math.min(Number(limit) || 2000, 5000);
     offset = Number(offset) || 0;
 
-    const validOrder = ["ID", "DATA_CADASTRO", "CIDADE", "IBGE", "NOME"];
+    const validOrder = ["ID", "DATA_CADASTRO", "ESTRUTURA", "IBGE", "NOME"];
     orderBy = validOrder.includes(orderBy) ? orderBy : "ID";
     orderDir = orderDir.toUpperCase() === "ASC" ? "ASC" : "DESC";
 
@@ -173,8 +173,7 @@ export const getPAP = async (req, res) => {
     if (q) {
       const like = `%${q}%`;
       where.push(`
-        (PAP.CANAL LIKE ? OR PAP.IBGE LIKE ? OR PAP.CIDADE LIKE ? OR 
-         PAP.RAZAO_SOCIAL LIKE ? OR PAP.CNPJ LIKE ? OR PAP.NOME LIKE ? OR
+        (PAP.CANAL LIKE ? OR PAP.IBGE LIKE ? OR PAP.ESTRUTURA LIKE ? OR PAP.CNPJ LIKE ? OR PAP.NOME LIKE ? OR
          PAP.CLASSIFICACAO LIKE ? OR PAP.SEGMENTO LIKE ? OR PAP.PRODUTO_ATUACAO LIKE ?)
       `);
       params.push(like, like, like, like, like, like, like, like, like);

@@ -243,7 +243,9 @@ export default function Table({ canal, login, admin, Url }) {
         <div>
           <p>
             <strong>Última atualização:</strong> {DATA_ATUALIZACAO_info || "—"}
-            {LOGIN_ATUALIZACAO_info ? ` ${LOGIN_ATUALIZACAO_info.toUpperCase()}` : ""}
+            {LOGIN_ATUALIZACAO_info
+              ? ` ${LOGIN_ATUALIZACAO_info.toUpperCase()}`
+              : ""}
           </p>
         </div>
       </section>
@@ -258,6 +260,7 @@ export default function Table({ canal, login, admin, Url }) {
               <tr>
                 {canal === "LP" && (
                   <>
+                    <th>ANOMES</th>
                     <th>CANAL</th>
                     <th>COLABORADOR</th>
                     <th>LOGIN_CLARO</th>
@@ -273,31 +276,27 @@ export default function Table({ canal, login, admin, Url }) {
 
                 {canal === "PAP" && (
                   <>
-                    <th>CANAL</th>
-                    <th>IBGE</th>
-                    <th>CIDADE</th>
-                    <th>PARCEIRO LOJA</th>
-                    <th>CNPJ</th>
-                    <th>NOME</th>
-                    <th>CLASSIFICAÇÃO</th>
-                    <th>SEGMENTO</th>
-                    <th>PRODUTO_ATUACAO</th>
-                    <th>DATA_CADASTRO</th>
-                    <th>SITUACAO</th>
-                    <th>TIPO</th>
-                    <th>RAZAO_SOCIAL</th>
-                    <th>LOGIN NET</th>
-                    <th>LOGIN CLARO</th>
-                    <th>EXECUTIVO</th>
-                    <th>GRUPO</th>
-                    <th>COMTA</th>
-                    <th>CABEAMENTO</th>
-                    <th>FILIAL COORDENADOR</th>
+                    <th>ANOMES </th>
+                    <th>CANAL </th>
+                    <th>ESTRUTURA </th>
+                    <th>IBGE </th>
+                    <th>CNPJ </th>
+                    <th>PARCEIRO_LOJA </th>
+                    <th>CLASSIFICACAO </th>
+                    <th>SEGMENTO </th>
+                    <th>LOGIN_NET </th>
+                    <th>LOGIN_CLARO </th>
+                    <th>NOME </th>
+                    <th>DATA_CADASTRO_VENDEDOR </th>
+                    <th>SITUACAO </th>
+                    <th>EXECUTIVO </th>
+                    <th>FILIAL_COORDENADOR </th>
                   </>
                 )}
 
                 {canal === "PME" && (
                   <>
+                    <th>ANOMES</th>
                     <th>CANAL</th>
                     <th>COMTA</th>
                     <th>GRUPO</th>
@@ -361,6 +360,7 @@ export default function Table({ canal, login, admin, Url }) {
                 <tr key={item.ID || idx}>
                   {canal === "LP" && (
                     <>
+                      <td>{item.ANOMES}</td>
                       <td>{item.CANAL}</td>
                       <td>{item.COLABORADOR}</td>
                       <td>{item.LOGIN_CLARO}</td>
@@ -376,6 +376,7 @@ export default function Table({ canal, login, admin, Url }) {
 
                   {canal === "PME" && (
                     <>
+                      <td>{item.ANOMES}</td>
                       <td>{item.CANAL}</td>
                       <td>{item.COMTA}</td>
                       <td>{item.GRUPO}</td>
@@ -389,28 +390,24 @@ export default function Table({ canal, login, admin, Url }) {
 
                   {canal === "PAP" && (
                     <>
+                      <td>{item.ANOMES}</td>
                       <td>{item.CANAL}</td>
+                      <td>{item.ESTRUTURA}</td>
                       <td>{item.IBGE}</td>
-                      <td>{item.CIDADE}</td>
-                      <td>{item.PARCEIRO_LOJA}</td>
                       <td>{item.CNPJ}</td>
-                      <td>{item.NOME}</td>
+                      <td>{item.PARCEIRO_LOJA}</td>
                       <td>{item.CLASSIFICACAO}</td>
                       <td>{item.SEGMENTO}</td>
-                      <td>{item.PRODUTO_ATUACAO}</td>
-                      <td>{item.DATA_CADASTRO}</td>
-                      <td>{item.SITUACAO}</td>
-                      <td>{item.TIPO}</td>
-                      <td>{item.RAZAO_SOCIAL}</td>
                       <td>{item.LOGIN_NET}</td>
                       <td>{item.LOGIN_CLARO}</td>
+                      <td>{item.NOME}</td>
+                      <td>{item.DATA_CADASTRO_VENDEDOR}</td>
+                      <td>{item.SITUACAO}</td>
                       <td>{item.EXECUTIVO}</td>
-                      <td>{item.GRUPO}</td>
-                      <td>{item.COMTA}</td>
-                      <td>{item.CABEAMENTO}</td>
                       <td>{item.FILIAL_COORDENADOR}</td>
                     </>
-                  )}
+                  )}               
+
                   {canal === "Varejo" && (
                     <>
                       <td>{item.ANOMES}</td>

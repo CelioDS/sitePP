@@ -168,25 +168,20 @@ export const setExcelPAP = async (req, res) => {
     const values = rows.map((row) => [
       row.ANOMES,
       row.CANAL,
+      row.ESTRUTURA,
       row.IBGE,
-      row.CIDADE,
-      row.RAZAO_SOCIAL,
-      row.PARCEIRO_LOJA,
       row.CNPJ,
-      row.NOME,
+      row.PARCEIRO_LOJA,
       row.CLASSIFICACAO,
       row.SEGMENTO,
-      row.PRODUTO_ATUACAO,
-      row.DATA_CADASTRO,
-      row.SITUACAO,
       row.LOGIN_NET,
-      row.TIPO,
       row.LOGIN_CLARO,
+      row.NOME,
+      row.DATA_CADASTRO_VENDEDOR,
+      row.SITUACAO,
       row.EXECUTIVO,
-      row.GRUPO,
-      row.COMTA,
-      row.CABEAMENTO,
       row.FILIAL_COORDENADOR,
+
       TODAY,
       login,
     ]);
@@ -200,7 +195,21 @@ export const setExcelPAP = async (req, res) => {
 
     const sql = `
       INSERT INTO PAP
-      (ANOMES,	CANAL,	IBGE,	CIDADE,	RAZAO_SOCIAL,	PARCEIRO_LOJA,	CNPJ,	NOME,	CLASSIFICACAO,	SEGMENTO,	PRODUTO_ATUACAO,	DATA_CADASTRO,	SITUACAO,	LOGIN_NET,	TIPO,	LOGIN_CLARO,	EXECUTIVO,	GRUPO,	COMTA,	CABEAMENTO,	FILIAL_COORDENADOR,
+      (ANOMES,
+      CANAL,
+      ESTRUTURA,
+      IBGE,
+      CNPJ,
+      PARCEIRO_LOJA,
+      CLASSIFICACAO,
+      SEGMENTO,
+      LOGIN_NET,
+      LOGIN_CLARO,
+      NOME,
+      DATA_CADASTRO_VENDEDOR,
+      SITUACAO,
+      EXECUTIVO,
+      FILIAL_COORDENADOR,
  DATA_ATUALIZACAO, LOGIN_ATUALIZACAO)
       VALUES ?
     `;

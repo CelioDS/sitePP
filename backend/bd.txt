@@ -113,3 +113,41 @@ CREATE TABLE `aa` (
 
 
 
+
+-- Seleciona o banco
+USE db_projetos;
+
+-- Remove a tabela se já existir (opcional)
+DROP TABLE IF EXISTS pap;
+
+-- Cria a tabela
+CREATE TABLE IF NOT EXISTS pap (
+  `ID` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  ANOMES                 CHAR(6)        NOT NULL,                         /* Ex: '202601' (AAAAMM) */
+  CANAL                  VARCHAR(50)    NULL,
+  ESTRUTURA              VARCHAR(100)   NULL,
+  IBGE                   VARCHAR(7)     NULL,                              /* Código IBGE do município */
+  CNPJ                   CHAR(14)       NULL,                              /* Somente dígitos */
+  PARCEIRO_LOJA          VARCHAR(120)   NULL,
+  CLASSIFICACAO          VARCHAR(50)    NULL,
+  SEGMENTO               VARCHAR(50)    NULL,
+  LOGIN_NET              VARCHAR(60)    NULL,
+  LOGIN_CLARO            VARCHAR(60)    NULL,
+  NOME                   VARCHAR(150)   NULL,
+  DATA_CADASTRO_VENDEDOR DATE           NULL,
+  SITUACAO               VARCHAR(40)    NULL,
+  EXECUTIVO              VARCHAR(120)   NULL,
+  FILIAL_COORDENADOR     VARCHAR(120)   NULL,
+  DATA_ATUALIZACAO       DATETIME       NULL,
+  LOGIN_ATUALIZACAO      VARCHAR(60)    NULL,
+
+    PRIMARY KEY (`ID`),
+
+  -- Índices
+  INDEX idx_anomes (ANOMES),
+  INDEX idx_cnpj (CNPJ),
+  INDEX idx_canal (CANAL),
+  INDEX idx_ibge (IBGE)
+)
+ENGINE = InnoDB
+
