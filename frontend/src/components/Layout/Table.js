@@ -390,21 +390,21 @@ export default function Table({ canal, login, admin, Url }) {
 
                   {canal === "PAP" && (
                     <>
-                      <td>{item.ANOMES}</td>
-                      <td>{item.CANAL}</td>
-                      <td>{item.ESTRUTURA}</td>
-                      <td>{item.IBGE}</td>
-                      <td>{item.CNPJ}</td>
-                      <td>{item.PARCEIRO_LOJA}</td>
-                      <td>{item.CLASSIFICACAO}</td>
-                      <td>{item.SEGMENTO}</td>
-                      <td>{item.LOGIN_NET}</td>
-                      <td>{item.LOGIN_CLARO}</td>
-                      <td>{item.NOME}</td>
-                      <td>{item.DATA_CADASTRO_VENDEDOR}</td>
-                      <td>{item.SITUACAO}</td>
-                      <td>{item.EXECUTIVO}</td>
-                      <td>{item.FILIAL_COORDENADOR}</td>
+                      <td>{item.ANOMES || 'não utilizado'}</td>
+                      <td>{item.CANAL|| 'não utilizado'}</td>
+                      <td>{item.ESTRUTURA|| 'não utilizado'}</td>
+                      <td>{item.IBGE|| 'não utilizado'}</td>
+                      <td>{item.CNPJ|| 'não utilizado'}</td>
+                      <td>{item.PARCEIRO_LOJA|| 'não utilizado'}</td>
+                      <td>{item.CLASSIFICACAO|| 'não utilizado'}</td>
+                      <td>{item.SEGMENTO|| 'não utilizado'}</td>
+                      <td>{item.LOGIN_NET|| 'não utilizado'}</td>
+                      <td>{item.LOGIN_CLARO|| 'não utilizado'}</td>
+                      <td>{item.NOME|| 'não utilizado'}</td>
+                      <td>{item.DATA_CADASTRO_VENDEDOR|| 'não utilizado'}</td>
+                      <td>{item.SITUACAO|| 'não utilizado'}</td>
+                      <td>{item.EXECUTIVO|| 'não utilizado'}</td>
+                      <td>{item.FILIAL_COORDENADOR|| 'não utilizado'}</td>
                     </>
                   )}               
 

@@ -27,6 +27,8 @@ export default function TableAdmin({ Url }) {
     if (rota === "portaaporta") return 22;
     if (rota === "lojapropria") return 10;
     if (rota === "VAREJO") return 14;
+    if (rota === "PME") return 14;
+    if (rota === "agenteautorizado") return 14;
   }, [rota]);
 
   const toArray = (payload) => {
@@ -185,13 +187,17 @@ export default function TableAdmin({ Url }) {
           <button
             onClick={handleDownload}
             disabled={isLoading || dataBase.length === 0}
+            style={{
+              background: dataBase.length === 0 ? "#5e5d5d" : "",
+              cursor: dataBase.length === 0 ? "not-allowed" : null,
+            }}
           >
             Download Excel
           </button>
         </section>
 
-        <p>
-          <strong>Última atualização (do resultado):</strong>{" "}
+        <p className={Style.DisplayAtualizacao}>
+          <strong>Última atualização:</strong>
           {DATA_ATUALIZACAO_info || "—"} {LOGIN_ATUALIZACAO_info || "—"}
         </p>
 
@@ -261,6 +267,39 @@ export default function TableAdmin({ Url }) {
                   <th>GN</th>
                 </>
               )}
+              {rota === "PME" && (
+                <>
+                  <th>ANOMES</th>
+                  <th>CANAL</th>
+                  <th>COMTA</th>
+                  <th>GRUPO</th>
+                  <th>PARCEIRO LOJA</th>
+                  <th>CNPJ</th>
+                  <th>NOME</th>
+                  <th>LOGIN NET</th>
+                  <th>TERRITORIO</th>
+                </>
+              )}
+
+              {rota === "agenteautorizado" && (
+                <>
+                  <th>ANOMES</th>
+                  <th>CANAL</th>
+                  <th>IBGE</th>
+                  <th>CIDADE</th>
+                  <th>PARCEIRO_LOJA</th>
+                  <th>CNPJ</th>
+                  <th>NOME</th>
+                  <th>CLASSIFICACAO</th>
+                  <th>SEGMENTO</th>
+                  <th>PRODUTO_ATUACAO</th>
+                  <th>DATA_CADASTRO</th>
+                  <th>SITUACAO</th>
+                  <th>LOGIN_NET</th>
+                  <th>TIPO</th>
+                  <th>LOGIN_CLARO</th>
+                </>
+              )}
             </tr>
           </thead>
           <tbody>
@@ -328,6 +367,39 @@ export default function TableAdmin({ Url }) {
                       <td>{item.SITUACAO}</td>
                       <td>{item.FILIAL_COORDENADOR}</td>
                       <td>{item.GN}</td>
+                    </>
+                  )}
+                  {rota === "PME" && (
+                    <>
+                      <td>{item.ANOMES}</td>
+                      <td>{item.CANAL}</td>
+                      <td>{item.COMTA}</td>
+                      <td>{item.GRUPO}</td>
+                      <td>{item.PARCEIRO_LOJA}</td>
+                      <td>{item.CNPJ}</td>
+                      <td>{item.NOME}</td>
+                      <td>{item.LOGIN_NET}</td>
+                      <td>{item.TERRITORIO}</td>
+                    </>
+                  )}
+
+                  {rota === "agenteautorizado" && (
+                    <>
+                      <td>{item.ANOMES}</td>
+                      <td>{item.CANAL}</td>
+                      <td>{item.IBGE}</td>
+                      <td>{item.CIDADE}</td>
+                      <td>{item.PARCEIRO_LOJA}</td>
+                      <td>{item.CNPJ}</td>
+                      <td>{item.NOME}</td>
+                      <td>{item.CLASSIFICACAO}</td>
+                      <td>{item.SEGMENTO}</td>
+                      <td>{item.PRODUTO_ATUACAO}</td>
+                      <td>{item.DATA_CADASTRO}</td>
+                      <td>{item.SITUACAO}</td>
+                      <td>{item.LOGIN_NET}</td>
+                      <td>{item.TIPO}</td>
+                      <td>{item.LOGIN_CLARO}</td>
                     </>
                   )}
                 </tr>

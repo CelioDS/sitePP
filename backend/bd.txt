@@ -151,3 +151,58 @@ CREATE TABLE IF NOT EXISTS pap (
 )
 ENGINE = InnoDB
 
+-- Seleciona o banco (ajuste se necessário)
+USE db_projetos;
+
+-- Remove a tabela se já existir (opcional e seguro para recriação)
+DROP TABLE IF EXISTS pme;
+
+-- Cria a tabela pme
+CREATE TABLE IF NOT EXISTS pme (
+  `ID` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+
+  -- Campos de identificação e cadastro
+  CPF               CHAR(11)        NULL COMMENT 'Somente dígitos',
+  NOME              VARCHAR(150)    NULL,
+  INPUT             VARCHAR(100)    NULL,                                  -- Coluna "Input" do cabeçalho
+  LOGIN_NET         VARCHAR(60)     NULL,
+  CNPJ_CPF          CHAR(14)        NULL COMMENT 'CNPJ (14) ou CPF (11) sem máscara',
+  RAZAO_SOCIAL      VARCHAR(150)    NULL,
+  SITUACAO          VARCHAR(40)     NULL,
+  CELULAR           VARCHAR(20)     NULL,                                  -- Ex.: +55DDDXXXXXXXX
+  EMAIL             VARCHAR(150)    NULL,
+  EMAIL_GESTOR      VARCHAR(150)    NULL,
+
+  -- Códigos e estrutura comercial
+  COD               VARCHAR(40)     NULL,
+  COMTA             VARCHAR(60)     NULL,                                  -- Mantido como texto; especifique se for código numérico
+  COORDENADOR       VARCHAR(120)    NULL,
+  GERENTE           VARCHAR(120)    NULL,
+  TERRITORIO        VARCHAR(120)    NULL,
+  GERENTE_2         VARCHAR(120)    NULL,                                  -- Coluna duplicada do cabeçalho
+  COORDENADOR_2     VARCHAR(120)    NULL,                                  -- Coluna duplicada do cabeçalho
+  CANAL             VARCHAR(80)     NULL,
+  REGIONAL          VARCHAR(120)    NULL,
+  NOME_AACE         VARCHAR(150)    NULL,
+  TIME              VARCHAR(120)    NULL,
+  CANAL_2           VARCHAR(80)     NULL,                                  -- Coluna duplicada do cabeçalho
+
+  -- Controle de atualização (opcional, segue a lógica do seu exemplo)
+  DATA_ATUALIZACAO  DATETIME        NULL,
+  LOGIN_ATUALIZACAO VARCHAR(60)     NULL,
+
+  PRIMARY KEY (`ID`),
+
+  -- Índices úteis para busca/relatórios
+  INDEX idx_cpf (CPF),
+  INDEX idx_cnpj_cpf (CNPJ_CPF),
+  INDEX idx_login_net (LOGIN_NET),
+  INDEX idx_email (EMAIL),
+  INDEX idx_situacao (SITUACAO),
+  INDEX idx_canal (CANAL),
+  INDEX idx_regional (REGIONAL)
+)
+ENGINE = InnoDB
+DEFAULT CHARSET = utf8mb4
+COLLATE = utf8mb4_unicode_ci;
+``

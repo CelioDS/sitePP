@@ -918,6 +918,73 @@ export const getLP_grafico = async (req, res) => {
   }
 };
 
+export const getLP_graficoStatus = async (req, res) => {
+  try {
+    // Aceita ?anomes=202601 ou ?ano=2026&mes=1
+    let { anomes, ano, mes } = req.query || {};
+    anomes = anomes ? Number(anomes) : undefined;
+
+    if (!anomes && ano && mes) {
+      ano = Number(ano);
+      mes = Number(mes);
+      if (!Number.isNaN(ano) && !Number.isNaN(mes) && mes >= 1 && mes <= 12) {
+        anomes = ano * 100 + (mes < 10 ? Number(`0${mes}`) : mes);
+      }
+    }
+
+    let query = "";
+    let params = [];
+
+    if (anomes) {
+      // Máximo dentro do mês selecionado
+      query = `
+        WITH CTE_MAX AS (
+          SELECT MAX(DATA_ATUALIZACAO) AS data_maxima
+          FROM LP
+          WHERE ANOMES = ?
+        )
+        SELECT
+          LP.ANOMES                     AS anomes,
+          LP.STATUS                     AS status,
+          COALESCE(NULLIF(TRIM(LP.STATUS), ''), 'SEM STATUS') AS status,
+          COUNT(*)              AS QTD      
+        FROM LP AS LP
+        JOIN CTE_MAX AS m
+          ON LP.DATA_ATUALIZACAO = m.data_maxima
+        WHERE LP.ANOMES = ?
+        GROUP BY LP.STATUS, LP.ANOMES
+        ORDER BY STATUS DESC, ANOMES DESC;
+      `;
+      params = [anomes, anomes];
+    } else {
+      // Snapshot global (sem filtro)
+      query = `
+        WITH CTE_MAX AS (
+          SELECT MAX(DATA_ATUALIZACAO) AS data_maxima
+          FROM LP
+        )
+        SELECT
+          LP.ANOMES                     AS anomes,
+          LP.STATUS                     AS status,
+          COALESCE(NULLIF(TRIM(LP.STATUS), ''), 'SEM STATUS') AS status,
+          COUNT(*)              AS QTD
+        FROM LP AS LP
+        JOIN CTE_MAX AS m
+          ON LP.DATA_ATUALIZACAO = m.data_maxima
+        GROUP BY LP.STATUS, LP.ANOMES
+        ORDER BY STATUS DESC, ANOMES DESC;
+      `;
+      params = [];
+    }
+
+    const [rows] = await dataBase.query(query, params);
+    return res.status(200).json(rows);
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ error: "Erro ao buscar getLP_grafico" });
+  }
+};
+
 export const getVAREJO_grafico = async (req, res) => {
   try {
     let { anomes } = req.query;
@@ -1027,26 +1094,34 @@ export const getVAREJO_graficoHistorico = async (req, res) => {
 export const getLP_graficoHistorico = async (req, res) => {
   try {
     const query = `
-      WITH max_por_mes AS (
-        SELECT
-          ANOMES,
-          MAX(DATA_ATUALIZACAO) AS data_maxima_mes
-        FROM LP
-        GROUP BY ANOMES
-      )
-      SELECT
-        LP.ANOMES AS anomes,
-        LP.COORDENADOR AS coordenador,
-        COUNT(DISTINCT LP.COLABORADOR) AS qtde_colaborador_distintas,
-        COUNT(DISTINCT LP.LOJA)        AS qtde_lojas_distintas,
-        COUNT(DISTINCT LP.CIDADE)      AS qtde_cidades_distintas,
-        COUNT(*)                       AS registros
-      FROM LP
-      JOIN max_por_mes m
-        ON LP.ANOMES = m.ANOMES
-       AND LP.DATA_ATUALIZACAO = m.data_maxima_mes
-      GROUP BY LP.ANOMES, LP.COORDENADOR
-      ORDER BY LP.ANOMES ASC, LP.COORDENADOR ASC;
+     WITH max_por_mes AS (
+  SELECT
+    ANOMES,
+    MAX(DATA_ATUALIZACAO) AS data_maxima_mes
+  FROM LP
+  GROUP BY ANOMES
+)
+SELECT
+  LP.ANOMES AS anomes,
+  CASE
+    WHEN LP.COORDENADOR IS NULL OR LP.COORDENADOR = '' THEN NULL
+    ELSE SUBSTRING_INDEX(TRIM(LP.COORDENADOR), ' ', 1)
+  END AS coordenador,  -- agora é só o primeiro nome
+  COUNT(DISTINCT LP.COLABORADOR) AS qtde_colaborador_distintas,
+  COUNT(DISTINCT LP.LOJA)        AS qtde_lojas_distintas,
+  COUNT(DISTINCT LP.CIDADE)      AS qtde_cidades_distintas,
+  COUNT(*)                       AS registros
+FROM LP
+JOIN max_por_mes m
+  ON LP.ANOMES = m.ANOMES
+ AND LP.DATA_ATUALIZACAO = m.data_maxima_mes
+GROUP BY
+  LP.ANOMES,
+  CASE
+    WHEN LP.COORDENADOR IS NULL OR LP.COORDENADOR = '' THEN NULL
+    ELSE SUBSTRING_INDEX(TRIM(LP.COORDENADOR), ' ', 1)
+  END
+ORDER BY anomes ASC, coordenador ASC;
     `;
 
     const [rows] = await dataBase.query(query);

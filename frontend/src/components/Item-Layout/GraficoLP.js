@@ -16,6 +16,9 @@ import { FaCity } from "react-icons/fa";
 export default function RelatorioUser({ Url }) {
   const [userData, setUserData] = useState(null);
   const [dataBase, setDataBase] = useState([]);
+
+  const [statusData, setStatusData] = useState([]);
+
   const [isLoading, setIsLoading] = useState(true);
 
   // Base histórica exclusiva para o gráfico de linha (sempre todos os meses)
@@ -139,6 +142,13 @@ export default function RelatorioUser({ Url }) {
         const rows = Array.isArray(resp.data) ? resp.data : [];
         const parsed = rows.map(normalizeRow);
 
+        const resp1 = await axios.get(`${Url}/lojapropriaGraficoStatus`, {
+          params,
+        });
+        const rows1 = Array.isArray(resp1.data) ? resp.data : [];
+
+        setStatusData(rows1);
+
         if (!ignore) {
           setDataBase(parsed);
           if (!parsed.length) {
@@ -177,6 +187,8 @@ export default function RelatorioUser({ Url }) {
       ignore = true;
     };
   }, []);
+
+  
 
   // ---- MEMOs para gráficos ----
   // Ordena: lojas desc -> cidades desc -> coordenador A-Z
@@ -532,9 +544,7 @@ export default function RelatorioUser({ Url }) {
 
             {/* Donut */}
             <aside className={Style.card}>
-              <h5>
-                Participação por Coordenador (Lojas)
-              </h5>
+              <h5>Participação por Coordenador (Lojas)</h5>
               <ReactApexChart
                 options={optionsDonut}
                 series={donut.series}
@@ -576,7 +586,7 @@ export default function RelatorioUser({ Url }) {
                   series={lineSeries}
                   type="line"
                   height={360}
-                  width={1000} 
+                  width={1000}
                 />
               </div>
             )}

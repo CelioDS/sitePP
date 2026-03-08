@@ -35,6 +35,7 @@ import {
   getPAP_PREMIUM,
   getVAREJO_grafico,
   getPduFullGrafico,
+  getLP_graficoStatus,
   getLP_graficoHistorico,
   getVAREJO_graficoHistorico,
 } from "../Controllers/Controllers.js";
@@ -70,6 +71,7 @@ router.get("/aparelho", getAPARELHO);
 router.get("/PduMovel", getPDUMovel);
 router.get("/PduFullGrafico", getPduFullGrafico);
 router.get("/lojapropriaGrafico", getLP_grafico);
+router.get("/lojapropriaGraficoStatus", getLP_graficoStatus);
 router.get("/VAREJOGrafico", getVAREJO_grafico);
 router.get("/VAREJOGraficoHistorico", getVAREJO_graficoHistorico);
 router.get("/lojapropriaGraficoHistorico", getLP_graficoHistorico);

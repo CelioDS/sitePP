@@ -30,14 +30,7 @@ export default function Depara() {
   return (
     <Container className={Style.main}>
       <RenameTitle initialTitle={"P&P - Carteira"} />
-      <p>
-        Carteira: <span>{canal}</span>
-      </p>
-      <p>
-        usuario: <span>{login}</span>
-      </p>
-
-      {admin && canal === "admin" ? (
+            {admin && canal === "admin" ? (
         <TableAdmin Url={Url} />
       ) : (
         <Table
