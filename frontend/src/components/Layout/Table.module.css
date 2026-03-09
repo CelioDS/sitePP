@@ -131,7 +131,7 @@
   border-collapse: collapse;
 }
 
-.main table th {
+.main .table th {
   background: #a1343c;
   font-weight: 600;
   color: #fff;

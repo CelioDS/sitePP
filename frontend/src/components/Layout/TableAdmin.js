@@ -201,7 +201,7 @@ export default function TableAdmin({ Url }) {
           {DATA_ATUALIZACAO_info || "—"} {LOGIN_ATUALIZACAO_info || "—"}
         </p>
 
-        <table style={{ marginTop: 12, width: "100%" }}>
+        <table className={Style.table}>
           <thead>
             <tr>
               {isLoading ? (
