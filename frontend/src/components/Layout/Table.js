@@ -252,8 +252,13 @@ export default function Table({ canal, login, admin, Url }) {
       </section>
 
       {/* TABELA */}
+<<<<<<< HEAD
       <section className={Style.sectionTable}>
         <table>
+=======
+      <section>
+        <table className={Style.table}>
+>>>>>>> 2399895b3775fba1b2d660622df6c0d179071d80
           <thead>
             {isLoading ? (
               <tr></tr>

@@ -122,6 +122,7 @@
   -webkit-overflow-scrolling: touch;
 }
 
+<<<<<<< HEAD
 .main .sectionTable table {
   width: 100%;
   border-collapse: collapse;
@@ -154,4 +155,15 @@
 /* Opcional: uma leve sombra para destacar o cabeçalho fixo */
 .main .sectionTable thead th {
   box-shadow: 0 2px 0 rgba(0, 0, 0, 0.06);
+=======
+.main .table th {
+  background: #a1343c;
+  font-weight: 600;
+  color: #fff;
+  height: 30px;
+  height: 60px;
+  text-align: center;
+  justify-content: center;
+  padding: 5px;
+>>>>>>> 2399895b3775fba1b2d660622df6c0d179071d80
 }
