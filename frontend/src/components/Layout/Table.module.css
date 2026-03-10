@@ -116,28 +116,42 @@
   color: #ccc;
 }
 
-.main table {
-  background-color: #ffff;
+.main .sectionTable {
   width: 100%;
-  padding: 5px;
-  table-layout: fixed; /* evita expansão */
-  font-size: 14px;
-  background-color: #fff;
-  width: 100%;
-  padding: 5px;
-  table-layout: fixed;
-  font-size: 14px;
-  min-width: 800px; /* força o scroll */
-  border-collapse: collapse;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
-.main table th {
-  background: #a1343c;
-  font-weight: 600;
-  color: #fff;
-  height: 30px;
-  height: 60px;
-  text-align: center;
-  justify-content: center;
+.main .sectionTable table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 640px;
+}
+.main .sectionTable thead {
+  font-weight: bolder;
   padding: 5px;
+  color: #ffffff;
+  background-color: var(--color-brand-primary-darkest);
+}
+
+.main .sectionTable td,
+.main .sectionTable th {
+  padding: 0.75rem;
+  border-bottom: 1px solid #e5e7eb;
+  text-align: left;
+  white-space: nowrap; /* Evita quebra de linha excessiva */
+}
+
+/* Faz o th herdar a cor do thead e mantém o fundo escuro */
+.main .sectionTable thead th {
+  position: sticky;
+  top: 0;
+  background: var(--color-brand-primary-darkest);
+  color: #fff;
+  z-index: 2; /* evita que seja “coberto” ao rolar */
+}
+
+/* Opcional: uma leve sombra para destacar o cabeçalho fixo */
+.main .sectionTable thead th {
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.06);
 }

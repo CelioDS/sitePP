@@ -27,6 +27,7 @@ export default function Table({ canal, login, admin, Url }) {
     PAP_PREMIUM: "pap_premium",
   };
 
+
   const [rota, setRota] = useState(rotas[canal]);
 
   // Mantém 'rota' em sincronia quando 'canal' mudar
@@ -251,7 +252,7 @@ export default function Table({ canal, login, admin, Url }) {
       </section>
 
       {/* TABELA */}
-      <section>
+      <section className={Style.sectionTable}>
         <table>
           <thead>
             {isLoading ? (
@@ -296,15 +297,26 @@ export default function Table({ canal, login, admin, Url }) {
 
                 {canal === "PME" && (
                   <>
-                    <th>ANOMES</th>
-                    <th>CANAL</th>
-                    <th>COMTA</th>
-                    <th>GRUPO</th>
-                    <th>PARCEIRO LOJA</th>
-                    <th>CNPJ</th>
-                    <th>NOME</th>
-                    <th>LOGIN NET</th>
-                    <th>TERRITORIO</th>
+                    <td>ANOMES</td>
+                    <td>CPF</td>
+                    <td>Nome</td>
+                    <td>Input</td>
+                    <td>LoginNET</td>
+                    <td>CNPJ_CPF</td>
+                    <td>Razao_social</td>
+                    <td>Situacao</td>
+                    <td>Celular</td>
+                    <td>Email</td>
+                    <td>Email_Gestor</td>
+                    <td>COD</td>
+                    <td>COMTA</td>
+                    <td>Coordenador</td>
+                    <td>GERENTE</td>
+                    <td>Territorio</td>
+                    <td>CANAL</td>
+                    <td>REGIONAL</td>
+                    <td>AACE</td>
+                    <td>TIME</td>
                   </>
                 )}
                 {canal === "Varejo" && (
@@ -377,36 +389,47 @@ export default function Table({ canal, login, admin, Url }) {
                   {canal === "PME" && (
                     <>
                       <td>{item.ANOMES}</td>
-                      <td>{item.CANAL}</td>
-                      <td>{item.COMTA}</td>
-                      <td>{item.GRUPO}</td>
-                      <td>{item.PARCEIRO_LOJA}</td>
-                      <td>{item.CNPJ}</td>
+                      <td>{item.CPF}</td>
                       <td>{item.NOME}</td>
-                      <td>{item.LOGIN_NET}</td>
+                      <td>{item.INPUT}</td>
+                      <td>{item.LoginNET}</td>
+                      <td>{item.CNPJ_CPF}</td>
+                      <td>{item.RAZAO_SOCIAL}</td>
+                      <td>{item.SITUACAO}</td>
+                      <td>{item.CELULAR}</td>
+                      <td>{item.EMAIL}</td>
+                      <td>{item.EMAIL_GESTOR}</td>
+                      <td>{item.COD}</td>
+                      <td>{item.COMTA}</td>
+                      <td>{item.COORDENADOR}</td>
+                      <td>{item.GERENTE}</td>
                       <td>{item.TERRITORIO}</td>
+                      <td>{item.CANAL}</td>
+                      <td>{item.REGIONAL}</td>
+                      <td>{item.AACE}</td>
+                      <td>{item.TIME}</td>
                     </>
                   )}
 
                   {canal === "PAP" && (
                     <>
-                      <td>{item.ANOMES || 'não utilizado'}</td>
-                      <td>{item.CANAL|| 'não utilizado'}</td>
-                      <td>{item.ESTRUTURA|| 'não utilizado'}</td>
-                      <td>{item.IBGE|| 'não utilizado'}</td>
-                      <td>{item.CNPJ|| 'não utilizado'}</td>
-                      <td>{item.PARCEIRO_LOJA|| 'não utilizado'}</td>
-                      <td>{item.CLASSIFICACAO|| 'não utilizado'}</td>
-                      <td>{item.SEGMENTO|| 'não utilizado'}</td>
-                      <td>{item.LOGIN_NET|| 'não utilizado'}</td>
-                      <td>{item.LOGIN_CLARO|| 'não utilizado'}</td>
-                      <td>{item.NOME|| 'não utilizado'}</td>
-                      <td>{item.DATA_CADASTRO_VENDEDOR|| 'não utilizado'}</td>
-                      <td>{item.SITUACAO|| 'não utilizado'}</td>
-                      <td>{item.EXECUTIVO|| 'não utilizado'}</td>
-                      <td>{item.FILIAL_COORDENADOR|| 'não utilizado'}</td>
+                      <td>{item.ANOMES || "não utilizado"}</td>
+                      <td>{item.CANAL || "não utilizado"}</td>
+                      <td>{item.ESTRUTURA || "não utilizado"}</td>
+                      <td>{item.IBGE || "não utilizado"}</td>
+                      <td>{item.CNPJ || "não utilizado"}</td>
+                      <td>{item.PARCEIRO_LOJA || "não utilizado"}</td>
+                      <td>{item.CLASSIFICACAO || "não utilizado"}</td>
+                      <td>{item.SEGMENTO || "não utilizado"}</td>
+                      <td>{item.LOGIN_NET || "não utilizado"}</td>
+                      <td>{item.LOGIN_CLARO || "não utilizado"}</td>
+                      <td>{item.NOME || "não utilizado"}</td>
+                      <td>{item.DATA_CADASTRO_VENDEDOR || "não utilizado"}</td>
+                      <td>{item.SITUACAO || "não utilizado"}</td>
+                      <td>{item.EXECUTIVO || "não utilizado"}</td>
+                      <td>{item.FILIAL_COORDENADOR || "não utilizado"}</td>
                     </>
-                  )}               
+                  )}
 
                   {canal === "Varejo" && (
                     <>

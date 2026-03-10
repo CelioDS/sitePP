@@ -102,15 +102,25 @@ export const setExcelPME = async (req, res) => {
     }
 
     const values = rows.map((row) => [
-      row.ANOMES,
-      row.CANAL,
-      row.COMTA,
-      row.GRUPO,
-      row.PARCEIRO_LOJA,
-      row.CNPJ,
+      row.CPF,
       row.NOME,
+      row.INPUT,
       row.LOGIN_NET,
+      row.CNPJ_CPF,
+      row.RAZAO_SOCIAL,
+      row.SITUACAO,
+      row.CELULAR,
+      row.EMAIL,
+      row.EMAIL_GESTOR,
+      row.COD,
+      row.COMTA,
+      row.COORDENADOR,
+      row.GERENTE,
       row.TERRITORIO,
+      row.CANAL,
+      row.REGIONAL,
+      row.NOME_AACE,
+      row.TIME,  
       TODAY,
       login,
     ]);
@@ -124,7 +134,7 @@ export const setExcelPME = async (req, res) => {
 
     const sql = `
       INSERT INTO PME
-      (ANOMES, CANAL, COMTA, GRUPO, PARCEIRO_LOJA, CNPJ, NOME, LOGIN_NET, TERRITORIO, DATA_ATUALIZACAO, LOGIN_ATUALIZACAO)
+      (CPF,	NOME,	INPUT,	LOGIN_NET,	CNPJ_CPF,	RAZAO_SOCIAL,	SITUACAO,	CELULAR,	EMAIL,	EMAIL_GESTOR,	COD,	COMTA,	COORDENADOR,	GERENTE,	TERRITORIO, CANAL,	REGIONAL, NOME_AACE,	TIME, DATA_ATUALIZACAO, LOGIN_ATUALIZACAO)
       VALUES ?
     `;
 

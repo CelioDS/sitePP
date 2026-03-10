@@ -7,7 +7,7 @@ import { format } from "date-fns";
 import { toZonedTime } from "date-fns-tz";
 import ptBR from "date-fns/locale/pt-BR";
 
-export default function GraficoPDU({ year, Url, referencia = "BR" }) {
+export default function GraficoPDU({ year, Url, referencia  }) {
   const [dataFULL, setDataFULL] = useState(null);
 
   const tz = "America/Sao_Paulo";
