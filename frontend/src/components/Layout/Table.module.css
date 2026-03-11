@@ -118,52 +118,86 @@
 
 .main .sectionTable {
   width: 100%;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
 }
 
-<<<<<<< HEAD
 .main .sectionTable table {
   width: 100%;
   border-collapse: collapse;
-  min-width: 640px;
+  table-layout: fixed;
+  border: 1px solid #ccc;
+  margin: 5px;
+  border-radius: 5px !important;
+  border-radius: 8px;
+  overflow: hidden;
+  background: white;
 }
 .main .sectionTable thead {
   font-weight: bolder;
   padding: 5px;
   color: #ffffff;
+  border-radius: 50px;
   background-color: var(--color-brand-primary-darkest);
+  border: 1px solid var(--color-brand-primary-darkest);
+  filter: drop-shadow(3px 4px 6px #303030cc);
+  font-size: 13px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
 }
-
+.main .sectionTable td {
+  vertical-align: middle;
+}
+.number {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
 .main .sectionTable td,
 .main .sectionTable th {
+  font-size: 12px;
   padding: 0.75rem;
-  border-bottom: 1px solid #e5e7eb;
   text-align: left;
-  white-space: nowrap; /* Evita quebra de linha excessiva */
+  white-space: normal;
+  word-break: break-word;
 }
 
 /* Faz o th herdar a cor do thead e mantém o fundo escuro */
-.main .sectionTable thead th {
+.main .sectionTable th {
   position: sticky;
   top: 0;
   background: var(--color-brand-primary-darkest);
-  color: #fff;
-  z-index: 2; /* evita que seja “coberto” ao rolar */
+  color: white;
+  z-index: 10;
 }
 
 /* Opcional: uma leve sombra para destacar o cabeçalho fixo */
 .main .sectionTable thead th {
-  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.06);
-=======
-.main .table th {
-  background: #a1343c;
-  font-weight: 600;
-  color: #fff;
-  height: 30px;
-  height: 60px;
-  text-align: center;
-  justify-content: center;
-  padding: 5px;
->>>>>>> 2399895b3775fba1b2d660622df6c0d179071d80
+  box-shadow: 0 2px 0 rgba(253, 211, 211, 0.06);
+}
+
+.main .sectionTable tbody tr {
+  cursor: pointer;
+}
+.main .sectionTable tbody tr:nth-child(even) {
+  background-color: #ff00004f;
+}
+
+.main .sectionTable tbody tr:nth-child(odd) {
+  background-color: #fa030338;
+}
+
+.main .sectionTable tbody tr:hover {
+  transform: scale(0.99);
+  background-color: #c04a4a;
+  filter: drop-shadow(3px 4px 6px #000000);
+}
+@media (max-width: 768px) {
+
+  .main .sectionTable table {
+    font-size: 11px;
+  }
+
+  .main .sectionTable th,
+  .main .sectionTable td {
+    padding: 6px;
+  }
+
 }

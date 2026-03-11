@@ -136,21 +136,6 @@
   color: #ccc;
 }
 
-.main .table {
-  background-color: #ffff;
-  width: 100%;
-  filter: drop-shadow(3px 3px 3px #ccc8c8cc);
-  padding: 5px;
-  table-layout: fixed; /* evita expansão */
-  overflow-x: scroll;
-}
-
-.main .table thead{
-  
-}
-
-
-
 .main .asideBTN {
   display: flex;
   align-items: center;
@@ -163,4 +148,87 @@
 .main .DisplayAtualizacao {
   color: #757272;
   margin: 5px;
+}
+
+.main .sectionTable {
+  width: 100%;
+}
+
+.main .sectionTable table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+  border: 1px solid #ccc;
+  margin: 5px;
+  border-radius: 5px !important;
+  border-radius: 8px;
+  overflow: scroll;
+}
+.main .sectionTable thead {
+  font-weight: bolder;
+  padding: 5px;
+  color: #ffffff;
+  border-radius: 50px;
+  background-color: var(--color-brand-primary-darkest);
+  border: 1px solid var(--color-brand-primary-darkest);
+  filter: drop-shadow(3px 4px 6px #303030cc);
+  font-size: 13px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+.main .sectionTable td {
+  vertical-align: middle;
+}
+.number {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.main .sectionTable td,
+.main .sectionTable th {
+  font-size: 12px;
+  padding: 0.75rem;
+  text-align: left;
+  white-space: normal;
+  word-break: break-word;
+}
+
+/* Faz o th herdar a cor do thead e mantém o fundo escuro */
+.main .sectionTable th {
+  position: sticky;
+  top: 0;
+  background: var(--color-brand-primary-darkest);
+  color: white;
+  z-index: 10;
+}
+
+/* Opcional: uma leve sombra para destacar o cabeçalho fixo */
+.main .sectionTable thead th {
+  box-shadow: 0 2px 0 rgba(253, 211, 211, 0.06);
+}
+
+.main .sectionTable tbody tr {
+  cursor: pointer;
+}
+.main .sectionTable tbody tr:nth-child(even) {
+  background-color: #ff00004f;
+}
+
+.main .sectionTable tbody tr:nth-child(odd) {
+  background-color: #fa030338;
+}
+
+.main .sectionTable tbody tr:hover {
+  transform: scale(0.99);
+  background-color: #c04a4a;
+  filter: drop-shadow(3px 4px 6px #000000);
+}
+@media (max-width: 768px) {
+  .main .sectionTable table {
+    font-size: 11px;
+  }
+
+  .main .sectionTable th,
+  .main .sectionTable td {
+    padding: 6px;
+  }
 }

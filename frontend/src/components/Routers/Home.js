@@ -461,7 +461,7 @@ export default function Home() {
               </tr>
             </tbody>
           </table>
-          <GraficoPDU year={year} Url={Url} />
+          <GraficoPDU year={year} Url={Url} referencia={referencia} />
           <GraficoLinhaPDU
             dataFULL={dataFULL}
             loading={loading}

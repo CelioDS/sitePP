@@ -26,7 +26,15 @@ export default function Table({ canal, login, admin, Url }) {
     AA: "agenteautorizado",
     PAP_PREMIUM: "pap_premium",
   };
+  const [debouncedSearch, setDebouncedSearch] = useState(search);
 
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(search);
+    }, 400);
+
+    return () => clearTimeout(timer);
+  }, [search]);
 
   const [rota, setRota] = useState(rotas[canal]);
 
@@ -55,10 +63,10 @@ export default function Table({ canal, login, admin, Url }) {
     try {
       // Enviamos start, end e latest juntos
       const params = {
-        q: search || undefined,
+        q: debouncedSearch || undefined,
         start: start || undefined,
         end: end || undefined,
-        latest: latest, // true ou false
+        latest: latest,
         limit: 2000,
       };
 
@@ -79,7 +87,7 @@ export default function Table({ canal, login, admin, Url }) {
   useEffect(() => {
     fetchData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [Url, rota, search, start, end, latest]);
+}, [Url, rota, debouncedSearch, start, end, latest]);
 
   const parseAsDate = (value) => {
     if (!value) return null;
@@ -252,13 +260,9 @@ export default function Table({ canal, login, admin, Url }) {
       </section>
 
       {/* TABELA */}
-<<<<<<< HEAD
+
       <section className={Style.sectionTable}>
         <table>
-=======
-      <section>
-        <table className={Style.table}>
->>>>>>> 2399895b3775fba1b2d660622df6c0d179071d80
           <thead>
             {isLoading ? (
               <tr></tr>
@@ -302,26 +306,26 @@ export default function Table({ canal, login, admin, Url }) {
 
                 {canal === "PME" && (
                   <>
-                    <td>ANOMES</td>
-                    <td>CPF</td>
-                    <td>Nome</td>
-                    <td>Input</td>
-                    <td>LoginNET</td>
-                    <td>CNPJ_CPF</td>
-                    <td>Razao_social</td>
-                    <td>Situacao</td>
-                    <td>Celular</td>
-                    <td>Email</td>
-                    <td>Email_Gestor</td>
-                    <td>COD</td>
-                    <td>COMTA</td>
-                    <td>Coordenador</td>
-                    <td>GERENTE</td>
-                    <td>Territorio</td>
-                    <td>CANAL</td>
-                    <td>REGIONAL</td>
-                    <td>AACE</td>
-                    <td>TIME</td>
+                    <th>ANOMES</th>
+                    <th>CPF</th>
+                    <th>Nome</th>
+                    <th>Input</th>
+                    <th>LoginNET</th>
+                    <th>CNPJ_CPF</th>
+                    <th>Razao_social</th>
+                    <th>Situacao</th>
+                    <th>Celular</th>
+                    <th>Email</th>
+                    <th>Email_Gestor</th>
+                    <th>COD</th>
+                    <th>COMTA</th>
+                    <th>Coordenador</th>
+                    <th>GERENTE</th>
+                    <th>Territorio</th>
+                    <th>CANAL</th>
+                    <th>REGIONAL</th>
+                    <th>AACE</th>
+                    <th>TIME</th>
                   </>
                 )}
                 {canal === "Varejo" && (
