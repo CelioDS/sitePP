@@ -156,7 +156,7 @@
   padding: 0.75rem;
   text-align: left;
   white-space: normal;
-  word-break: break-word;
+  word-break: no-word;
 }
 
 /* Faz o th herdar a cor do thead e mantém o fundo escuro */

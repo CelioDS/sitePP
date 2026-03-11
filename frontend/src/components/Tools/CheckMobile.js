@@ -5,7 +5,7 @@ export default function CheckMobile() {
   
 
   const CheckMobile = () => {
-    setIsMobile(window.matchMedia("(max-width: 1300px)").matches);
+    setIsMobile(window.matchMedia("(max-width: 900px)").matches);
   };
 
   useEffect(() => {

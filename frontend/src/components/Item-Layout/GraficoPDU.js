@@ -154,7 +154,7 @@ export default function GraficoPDU({ year, Url, referencia  }) {
         <p>
           RESIDENCIAL | MÓVEL |{" "}
           <span style={{ color: "#9E2A2F", fontWeight: "bold" }}>
-            {tituloAbrangencia}
+            {tituloAbrangencia} {year}
           </span>
         </p>
       </div>
