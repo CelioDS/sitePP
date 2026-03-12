@@ -45,6 +45,7 @@ export const getDBtarefas = async (_, res) => {
           WHERE e.tarefa_id = t.id
         ), '[]') AS etapas
       FROM tarefas t
+      ORDER BY ORDEM DESC
     `;
 
     const [rows] = await dataBase.query(sql);
@@ -83,17 +84,18 @@ export const setDBtarefas = async (req, res) => {
     }
 
     const query = `
-      INSERT INTO tarefas (\`tarefa\`,\`responsavel\` ,\`concluido\`,\`data_atualizacao\`)
+      INSERT INTO tarefas (\`tarefa\`,\`obs\`,\`responsavel\` ,\`concluido\`,\`data_atualizacao\`)
       VALUES (?, ?, ?, ? )
     `;
 
-    const values = [tarefa, responsavel, concluido, TODAY];
+    const values = [tarefa, obs, responsavel, concluido, TODAY];
 
     const [result] = await dataBase.query(query, values);
 
     return res.status(201).json({
       id: result.insertId,
       tarefa,
+      obs,
       responsavel,
       concluido,
       data_atualizacao: TODAY,
@@ -115,7 +117,7 @@ export const patchDBtarefas = async (req, res) => {
     }
 
     // Campos permitidos para update parcial
-    const allowed = ["tarefa", "responsavel", "concluido"];
+    const allowed = ["tarefa", "obs", "responsavel", "concluido"];
 
     // Monta dinamicamente o SET somente com campos presentes
     const setClauses = [];
@@ -190,16 +192,17 @@ export const updateDBtarefas = async (req, res) => {
 
     sql = `
         UPDATE tarefas
-           SET \`tarefa\` = ?, \`concluido\` = ?, \`responsavel\` = ?, \`data_atualizacao\` = ?
+           SET \`tarefa\` = ?, \`obs\` = ?, \`concluido\` = ?, \`responsavel\` = ?, \`data_atualizacao\` = ?
          WHERE \`id\` = ?
       `;
-    params = [tarefa, concluido, responsavel, TODAY, id];
+    params = [tarefa, obs, concluido, responsavel, TODAY, id];
 
     const [result] = await dataBase.query(sql, params);
 
     return res.status(200).json({
       id: result.insertId,
       tarefa,
+      obs,
       responsavel,
       concluido,
       data_atualizacao: TODAY,
@@ -414,5 +417,23 @@ export const deleteDBtarefasEtapas = async (req, res) => {
   } catch (err) {
     console.error("Erro deleteDBtarefas:", err);
     return res.status(500).json({ error: "Erro ao deletar usuário." });
+  }
+};
+
+
+
+export const ordenarTarefa = async (req, res) => {
+  const tarefas = req.body; // espera array [{id, ordem}]
+
+  try {
+    for (const tarefa of tarefas) {
+      await db.query("UPDATE tarefas SET ordem=? WHERE id=?", [
+        tarefa.ordem,
+        tarefa.id,
+      ]);
+    }
+    res.json({ message: "Ordem atualizada!" });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 };

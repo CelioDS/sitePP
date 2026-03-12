@@ -19,6 +19,7 @@ import {
   patchDBtarefasEtapas,
   updateDBtarefasEtapas,
   deleteDBtarefasEtapas,
+  ordenarTarefa,
 } from "../Controllers/Todo.js";
 
 import {
@@ -84,6 +85,9 @@ router.get("/todo/:id", getDBtarefasID);
 router.put("/todo/:id", updateDBtarefas);
 router.patch("/todo/:id", patchDBtarefas);
 router.delete("/todo/:id", deleteDBtarefas);
+
+// PUT /todo/reorder
+router.put("/todo/reorder", ordenarTarefa);
 
 router.post("/todo/etapas/add", setDBtarefasEtapas);
 router.put("/todo/etapas/:id", updateDBtarefasEtapas);

@@ -82,7 +82,7 @@
   width: 100%;
 }
 
-.main .section tr{
+.main .section tr {
   border: 1px solid #cccc;
 }
 
@@ -91,7 +91,7 @@
   height: 60px;
   background-color: var(--color-brand-primary-darkest);
   color: #ffff;
-    border: 1px solid var(--color-brand-primary-darkest);
+  border: 1px solid var(--color-brand-primary-darkest);
 
   padding: 5px;
 }
@@ -108,6 +108,17 @@
 .main .sectionTarefas {
   width: 100%;
   table-layout: fixed; /* evita expansão */
+}
+
+.main .sectionTarefas textarea {
+  display: inline-flex;
+  justify-content: center;
+  width: 100%;
+  min-height: 80px;
+  text-align: center;
+  align-items: center;
+  resize: none;
+  outline: none;
 }
 .main .sectionTarefas td:first-child {
   white-space: normal;
