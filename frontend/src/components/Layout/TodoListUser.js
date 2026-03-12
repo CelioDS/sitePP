@@ -98,7 +98,10 @@ export default function ToDo() {
     const fetchData = async () => {
       try {
         const res = await axios.get(`${Url}/todo`);
-        setDataBase(res.data);
+
+        const ordenado = res.data.sort((a, b) => a.ordem - b.ordem);
+
+        setDataBase(ordenado);
       } catch (err) {
         console.log(err);
         toast.error("ERRO - Ao buscar o TODO ");
@@ -114,6 +117,7 @@ export default function ToDo() {
     const dadosForm = ref.current; // mantém seu padrão
     const tarefaValue = dadosForm?.tarefa?.value?.trim() || ""; // <-- SAFE
     const obsValue = dadosForm?.obs?.value?.trim() || ""; // <-- SAFE
+    const ordemValue = 0; // <-- SAFE
 
     if (!tarefaValue) {
       toast.warn("Preencher todos os valores");
@@ -124,12 +128,14 @@ export default function ToDo() {
     setTextBTN(editTarefa ? "Editando... " : "Salvando...");
 
     if (editTarefa) {
+      console.log(editTarefa);
       await axios
         .put(`${Url}/todo/${editTarefa.id}`, {
           tarefa: tarefaValue, // <-- usa a variável segura
-          obs: obsValue, // <-- usa a variável segura
+          obs: editTarefa.obs, // <-- usa a variável segura
           responsavel: login,
           concluido: editTarefa.concluido,
+          ordem: editTarefa.ordem,
           DATA_ATUALIZACAO:
             editTarefa?.DATA_ATUALIZACAO ?? editTarefa?.data_atualizacao,
         })
@@ -144,6 +150,7 @@ export default function ToDo() {
                     tarefa: tarefaValue,
                     obs: obsValue,
                     responsavel: login,
+                    ordem: ordemValue,
                     concluido: data?.concluido ?? info.concluido,
                     // guarda nos dois campos para não quebrar telas antigas
                     DATA_ATUALIZACAO:
@@ -177,6 +184,7 @@ export default function ToDo() {
           tarefa: tarefaValue,
           obs: obsValue,
           responsavel: login,
+          ordem: 0,
           concluido: 0,
         })
         .then(({ data }) => {
@@ -681,18 +689,25 @@ export default function ToDo() {
                               }
                             </td>
 
+                            {tarefaShow ? (
+                              <td>
+                                <p>{tarefa.obs}</p>
+                              </td>
+                            ) : (
+                              <td>
+                                <textarea
+                                  onChange={(e) =>
+                                    handleSubmitTextarea(e, tarefa)
+                                  }
+                                  value={tarefa.obs}
+                                  name="obs"
+                                  id="obs"
+                                ></textarea>
+                              </td>
+                            )}
+
                             {!tarefaShow && (
                               <>
-                                <td>
-                                  <textarea
-                                    onChange={(e) =>
-                                      handleSubmitTextarea(e, tarefa)
-                                    }
-                                    value={tarefa.obs}
-                                    name="obs"
-                                    id="obs"
-                                  ></textarea>
-                                </td>
                                 <td>
                                   <button
                                     aria-label="Concluir tarefa"

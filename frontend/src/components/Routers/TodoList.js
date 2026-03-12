@@ -6,9 +6,9 @@ import TodoUser from "../Layout/TodoListUser";
 
 export default function ToDo() {
   const [userData, setUserData] = useState();
+  const [view, setView] =useState(0)
 
   const login = userData?.login;
-  const admin = userData?.admin;
 
   useEffect(() => {
     let isMounted = true; // Garante que não vamos atualizar estado se o componente desmontar
@@ -35,7 +35,10 @@ export default function ToDo() {
 
   return (
     <Container>
-      <main>{!admin ? <TodoUser /> : <Todoamin />}</main>
+      <main>
+        <button onClick={() => setView( (prev) => prev = !prev)}>mudar</button>
+        {view ? <TodoUser /> : <Todoamin login={login}/>}
+      </main>
     </Container>
   );
 }

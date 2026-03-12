@@ -2,6 +2,8 @@ import axios from "axios";
 import { useEffect, useState } from "react";
 import Container from "./Container";
 import Loading from "../Item-Layout/Loading";
+import { BsClockFill, BsCheckCircleFill } from "react-icons/bs";
+import Style from "../Layout/TodoList.module.css";
 
 import { DndContext, closestCenter } from "@dnd-kit/core";
 
@@ -17,7 +19,10 @@ import { CSS } from "@dnd-kit/utilities";
 export default function AdminTarefas() {
   const [dataBase, setDataBase] = useState([]);
   const [tarefasOrdenadas, setTarefasOrdenadas] = useState([]);
+  const [userBD, setUserBD] = useState([]);
   const [filterUser, setFilterUser] = useState("");
+
+  const [userSearch, setUserSearch] = useState(""); // corrigido
 
   const Url = process.env.REACT_APP_API_URL || "http://localhost:8000";
 
@@ -28,7 +33,6 @@ export default function AdminTarefas() {
         const ordenado = res.data.sort((a, b) => a.ordem - b.ordem);
         setDataBase(ordenado);
         setTarefasOrdenadas(ordenado);
-
       } catch (err) {
         console.log(err);
       }
@@ -37,13 +41,50 @@ export default function AdminTarefas() {
     fetchData();
   }, [Url]);
 
+  function countTarefas(db, user) {
+    if (!Array.isArray(db)) return { pendentes: 0, concluidos: 0, total: 0 };
+    const total = db.filter((t) => t.responsavel === user).length;
+    const pendentes = db.filter(
+      (t) => t.responsavel === user && Number(t.concluido) === 0,
+    ).length;
+    const finalizados = db.filter(
+      (t) => t.responsavel === user && Number(t.concluido) === 1,
+    ).length;
+
+    return { pendentes, finalizados, total };
+  }
+
+  async function handleSearch(responsavelValor) {
+    try {
+      const params = {};
+      if (responsavelValor) params.responsavel = responsavelValor;
+
+      const res = await axios.get(`${Url}/todo`, { params });
+      const ordenado = [...res.data].sort(
+        (a, b) => (a.ordem ?? 0) - (b.ordem ?? 0),
+      );
+      setDataBase(ordenado);
+      setTarefasOrdenadas(ordenado);
+      setUserSearch(responsavelValor); // manter o select controlado
+      // Opcional: sincronizar o texto do input também
+      setFilterUser(responsavelValor || "");
+    } catch (err) {
+      console.log(err);
+    }
+  }
+
+  useEffect(() => {
+    const users = Array.from(
+      new Map(dataBase.map((t) => [t.responsavel, t])).values(),
+    );
+
+    setUserBD(users);
+  }, [dataBase]);
+
   const tarefasFiltradas = tarefasOrdenadas.filter((t) => {
     if (!filterUser) return true;
 
-    return (
-      t.responsavel.toLowerCase().includes(filterUser.toLowerCase()) &&
-      t.concluido === 0
-    );
+    return t.responsavel.toLowerCase().includes(filterUser.toLowerCase());
   });
 
   async function handleDragEnd(event) {
@@ -58,21 +99,37 @@ export default function AdminTarefas() {
 
     try {
       // enviar para /todo/reorder de uma vez
-      await axios.put(
-        `${Url}/todo/reorder`,
-        novaOrdem.map((t, index) => ({ id: t.id, ordem: index })),
-      );
+
+      await axios.patch(`${Url}/todo/reorder`, {
+        tarefas: novaOrdem.map((t, index) => ({ id: t.id, ordem: index })), // 0-based; ajuste se precisar 1-based
+        // se o backend usa "responsavel=?"
+      });
+      console.log(novaOrdem);
     } catch (err) {
       console.log(err);
     }
   }
 
-  if (!dataBase) return <Loading />;
+  if (!dataBase || dataBase.length === 0) return <Loading />;
 
   return (
     <Container>
       <main style={{ width: "100%" }}>
-        <h1>Painel Administrador</h1>
+        <div className={Style.card}>
+          <div>
+            <span>pendente</span>
+            <BsClockFill color="#9fa11a" />
+            <h1>{countTarefas(dataBase, userBD[0]?.responsavel).pendentes}</h1>
+          </div>
+          <h1>Painel Administrador</h1>
+          <aside>
+            <span>Finalizados</span>
+            <BsCheckCircleFill color="#25a11a" />
+            <h1>
+              {countTarefas(dataBase, userBD[0]?.responsavel).finalizados}
+            </h1>
+          </aside>
+        </div>
 
         <div style={{ marginBottom: "20px" }}>
           <input
@@ -82,6 +139,20 @@ export default function AdminTarefas() {
             onChange={(e) => setFilterUser(e.target.value)}
             style={{ padding: "8px", width: "300px" }}
           />
+
+          <select
+            value={userSearch}
+            onChange={(e) => handleSearch(e.target.value)}
+            style={{ padding: "8px" }}
+          >
+            <option value="">Todos os responsáveis</option>
+            {userBD &&
+              userBD.map((user) => (
+                <option key={user.id} value={user.responsavel}>
+                  {user.responsavel}
+                </option>
+              ))}
+          </select>
         </div>
 
         <table style={{ width: "100%", borderCollapse: "collapse" }}>
@@ -90,6 +161,7 @@ export default function AdminTarefas() {
               <th>Tarefa</th>
               <th>Responsável</th>
               <th>Status</th>
+              <th>Obs</th>
             </tr>
           </thead>
 
@@ -102,9 +174,11 @@ export default function AdminTarefas() {
               strategy={verticalListSortingStrategy}
             >
               <tbody>
-                {tarefasFiltradas.map((tarefa) => (
-                  <SortableRow key={tarefa.id} tarefa={tarefa} />
-                ))}
+                {tarefasFiltradas
+                  .filter((tarefa) => tarefa.concluido === 0)
+                  .map((tarefa) => (
+                    <SortableRow key={tarefa.id} tarefa={tarefa} />
+                  ))}
               </tbody>
             </SortableContext>
           </DndContext>
@@ -136,6 +210,14 @@ function SortableRow({ tarefa }) {
 
       <td style={{ border: "1px solid #ccc", padding: "8px" }}>
         {Number(tarefa.concluido) === 1 ? "Concluído" : "Pendente"}
+      </td>
+
+      <td>
+        <textarea
+          name="
+        "
+          id=""
+        ></textarea>
       </td>
     </tr>
   );

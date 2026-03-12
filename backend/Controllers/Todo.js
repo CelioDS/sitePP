@@ -13,11 +13,22 @@ dotenv.config();
 // ------------------tarefas-------------------
 
 // GET: lista todos
-export const getDBtarefas = async (_, res) => {
+export const getDBtarefas = async (req, res) => {
   try {
     // 1) Aumenta o limite do GROUP_CONCAT na sessão atual (query separado)
+    const { login } = req.body || {};
+
     await dataBase.query("SET SESSION group_concat_max_len = 1000000");
 
+    const where = `
+      WHERE (
+        ? IS NULL
+        OR ? = ''
+        OR t.\`responsavel\` = ?
+      )
+    `;
+
+    const params = [login ?? null, login ?? null, login ?? null];
     // 2) Faz o SELECT (apenas uma instrução SQL aqui)
     const sql = `
       SELECT
@@ -45,10 +56,11 @@ export const getDBtarefas = async (_, res) => {
           WHERE e.tarefa_id = t.id
         ), '[]') AS etapas
       FROM tarefas t
+       ${where}
       ORDER BY ORDEM DESC
     `;
 
-    const [rows] = await dataBase.query(sql);
+    const [rows] = await dataBase.query(sql, params);
 
     // 3) Converte etapas (string JSON) -> array/obj
     const result = rows.map((r) => ({
@@ -77,18 +89,18 @@ export const getDBtarefasID = async (req, res) => {
 // POST: cria usuário
 export const setDBtarefas = async (req, res) => {
   try {
-    const { tarefa, responsavel, concluido } = req.body;
+    const { tarefa, obs, responsavel, ordem, concluido } = req.body;
 
     if (!tarefa) {
       return res.status(400).json({ error: "Campos obrigatórios ausentes." });
     }
 
     const query = `
-      INSERT INTO tarefas (\`tarefa\`,\`obs\`,\`responsavel\` ,\`concluido\`,\`data_atualizacao\`)
-      VALUES (?, ?, ?, ? )
+      INSERT INTO tarefas (\`tarefa\`,\`obs\`,\`responsavel\` ,\`concluido\`, \`ordem\`, \`data_atualizacao\`)
+      VALUES (?, ?, ?, ?,?, ? )
     `;
 
-    const values = [tarefa, obs, responsavel, concluido, TODAY];
+    const values = [tarefa, obs, responsavel, concluido, ordem, TODAY];
 
     const [result] = await dataBase.query(query, values);
 
@@ -98,6 +110,7 @@ export const setDBtarefas = async (req, res) => {
       obs,
       responsavel,
       concluido,
+      ordem,
       data_atualizacao: TODAY,
       message: "Tarefa criada",
     });
@@ -177,7 +190,7 @@ export const patchDBtarefas = async (req, res) => {
 // PUT: atualiza usuário
 export const updateDBtarefas = async (req, res) => {
   try {
-    const { tarefa, concluido, responsavel, TODAY } = req.body;
+    const { tarefa, obs, concluido, responsavel, ordem } = req.body;
     const { id } = req.params;
 
     if (!id) {
@@ -187,26 +200,32 @@ export const updateDBtarefas = async (req, res) => {
       return res.status(400).json({ error: "Campos obrigatórios ausentes." });
     }
 
-    // Se senha vier informada, hasheia; se vier vazia/undefined, não altera senha
-    let sql, params;
-
-    sql = `
-        UPDATE tarefas
-           SET \`tarefa\` = ?, \`obs\` = ?, \`concluido\` = ?, \`responsavel\` = ?, \`data_atualizacao\` = ?
-         WHERE \`id\` = ?
-      `;
-    params = [tarefa, obs, concluido, responsavel, TODAY, id];
+    const sql = `
+      UPDATE tarefas
+         SET \`tarefa\` = ?,
+             \`obs\` = ?,
+             \`concluido\` = ?,
+             \`responsavel\` = ?,
+             \`ordem\` = ?,
+             \`data_atualizacao\` = NOW()
+       WHERE \`id\` = ?
+    `;
+    const params = [tarefa, obs, concluido, responsavel, ordem, id];
 
     const [result] = await dataBase.query(sql, params);
 
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: "Tarefa não encontrada." });
+    }
+
     return res.status(200).json({
-      id: result.insertId,
+      id, // o id atualizado
       tarefa,
       obs,
       responsavel,
       concluido,
-      data_atualizacao: TODAY,
-      message: "Tarefa atualizada ...",
+      ordem,
+      message: "Tarefa atualizada com sucesso.",
     });
   } catch (err) {
     console.error("Erro updateDBtarefas:", {
@@ -215,7 +234,7 @@ export const updateDBtarefas = async (req, res) => {
       sqlMessage: err.sqlMessage,
       stack: err.stack,
     });
-    return res.status(500).json({ error: "Erro ao atualizar usuário." });
+    return res.status(500).json({ error: "Erro ao atualizar tarefa." });
   }
 };
 
@@ -420,20 +439,54 @@ export const deleteDBtarefasEtapas = async (req, res) => {
   }
 };
 
-
-
+// Controllers/Todo.js
 export const ordenarTarefa = async (req, res) => {
-  const tarefas = req.body; // espera array [{id, ordem}]
-
   try {
-    for (const tarefa of tarefas) {
-      await db.query("UPDATE tarefas SET ordem=? WHERE id=?", [
-        tarefa.ordem,
-        tarefa.id,
-      ]);
+    const { tarefas } = req.body; // espera array [{id, ordem}]
+    console.log("BODY RECEBIDO:", req.body);
+
+    if (!Array.isArray(tarefas) || tarefas.length === 0) {
+      return res.status(400).json({
+        error: "Body inválido: 'tarefas' deve ser um array não vazio.",
+      });
     }
-    res.json({ message: "Ordem atualizada!" });
+
+    if (dataBase.beginTransaction) await dataBase.beginTransaction();
+
+    const detalhes = [];
+    for (const tarefa of tarefas) {
+      if (tarefa?.id == null || tarefa?.ordem == null) {
+        detalhes.push({
+          id: tarefa?.id ?? null,
+          affectedRows: 0,
+          error: "Item inválido (id/ordem ausentes)",
+        });
+        continue;
+      }
+
+      // USE dataBase (não db)
+      const [result] = await dataBase.query(
+        "UPDATE tarefas SET ordem = ? WHERE id = ?",
+        [tarefa.ordem, tarefa.id],
+      );
+
+      detalhes.push({ id: tarefa.id, affectedRows: result?.affectedRows ?? 0 });
+    }
+
+    if (dataBase.commit) await dataBase.commit();
+
+    return res.json({
+      message: "Ordem atualizada!",
+      resumo: {
+        total: detalhes.length,
+        atualizados: detalhes.filter((d) => d.affectedRows > 0).length,
+        ignorados: detalhes.filter((d) => d.affectedRows === 0).length,
+      },
+      detalhes,
+    });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    if (dataBase.rollback) await dataBase.rollback();
+    console.error("Erro /todo/reorder:", err);
+    return res.status(500).json({ error: err.message });
   }
 };
