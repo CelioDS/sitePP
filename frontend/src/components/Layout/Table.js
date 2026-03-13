@@ -87,7 +87,7 @@ export default function Table({ canal, login, admin, Url }) {
   useEffect(() => {
     fetchData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-}, [Url, rota, debouncedSearch, start, end, latest]);
+  }, [Url, rota, debouncedSearch, start, end, latest]);
 
   const parseAsDate = (value) => {
     if (!value) return null;
@@ -283,7 +283,6 @@ export default function Table({ canal, login, admin, Url }) {
                     <th>STATUS</th>
                   </>
                 )}
-
                 {canal === "PAP" && (
                   <>
                     <th>ANOMES </th>
@@ -303,7 +302,6 @@ export default function Table({ canal, login, admin, Url }) {
                     <th>FILIAL_COORDENADOR </th>
                   </>
                 )}
-
                 {canal === "PME" && (
                   <>
                     <th>ANOMES</th>
@@ -352,6 +350,7 @@ export default function Table({ canal, login, admin, Url }) {
                     <th>CANAL</th>
                     <th>IBGE</th>
                     <th>CIDADE</th>
+                    <th>RAZAO_SOCIAL</th>
                     <th>PARCEIRO_LOJA</th>
                     <th>CNPJ</th>
                     <th>NOME</th>
@@ -363,8 +362,14 @@ export default function Table({ canal, login, admin, Url }) {
                     <th>LOGIN_NET</th>
                     <th>TIPO</th>
                     <th>LOGIN_CLARO</th>
+                    <th>EXECUTIVO</th>
+                    <th>COMTA</th>
+                    <th>CABEAMENTO</th>
+                    <th>FILIAL_COORDENADOR</th>
+                    <th>GN</th>
                   </>
                 )}
+                
               </tr>
             )}
           </thead>
@@ -394,7 +399,6 @@ export default function Table({ canal, login, admin, Url }) {
                       <td>{item.STATUS}</td>
                     </>
                   )}
-
                   {canal === "PME" && (
                     <>
                       <td>{item.ANOMES}</td>
@@ -419,7 +423,6 @@ export default function Table({ canal, login, admin, Url }) {
                       <td>{item.TIME}</td>
                     </>
                   )}
-
                   {canal === "PAP" && (
                     <>
                       <td>{item.ANOMES || "não utilizado"}</td>
@@ -439,7 +442,6 @@ export default function Table({ canal, login, admin, Url }) {
                       <td>{item.FILIAL_COORDENADOR || "não utilizado"}</td>
                     </>
                   )}
-
                   {canal === "Varejo" && (
                     <>
                       <td>{item.ANOMES}</td>
@@ -464,6 +466,7 @@ export default function Table({ canal, login, admin, Url }) {
                       <td>{item.CANAL}</td>
                       <td>{item.IBGE}</td>
                       <td>{item.CIDADE}</td>
+                      <td>{item.RAZAO_SOCIAL}</td>
                       <td>{item.PARCEIRO_LOJA}</td>
                       <td>{item.CNPJ}</td>
                       <td>{item.NOME}</td>
@@ -475,8 +478,14 @@ export default function Table({ canal, login, admin, Url }) {
                       <td>{item.LOGIN_NET}</td>
                       <td>{item.TIPO}</td>
                       <td>{item.LOGIN_CLARO}</td>
+                      <td>{item.EXECUTIVO}</td>
+                      <td>{item.COMTA}</td>
+                      <td>{item.CABEAMENTO}</td>
+                      <td>{item.FILIAL_COORDENADOR}</td>
+                      <td>{item.GN}</td>
                     </>
                   )}
+                  ``
                 </tr>
               ))
             )}

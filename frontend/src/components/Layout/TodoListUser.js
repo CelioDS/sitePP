@@ -148,7 +148,7 @@ export default function ToDo() {
                     ...info,
                     id: editTarefa.id,
                     tarefa: tarefaValue,
-                    obs: obsValue,
+                    obs: editTarefa.obs,
                     responsavel: login,
                     ordem: ordemValue,
                     concluido: data?.concluido ?? info.concluido,
@@ -603,6 +603,8 @@ export default function ToDo() {
         >
           {tarefaShow ? "Pendente" : "Concluido"}
         </button>
+        <br />
+        <h1>Lista de tarefas {tarefaShow ? "concluidas" : "pendentes"}</h1>
         <section className={Style.section}>
           {!dataBase ? (
             <Loading />
@@ -724,8 +726,8 @@ export default function ToDo() {
                                 {/* Excluir */}
                                 <td>
                                   <button
-                                    aria-label="Salvar tarefa"
-                                    title="Salvar tarefa"
+                                    aria-label="Excluir tarefa"
+                                    title="Excluir tarefa"
                                     className={Style.btnDelete}
                                     onClick={() => handleDelete(tarefa.id)}
                                   >

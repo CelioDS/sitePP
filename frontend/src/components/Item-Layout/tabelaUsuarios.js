@@ -46,6 +46,7 @@ export default function RelatorioAdmin({ user, DataBase }) {
         dadosForm.login.value = "";
         dadosForm.senha.value = "";
         dadosForm.canal.value = "";
+        dadosForm.mis.value = "";
         dadosForm.admin.value = "";
         setEditUser(null);
       } else {
@@ -64,6 +65,7 @@ export default function RelatorioAdmin({ user, DataBase }) {
       dadosForm.login.value = editUser.login;
       dadosForm.senha.value = editUser.senha;
       dadosForm.canal.value = editUser.canal;
+      dadosForm.mis.value = editUser.mis;
       dadosForm.admin.value = editUser.admin;
     }
   }, [editUser]);
@@ -76,6 +78,7 @@ export default function RelatorioAdmin({ user, DataBase }) {
     const loginValue = dadosForm.login.value.toLowerCase();
     const senhaValue = dadosForm.senha.value;
     const canalValue = dadosForm.canal.value;
+    const misValue = dadosForm.mis.value;
     const adminValue = Number(dadosForm.admin.value);
     e.preventDefault();
 
@@ -83,6 +86,7 @@ export default function RelatorioAdmin({ user, DataBase }) {
       !dadosForm.login.value ||
       !dadosForm.senha.value ||
       !dadosForm.canal.value ||
+      !dadosForm.mis.value ||
       !dadosForm.admin.value
     ) {
       toast.warn("Preencher todos os valores");
@@ -97,6 +101,7 @@ export default function RelatorioAdmin({ user, DataBase }) {
           login: dadosForm.login.value.toLowerCase(),
           senha: dadosForm.senha.value,
           canal: dadosForm.canal.value,
+          mis: dadosForm.mis.value,
           admin: Number(dadosForm.admin.value),
         })
         .then(({ data }) => {
@@ -111,6 +116,7 @@ export default function RelatorioAdmin({ user, DataBase }) {
                     login: dadosForm.login.value.toLowerCase(),
                     senha: dadosForm.senha.value,
                     canal: dadosForm.canal.value,
+                    mis: dadosForm.mis.value,
                     admin: Number(dadosForm.admin.value),
                   }
                 : info,
@@ -163,6 +169,7 @@ export default function RelatorioAdmin({ user, DataBase }) {
           login: dadosForm.login.value.toLowerCase(),
           senha: dadosForm.senha.value,
           canal: dadosForm.canal.value,
+          mis: dadosForm.mis.value,
           admin: Number(dadosForm.admin.value),
         })
         .then(({ data }) => {
@@ -175,6 +182,7 @@ export default function RelatorioAdmin({ user, DataBase }) {
               login: loginValue,
               senha: senhaValue,
               canal: canalValue,
+              mis: misValue,
               admin: adminValue,
             },
           ]);
@@ -232,6 +240,7 @@ export default function RelatorioAdmin({ user, DataBase }) {
             <select name="canal" id="canal">
               <option value="">Selecione</option>
               <option value="PME">PME</option>
+              <option value="MIS">MIS</option>
               <option value="Varejo">Varejo</option>
               <option value="LP">Loja Propria</option>
               <option value="PAP">Porta a Porta</option>
@@ -241,6 +250,14 @@ export default function RelatorioAdmin({ user, DataBase }) {
           <div>
             <label htmlFor="admin">Admin:</label>
             <select name="admin" id="admin">
+              <option value="">Selecione</option>
+              <option value="1">SIM</option>
+              <option value="0">NÃO</option>
+            </select>
+          </div>
+          <div>
+            <label htmlFor="mis">mis:</label>
+            <select name="mis" id="mis">
               <option value="">Selecione</option>
               <option value="1">SIM</option>
               <option value="0">NÃO</option>

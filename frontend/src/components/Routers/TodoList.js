@@ -1,25 +1,29 @@
 import Container from "../Layout/Container";
 import { useEffect, useState } from "react";
 import ValidarToken from "../Tools/ValidarToken";
-import Todoamin from "../Layout/todoListAdmin";
+import TodoAdmin from "../Layout/todoListAdmin";
 import TodoUser from "../Layout/TodoListUser";
 
 export default function ToDo() {
   const [userData, setUserData] = useState();
-  const [view, setView] =useState(0)
+  const [view, setView] = useState(0);
 
   const login = userData?.login;
+  const adminMis = userData?.adminMis;
 
+
+  
   useEffect(() => {
     let isMounted = true; // Garante que não vamos atualizar estado se o componente desmontar
-
+    
     async function fetchUserData() {
       try {
         const data = await ValidarToken();
-
+        
         // Só atualiza se o componente ainda estiver na tela e o dado for válido
         if (isMounted && data) {
           setUserData(data);
+          console.log(data);
         }
       } catch (error) {
         console.error("Erro ao validar token:", error);
@@ -36,8 +40,9 @@ export default function ToDo() {
   return (
     <Container>
       <main>
-        <button onClick={() => setView( (prev) => prev = !prev)}>mudar</button>
-        {view ? <TodoUser /> : <Todoamin login={login}/>}
+        <button onClick={() => setView((prev) => (prev = !prev))}>mudar</button>
+
+        { view ? <TodoAdmin login={login} /> :  <TodoUser />}
       </main>
     </Container>
   );
