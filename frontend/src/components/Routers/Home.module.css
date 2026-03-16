@@ -89,8 +89,11 @@ select {
   width: 100%;
   text-align: center; /* centraliza o texto */
   text-align-last: start; /* essencial no Chrome/Edge */
+  cursor: pointer;
 }
+
 
 option {
   text-align: start; /* centraliza no dropdown */
+  cursor: pointer;
 }

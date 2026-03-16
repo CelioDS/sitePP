@@ -115,6 +115,7 @@ export default function NavBar({ setPermission, permission }) {
     if (linkAtivo === "Relatorio") return <RelatorioLogo />;
     if (linkAtivo === "Perfil") return <CgProfile size={54} />;
     if (linkAtivo === "MIS") return <FaMicroscope size={50} />;
+    if (linkAtivo === "TodoList") return <FaMicroscope size={50} />;
     return <ClaroLogo />;
   }
 

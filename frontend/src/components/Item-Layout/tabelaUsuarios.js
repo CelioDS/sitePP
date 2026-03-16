@@ -5,14 +5,15 @@ import Style from "./tabelaUsuarios.module.css";
 import Loading from "./Loading";
 
 export default function RelatorioAdmin({ user, DataBase }) {
-  const [dataBaseLogin, setDataBaseLogin] = useState([]);
   const ref = useRef();
   const dadosForm = ref.current;
+  const [isMis, setIsMis] = useState("");
+  const [idFirst, setIdFirst] = useState();
   const [editUser, setEditUser] = useState();
   const [isSubmit, setIsSubmit] = useState(false);
-  const [textButtonForm, setTextButtonForm] = useState("Salvar");
+  const [dataBaseLogin, setDataBaseLogin] = useState([]);
   const [handleNumberEdit, setHandleNumberEdit] = useState(1);
-  const [idFirst, setIdFirst] = useState();
+  const [textButtonForm, setTextButtonForm] = useState("Salvar");
   const Url = process.env.REACT_APP_API_URL || "http://localhost:8000";
 
   // 🔹 Buscar dados do backend
@@ -71,25 +72,26 @@ export default function RelatorioAdmin({ user, DataBase }) {
   }, [editUser]);
 
   async function handleSubmit(e) {
+    e.preventDefault();
     if (isSubmit) return;
 
     const dadosForm = ref.current;
 
     const loginValue = dadosForm.login.value.toLowerCase();
     const senhaValue = dadosForm.senha.value;
-    const canalValue = dadosForm.canal.value;
-    const misValue = dadosForm.mis.value;
+    const canalValue = dadosForm.canal?.value || "MIS";
+    const misValue = Number(dadosForm.mis.value);
     const adminValue = Number(dadosForm.admin.value);
     e.preventDefault();
 
     if (
       !dadosForm.login.value ||
       !dadosForm.senha.value ||
-      !dadosForm.canal.value ||
       !dadosForm.mis.value ||
       !dadosForm.admin.value
     ) {
-      toast.warn("Preencher todos os valores");
+      if (isMis && !dadosForm.canal?.value)
+        toast.warn("Preencher todos os valores");
       return;
     }
     setIsSubmit(true);
@@ -100,8 +102,8 @@ export default function RelatorioAdmin({ user, DataBase }) {
         .put(`${Url}/users/${editUser.id}`, {
           login: dadosForm.login.value.toLowerCase(),
           senha: dadosForm.senha.value,
-          canal: dadosForm.canal.value,
-          mis: dadosForm.mis.value,
+          canal: dadosForm.canal?.value || "MIS",
+          mis: Number(dadosForm.mis.value),
           admin: Number(dadosForm.admin.value),
         })
         .then(({ data }) => {
@@ -115,8 +117,8 @@ export default function RelatorioAdmin({ user, DataBase }) {
                     ...info,
                     login: dadosForm.login.value.toLowerCase(),
                     senha: dadosForm.senha.value,
-                    canal: dadosForm.canal.value,
-                    mis: dadosForm.mis.value,
+                    canal: dadosForm.canal.value || "MIS",
+                    mis: Number(dadosForm.mis.value),
                     admin: Number(dadosForm.admin.value),
                   }
                 : info,
@@ -168,8 +170,8 @@ export default function RelatorioAdmin({ user, DataBase }) {
         .post(`${Url}/users/add`, {
           login: dadosForm.login.value.toLowerCase(),
           senha: dadosForm.senha.value,
-          canal: dadosForm.canal.value,
-          mis: dadosForm.mis.value,
+          canal: dadosForm.canal?.value || "MIS",
+          mis: Number(dadosForm.mis.value),
           admin: Number(dadosForm.admin.value),
         })
         .then(({ data }) => {
@@ -199,7 +201,10 @@ export default function RelatorioAdmin({ user, DataBase }) {
   }
 
   async function handleExcluir(id) {
-    if (isSubmit) return;
+    if (isSubmit) {
+      toast.warn("Aguarde!!!");
+      return;
+    }
     setIsSubmit(true);
 
     await axios.delete(`${Url}/users/${id}`).then(({ data }) => {
@@ -236,15 +241,16 @@ export default function RelatorioAdmin({ user, DataBase }) {
             />
           </div>
           <div>
-            <label htmlFor="canal">canal:</label>
-            <select name="canal" id="canal">
+            <label htmlFor="mis">mis:</label>
+            <select
+              name="mis"
+              id="mis"
+              value={isMis}
+              onChange={(e) => setIsMis(e.target.value)}
+            >
               <option value="">Selecione</option>
-              <option value="PME">PME</option>
-              <option value="MIS">MIS</option>
-              <option value="Varejo">Varejo</option>
-              <option value="LP">Loja Propria</option>
-              <option value="PAP">Porta a Porta</option>
-              <option value="AA">Agente Autorizado</option>
+              <option value="1">SIM</option>
+              <option value="0">NÃO</option>
             </select>
           </div>
           <div>
@@ -255,14 +261,19 @@ export default function RelatorioAdmin({ user, DataBase }) {
               <option value="0">NÃO</option>
             </select>
           </div>
-          <div>
-            <label htmlFor="mis">mis:</label>
-            <select name="mis" id="mis">
-              <option value="">Selecione</option>
-              <option value="1">SIM</option>
-              <option value="0">NÃO</option>
-            </select>
-          </div>
+          {(isMis === "0" || editUser) && (
+            <div>
+              <label htmlFor="canal">canal:</label>
+              <select name="canal" id="canal">
+                <option value="">Selecione</option>
+                <option value="PME">PME</option>
+                <option value="Varejo">Varejo</option>
+                <option value="LP">Loja Propria</option>
+                <option value="PAP">Porta a Porta</option>
+                <option value="AA">Agente Autorizado</option>
+              </select>
+            </div>
+          )}
           <button disabled={isSubmit}>{textButtonForm}</button>
         </form>
       </section>
@@ -319,9 +330,9 @@ export default function RelatorioAdmin({ user, DataBase }) {
             </tbody>
           </table>
         ) : (
-          <tr>
+          <section>
             <Loading />
-          </tr>
+          </section>
         )}
       </section>
     </main>

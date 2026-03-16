@@ -1,0 +1,116 @@
+.main {
+  padding: 40px;
+  max-width: 1400px;
+  margin: auto;
+}
+
+/* HEADER */
+
+.header {
+  margin-bottom: 30px;
+}
+
+.header h1 {
+  font-size: 28px;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.header p {
+  color: #6b7280;
+  margin-top: 5px;
+}
+
+/* BUTTON */
+
+.buttonArea {
+  margin-bottom: 25px;
+}
+
+/* TABLE */
+
+.tableSection h2 {
+  margin-bottom: 15px;
+  font-size: 20px;
+  font-weight: 600;
+}
+
+/* wrapper scroll */
+
+.tableWrapper {
+  overflow-x: auto;
+  border-radius: 10px;
+  border: 1px solid #e5e7eb;
+}
+
+/* table */
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+/* header */
+
+.table thead {
+  background: #d4231d;
+  color: white;
+}
+
+.table th {
+  text-align: center;
+  padding: 14px;
+  font-weight: 600;
+}
+
+/* body */
+
+.table td {
+  border: 1px solid #ccc;
+  padding: 14px;
+  border-top: 1px solid #e5e7eb;
+  text-align: start;
+  align-items: start;
+}
+
+/* zebra */
+
+.table tbody tr:nth-child(even) {
+  background: #f9fafb;
+}
+
+/* hover */
+
+.table tbody tr:hover {
+  background: #eef2ff;
+  transition: 0.2s;
+}
+
+/* report name */
+
+.reportName {
+  font-weight: 600;
+  color: #111827;
+}
+
+/* origin */
+
+.origin {
+  white-space: pre-line;
+  font-family: monospace;
+  font-size: 13px;
+  color: #374151;
+}
+
+/* responsive */
+
+@media (max-width: 900px) {
+  .main {
+    padding: 20px;
+  }
+
+  .table {
+    font-size: 13px;
+  }
+}

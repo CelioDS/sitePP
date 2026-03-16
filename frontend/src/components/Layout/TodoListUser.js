@@ -2,7 +2,7 @@ import axios from "axios";
 import { toast } from "react-toastify";
 import Container from "./Container";
 import { useParams } from "react-router-dom";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import {
   BsPenFill,
   BsCheck,
@@ -15,6 +15,7 @@ import {
 } from "react-icons/bs";
 import Style from "./TodoList.module.css";
 import Loading from "../Item-Layout/Loading";
+import debounce from "lodash/debounce";
 
 export default function ToDo() {
   const ref = useRef();
@@ -505,29 +506,35 @@ export default function ToDo() {
     }
   }
 
+  const UpdateHandleSumitTextarea = useCallback(
+    debounce(async (tarefa, value) => {
+      try {
+        const { data } = await axios.patch(`${Url}/todo/${tarefa.id}`, {
+          obs: value,
+        });
+
+        toast.success("OBS atualizada!");
+      } catch (err) {
+        toast.error(err.response?.data || err.message);
+      }
+    }, 2000), 
+    []
+  );
+
   async function handleSubmitTextarea(e, tarefa) {
     const value = e.target.value;
+    setDataBase((prev) =>
+      (prev || []).map((t) =>
+        t.id === tarefa.id
+          ? {
+              ...t,
+              obs: value,
+            }
+          : t,
+      ),
+    );
 
-    try {
-      const { data } = await axios.patch(`${Url}/todo/${tarefa.id}`, {
-        obs: value,
-      });
-
-      setDataBase((prev) =>
-        (prev || []).map((t) =>
-          t.id === tarefa.id
-            ? {
-                ...t,
-                obs: value,
-              }
-            : t,
-        ),
-      );
-
-      toast.success(data?.message ?? "OBS atualizada!");
-    } catch (err) {
-      toast.error(err.response?.data || err.message);
-    }
+    UpdateHandleSumitTextarea(tarefa, value);
   }
 
   async function handleShareTarefa(e, tarefa) {

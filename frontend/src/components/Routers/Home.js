@@ -152,6 +152,7 @@ export default function Home() {
           <div style={filters.group}>
             <label style={filters.label}>ANO</label>
             <select
+              className={Style.selectFilter}
               value={year}
               onChange={(e) => setYear(e.target.value)}
               style={filters.select}
