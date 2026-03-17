@@ -23,6 +23,7 @@ export default function AdminTarefas() {
   const [filterUser, setFilterUser] = useState("");
 
   const [userSearch, setUserSearch] = useState(""); // corrigido
+  const [changeStatus, setChangeStatus] = useState(1);
 
   const Url = process.env.REACT_APP_API_URL || "http://localhost:8000";
 
@@ -42,16 +43,23 @@ export default function AdminTarefas() {
   }, [Url]);
 
   function countTarefas(db, user) {
-    if (!Array.isArray(db)) return { pendentes: 0, concluidos: 0, total: 0 };
-    const total = db.filter((t) => t.responsavel === user).length;
-    const pendentes = db.filter(
-      (t) => t.responsavel === user && Number(t.concluido) === 0,
-    ).length;
-    const finalizados = db.filter(
-      (t) => t.responsavel === user && Number(t.concluido) === 1,
-    ).length;
-
-    return { pendentes, finalizados, total };
+    if (user !== "") {
+      if (!Array.isArray(db)) return { pendentes: 0, concluidos: 0, total: 0 };
+      const total = db.filter((t) => t.responsavel === user).length;
+      const pendentes = db.filter(
+        (t) => t.responsavel === user && Number(t.concluido) === 0,
+      ).length;
+      const finalizados = db.filter(
+        (t) => t.responsavel === user && Number(t.concluido) === 1,
+      ).length;
+      return { pendentes, finalizados, total };
+    } else {
+      if (!Array.isArray(db)) return { pendentes: 0, concluidos: 0, total: 0 };
+      const total = db.filter((t) => t).length;
+      const pendentes = db.filter((t) => Number(t.concluido) === 0).length;
+      const finalizados = db.filter((t) => Number(t.concluido) === 1).length;
+      return { pendentes, finalizados, total };
+    }
   }
 
   async function handleSearch(responsavelValor) {
@@ -119,15 +127,15 @@ export default function AdminTarefas() {
           <div>
             <span>pendente</span>
             <BsClockFill color="#9fa11a" />
-            <h1>{countTarefas(dataBase, userBD[0]?.responsavel).pendentes}</h1>
+            <h1>{countTarefas(dataBase, userSearch).pendentes}</h1>
           </div>
+          {console.log(userSearch)}
+
           <h1>Painel Administrador</h1>
           <aside>
             <span>Finalizados</span>
             <BsCheckCircleFill color="#25a11a" />
-            <h1>
-              {countTarefas(dataBase, userBD[0]?.responsavel).finalizados}
-            </h1>
+            <h1>{countTarefas(dataBase, userSearch).finalizados}</h1>
           </aside>
         </div>
 
@@ -155,6 +163,24 @@ export default function AdminTarefas() {
           </select>
         </div>
 
+        <div>
+          <p>
+            Ver as
+            {changeStatus
+              ? countTarefas(dataBase, userSearch).finalizados
+              : countTarefas(dataBase, userSearch).pendentes}
+            tarefas
+          </p>
+          <button onClick={() => setChangeStatus((prev) => !prev)}>
+            {changeStatus
+              ? countTarefas(dataBase, userSearch).finalizados.length >= 1
+                ? "finalizadas"
+                : "finalizada"
+              : countTarefas(dataBase, userSearch).finalizados.length >= 1
+                ? "pendentes"
+                : "pendente"}
+          </button>
+        </div>
         <table style={{ width: "100%", borderCollapse: "collapse" }}>
           <thead>
             <tr>
@@ -174,11 +200,17 @@ export default function AdminTarefas() {
               strategy={verticalListSortingStrategy}
             >
               <tbody>
-                {tarefasFiltradas
-                  .filter((tarefa) => tarefa.concluido === 0)
-                  .map((tarefa) => (
-                    <SortableRow key={tarefa.id} tarefa={tarefa} />
-                  ))}
+                {changeStatus
+                  ? tarefasFiltradas
+                      .filter((tarefa) => tarefa.concluido === 0)
+                      .map((tarefa) => (
+                        <SortableRow key={tarefa.id} tarefa={tarefa} />
+                      ))
+                  : tarefasFiltradas
+                      .filter((tarefa) => tarefa.concluido === 1)
+                      .map((tarefa) => (
+                        <SortableRow key={tarefa.id} tarefa={tarefa} />
+                      ))}
               </tbody>
             </SortableContext>
           </DndContext>

@@ -191,7 +191,6 @@ export const setExcelPAP = async (req, res) => {
       row.SITUACAO,
       row.EXECUTIVO,
       row.FILIAL_COORDENADOR,
-
       TODAY,
       login,
     ]);
