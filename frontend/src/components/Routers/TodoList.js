@@ -1,7 +1,7 @@
 import Container from "../Layout/Container";
 import { useEffect, useState } from "react";
 import ValidarToken from "../Tools/ValidarToken";
-import TodoAdmin from "../Layout/todoListAdmin";
+import TodoAdmin from "../Layout/TodoListAdmin";
 import TodoUser from "../Layout/TodoListUser";
 
 export default function ToDo() {

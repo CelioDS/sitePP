@@ -11,7 +11,17 @@ export const getDBLogin = async (_, res) => {
   try {
     const query = "SELECT * FROM usuariosAgen";
     const [rows] = await dataBase.query(query);
-    return res.status(200).json(rows);
+
+    const formatteRowns = rows.map((r) => {
+      return {
+        ...rows,
+        responsavel: rows.responsavel
+          ? rows.responsavel(",").map((r) => r.trim())
+          : [],
+      };
+    });
+
+    return res.status(200).json(formatteRowns);
   } catch (err) {
     console.error("Erro getDBLogin:", err);
     return res.status(500).json({ error: "Erro ao buscar usuários." });

@@ -12,10 +12,12 @@ import {
   BsEyeFill,
   BsClockFill,
   BsCheckCircleFill,
+  BsShare,
 } from "react-icons/bs";
 import Style from "./TodoList.module.css";
 import Loading from "../Item-Layout/Loading";
 import debounce from "lodash/debounce";
+import Modal from "../Item-Layout/Modal";
 
 export default function ToDo() {
   const ref = useRef();
@@ -32,6 +34,13 @@ export default function ToDo() {
   const [idFirst, setIdFirst] = useState();
   const [etapasShow, setEtapasShow] = useState();
   const [tarefaShow, setTarefaShow] = useState(0);
+  const [userBD, setUserBD] = useState([]);
+  const [shareTarefa, setshareTarefa] = useState(0);
+  const [deleteTarefa, setdeleteTarefa] = useState(0);
+  const [deleteEtapas, setdeleteEtapas] = useState(0);
+  const [IDShare, setIDShare] = useState();
+  const [userShare, setuserShare] = useState();
+  const [showModal, setshowModal] = useState();
 
   const Url = process.env.REACT_APP_API_URL || "http://localhost:8000";
 
@@ -407,6 +416,7 @@ export default function ToDo() {
       toast.error(err.response?.data || err.message);
     } finally {
       setIsSubmit(false);
+      setdeleteTarefa(false);
     }
   }
 
@@ -473,6 +483,23 @@ export default function ToDo() {
     }
   }
 
+  useEffect(() => {
+    if (!Array.isArray(dataBase)) return;
+
+    const users = [
+      ...new Set(
+        dataBase.flatMap((t) =>
+          (t.responsavel || "")
+            .split(",")
+            .map((r) => r.trim())
+            .filter((r) => r.length > 0),
+        ),
+      ),
+    ];
+
+    setUserBD(users);
+  }, [dataBase]);
+
   async function handleFinished(tarefa) {
     const etapas = Array.isArray(tarefa?.etapas) ? tarefa.etapas : [];
 
@@ -495,8 +522,16 @@ export default function ToDo() {
         })
         .then(({ data }) => {
           setDataBase((prev) =>
-            (prev || []).filter((item) => item.id !== tarefa.id),
+            prev.map((info) =>
+              info.id === tarefa.id
+                ? {
+                    ...info,
+                    concluido: 1,
+                  }
+                : info,
+            ),
           );
+
           toast.success(data?.message ?? "Tarefa Concluida!");
         });
     } catch (err) {
@@ -513,12 +548,12 @@ export default function ToDo() {
           obs: value,
         });
 
-        toast.success("OBS atualizada!");
+        toast.success("OBS atualizada! ", { data });
       } catch (err) {
         toast.error(err.response?.data || err.message);
       }
-    }, 2000), 
-    []
+    }, 2000),
+    [],
   );
 
   async function handleSubmitTextarea(e, tarefa) {
@@ -537,28 +572,33 @@ export default function ToDo() {
     UpdateHandleSumitTextarea(tarefa, value);
   }
 
-  async function handleShareTarefa(e, tarefa) {
-    const value = e.target.value;
-
+  async function handleShareTarefa(usuario, tarefa) {
+    if (isSubmit) setIsSubmit(true);
     try {
-      const { data } = await axios.patch(`${Url}/todo/${tarefa.id}`, {
-        responsavel: login + value,
+      console.log(tarefa);
+      const data = await axios.patch(`${Url}/todo/${tarefa.id}`, {
+        responsavel: `${tarefa.responsavel}, ${usuario}`,
       });
 
       setDataBase((prev) =>
-        (prev || []).map((t) =>
-          t.id === tarefa.id
+        prev.map((info) =>
+          info.id === tarefa.id
             ? {
-                ...t,
-                obs: value,
+                ...info,
+                responsavel: `${tarefa.responsavel}, ${usuario}`,
               }
-            : t,
+            : info,
         ),
       );
 
-      toast.success(data?.message ?? "OBS atualizada!");
+      toast.success(
+        `Tarefa compartilhada com sucesso com a ${usuario}` || data,
+      );
     } catch (err) {
       toast.error(err.response?.data || err.message);
+    } finally {
+      setIsSubmit(false);
+      setshowModal(false);
     }
   }
 
@@ -630,8 +670,13 @@ export default function ToDo() {
                         <th>Excluir </th>
                         <th>Editar </th>
                         <th>Etapas </th>
+                        {!etapasShow && <th>share </th>}
+                        {!etapasShow && !!shareTarefa && (
+                          <th>destinaotario </th>
+                        )}
                       </>
                     )}
+
                     <th>Criar Etapas </th>
                   </tr>
                 </thead>
@@ -641,7 +686,7 @@ export default function ToDo() {
                     dataBase
                       .filter(
                         (tarefa) =>
-                          tarefa.responsavel === login &&
+                          tarefa.responsavel.includes(login) &&
                           tarefa.concluido === Number(tarefaShow),
                       )
                       .map((tarefa) => {
@@ -696,6 +741,10 @@ export default function ToDo() {
                                   %
                                 </h6>
                               }
+                              <br />
+                              <small>
+                                Autor: {tarefa.responsavel.split(",")[0]}
+                              </small>
                             </td>
 
                             {tarefaShow ? (
@@ -736,11 +785,24 @@ export default function ToDo() {
                                     aria-label="Excluir tarefa"
                                     title="Excluir tarefa"
                                     className={Style.btnDelete}
-                                    onClick={() => handleDelete(tarefa.id)}
+                                    onClick={() =>
+                                      setdeleteTarefa((prev) => !prev)
+                                    }
                                   >
                                     <BsTrashFill />
                                   </button>
                                 </td>
+
+                                {!!deleteTarefa && (
+                                  <Modal
+                                    cancelar={() =>
+                                      setdeleteTarefa((prev) => !prev)
+                                    }
+                                    confirmar={() => handleDelete(tarefa.id)}
+                                    titulo={"Deletar tarefa?"}
+                                    texto={`Deseja deletar a essa tarefa?`}
+                                  />
+                                )}
 
                                 {/* Editar */}
                                 <td>
@@ -776,6 +838,7 @@ export default function ToDo() {
                                   setEtapasShow(
                                     isOpen ? 0 : tarefa?.etapas[0]?.tarefa_id,
                                   );
+                                  setshareTarefa(0);
                                 }}
                                 aria-expanded={isOpen}
                                 aria-controls={`detalhe-etapas-${tarefa.id}`}
@@ -783,7 +846,70 @@ export default function ToDo() {
                                 {isOpen ? <BsEyeSlashFill /> : <BsEyeFill />}
                               </button>
                             </td>
+                            {!etapasShow && tarefa.concluido === 0 && (
+                              <td>
+                                <button
+                                  className={Style.btnShare}
+                                  aria-label="compartilhar tarefas"
+                                  title="compartilhar tarefas"
+                                  type="button"
+                                  onClick={() => {
+                                    if (IDShare === tarefa.id)
+                                      setshareTarefa((prev) => !prev);
+                                    setIDShare(tarefa.id);
+                                  }}
+                                >
+                                  <BsShare />
+                                </button>
+                              </td>
+                            )}
+                            {!etapasShow &&
+                              !!shareTarefa &&
+                              !tarefaShow &&
+                              IDShare === tarefa.id && (
+                                <td>
+                                  <select
+                                    value={(e) => e.target.value}
+                                    onChange={(e) => {
+                                      setshowModal((prev) => !prev);
+                                      setuserShare(e.target.value);
+                                    }}
+                                    style={{ padding: "8px" }}
+                                  >
+                                    <option value="">Selecionar</option>
+                                    {userBD &&
+                                      userBD
+                                        .filter(
+                                          (user) =>
+                                            !tarefa.responsavel
+                                              .split(",")
+                                              .map((r) => r.trim())
+                                              .includes(user),
+                                        )
+                                        .map((user) => (
+                                          <option key={user.id} value={user}>
+                                            {user}
+                                          </option>
+                                        ))}
+                                  </select>
+                                </td>
+                              )}
 
+                            {showModal && (
+                              <Modal
+                                cancelar={() => setshowModal((prev) => !prev)}
+                                confirmar={(e) =>
+                                  handleShareTarefa(userShare, tarefa)
+                                }
+                                titulo={"Compartilhar tarefa?"}
+                                texto={`Deseja compartilhar a tarefa com ${userShare}`}
+                              />
+                            )}
+
+                            {!etapasShow &&
+                              !!shareTarefa &&
+                              !tarefaShow &&
+                              IDShare !== tarefa.id && <td></td>}
                             {/* Form para adicionar etapa à tarefa da linha */}
 
                             {!tarefaShow && (
@@ -864,7 +990,7 @@ export default function ToDo() {
           )}
           {dataBase &&
             dataBase
-              .filter((tarefa) => tarefa.responsavel === login)
+              .filter((tarefa) => tarefa.responsavel.includes(login))
               .map((t) => {
                 const isOpen = expanded.has(t.id);
                 if (!isOpen) return null;
@@ -935,19 +1061,40 @@ export default function ToDo() {
                                       }
 
                                       {/* Excluir */}
+
                                       <button
                                         aria-label="deletar Etapa"
                                         title="deletar Etapa"
                                         className={Style.btnDelete}
-                                        onClick={() => handleDeleteEtapas(et)}
+                                        key={et.id ?? i}
+                                        disabled={et.concluido === 1}
+                                        /*onClick={() => handleDeleteEtapas(et)}*/
+                                        onClick={() =>
+                                          setdeleteEtapas((prev) => !prev)
+                                        }
                                       >
                                         <BsTrashFill />
                                       </button>
+
+                                      {deleteEtapas && (
+                                        <Modal
+                                          cancelar={() => {
+                                            setdeleteEtapas((prev) => !prev);
+                                          }}
+                                          confirmar={(e) =>
+                                            handleDeleteEtapas(et)
+                                          }
+                                          titulo={"Deletar etapas?"}
+                                          texto={`Deseja deletar a Etapas?`}
+                                        />
+                                      )}
+
                                       {/* Editar */}
                                       <button
                                         aria-label="Editar Etapa"
                                         title="Editar Etapa"
                                         className={Style.btnEdit}
+                                        disabled={et.concluido === 1}
                                         onClick={() => {
                                           handlaEditEtapas(et); // <- passe a etapa
                                           setHandleNumberEdit(

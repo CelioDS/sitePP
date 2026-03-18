@@ -83,7 +83,7 @@ export default function AdminTarefas() {
 
   useEffect(() => {
     const users = Array.from(
-      new Map(dataBase.map((t) => [t.responsavel, t])).values(),
+      new Map(dataBase.map((t) => [t.responsavel.split(",")[0], t])).values(),
     );
 
     setUserBD(users);
@@ -129,7 +129,6 @@ export default function AdminTarefas() {
             <BsClockFill color="#9fa11a" />
             <h1>{countTarefas(dataBase, userSearch).pendentes}</h1>
           </div>
-          {console.log(userSearch)}
 
           <h1>Painel Administrador</h1>
           <aside>
@@ -204,7 +203,11 @@ export default function AdminTarefas() {
                   ? tarefasFiltradas
                       .filter((tarefa) => tarefa.concluido === 0)
                       .map((tarefa) => (
-                        <SortableRow key={tarefa.id} tarefa={tarefa} />
+                        <SortableRow
+                          key={tarefa.id}
+                          tarefa={tarefa}
+                          responsavel={tarefa.responsavel.split(",")[0]}
+                        />
                       ))
                   : tarefasFiltradas
                       .filter((tarefa) => tarefa.concluido === 1)
@@ -220,7 +223,7 @@ export default function AdminTarefas() {
   );
 }
 
-function SortableRow({ tarefa }) {
+function SortableRow({ tarefa, responsavel = "" }) {
   const { attributes, listeners, setNodeRef, transform, transition } =
     useSortable({ id: tarefa.id });
 
