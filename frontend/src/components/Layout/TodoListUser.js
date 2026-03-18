@@ -426,6 +426,8 @@ export default function ToDo() {
     setIsSubmit(true);
 
     try {
+      
+      
       await axios.delete(`${Url}/todo/etapas/${etapa.id}`).then(({ data }) => {
         setDataBase((prev) =>
           (prev || []).map((t) => {
@@ -1068,7 +1070,6 @@ export default function ToDo() {
                                         className={Style.btnDelete}
                                         key={et.id ?? i}
                                         disabled={et.concluido === 1}
-                                        /*onClick={() => handleDeleteEtapas(et)}*/
                                         onClick={() =>
                                           setdeleteEtapas((prev) => !prev)
                                         }
@@ -1076,7 +1077,7 @@ export default function ToDo() {
                                         <BsTrashFill />
                                       </button>
 
-                                      {deleteEtapas && (
+                                      {!!deleteEtapas && (
                                         <Modal
                                           cancelar={() => {
                                             setdeleteEtapas((prev) => !prev);
@@ -1084,8 +1085,8 @@ export default function ToDo() {
                                           confirmar={(e) =>
                                             handleDeleteEtapas(et)
                                           }
-                                          titulo={"Deletar etapas?"}
-                                          texto={`Deseja deletar a Etapas?`}
+                                          titulo={"Deletar etapa?"}
+                                          texto={`Deseja deletar a etapa?`}
                                         />
                                       )}
 
