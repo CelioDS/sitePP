@@ -186,7 +186,7 @@ export default function NavBar({ setPermission, permission }) {
             </Link>
           </li>
 
-          {!!mis && (
+          { (
             <li className={styleExt.submenu}>
               <Link
                 onClick={() => openMenu("MIS")}
@@ -200,17 +200,21 @@ export default function NavBar({ setPermission, permission }) {
                 MIS
               </Link>
 
-              <Link
-                className={styleExt.submenuItem}
-                style={linkAtivo === "TodoList" ? { color: colorLink } : {}}
-                role="menuitem"
-                to={`/TodoList/${login}`}
-                onClick={() => {
-                  openMenu("TodoList");
-                }}
-              >
-                TodoList
-              </Link>
+              {mis === 1 && canal === "admin" ? (
+                <Link
+                  className={styleExt.submenuItem}
+                  style={linkAtivo === "TodoList" ? { color: colorLink } : {}}
+                  role="menuitem"
+                  to={`/TodoList/${login}`}
+                  onClick={() => {
+                    openMenu("TodoList");
+                  }}
+                >
+                  TodoList
+                </Link>
+              ) : (
+                <></>
+              )}
             </li>
           )}
 

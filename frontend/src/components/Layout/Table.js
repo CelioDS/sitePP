@@ -367,6 +367,7 @@ export default function Table({ canal, login, admin, Url }) {
                     <th>CABEAMENTO</th>
                     <th>FILIAL_COORDENADOR</th>
                     <th>GN</th>
+                    <th>NM EQUIPE VENDA</th>
                   </>
                 )}
                 
@@ -483,6 +484,7 @@ export default function Table({ canal, login, admin, Url }) {
                       <td>{item.CABEAMENTO}</td>
                       <td>{item.FILIAL_COORDENADOR}</td>
                       <td>{item.GN}</td>
+                      <td>{item.NM_EQUIPE_VENDA}</td>
                     </>
                   )}
                   ``

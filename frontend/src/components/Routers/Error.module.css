@@ -1,3 +1,16 @@
+.container {
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
+  align-items: center;
+  height: 100vh;
+  background-color: #f1f1f1;
+}
+.titles {
+  font-size: 48px;
+  color: "#333";
+}
+
 @keyframes Efeito {
   from {
     opacity: 0;

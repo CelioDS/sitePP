@@ -295,7 +295,7 @@ export default function ToDo() {
           etapas: etapaValue,
           peso: sanitizePeso(pesoValue),
           status: statusValue,
-          concluido: 0,
+          concluido: statusValue === "Concluido" ? 1 : 0,
         })
         .then(({ data }) => {
           toast.success(data?.message ?? "Etapa adicionada!");
@@ -426,8 +426,6 @@ export default function ToDo() {
     setIsSubmit(true);
 
     try {
-      
-      
       await axios.delete(`${Url}/todo/etapas/${etapa.id}`).then(({ data }) => {
         setDataBase((prev) =>
           (prev || []).map((t) => {
@@ -494,7 +492,7 @@ export default function ToDo() {
           (t.responsavel || "")
             .split(",")
             .map((r) => r.trim())
-            .filter((r) => r.length > 0),
+            .filter((r) => r.length >= 1),
         ),
       ),
     ];
@@ -673,9 +671,7 @@ export default function ToDo() {
                         <th>Editar </th>
                         <th>Etapas </th>
                         {!etapasShow && <th>share </th>}
-                        {!etapasShow && !!shareTarefa && (
-                          <th>destinaotario </th>
-                        )}
+                        {!etapasShow && !!shareTarefa && <th>destinatario </th>}
                       </>
                     )}
 
@@ -744,7 +740,21 @@ export default function ToDo() {
                                 </h6>
                               }
                               <br />
-                              <small>
+                              <small
+                                style={{
+                                  color: " #929090",
+                                  fontStyle: "italic",
+                                }}
+                              >
+                                Etapas: {tarefa.etapas.length}
+                              </small>
+                              <br />
+                              <small
+                                style={{
+                                  color: " #929090",
+                                  fontStyle: "italic",
+                                }}
+                              >
                                 Autor: {tarefa.responsavel.split(",")[0]}
                               </small>
                             </td>

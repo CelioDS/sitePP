@@ -43,15 +43,20 @@ export default function AdminTarefas() {
   }, [Url]);
 
   function countTarefas(db, user) {
+   
     if (user !== "") {
       if (!Array.isArray(db)) return { pendentes: 0, concluidos: 0, total: 0 };
       const total = db.filter((t) => t.responsavel === user).length;
-      const pendentes = db.filter(
-        (t) => t.responsavel === user && Number(t.concluido) === 0,
-      ).length;
-      const finalizados = db.filter(
-        (t) => t.responsavel === user && Number(t.concluido) === 1,
-      ).length;
+
+      const pendentes = db.filter((t) => {
+        const responsaveis = t.responsavel.split(",").map((r) => r.trim());
+        return responsaveis.includes(user) && Number(t.concluido) === 0;
+      }).length;
+
+      const finalizados = db.filter((t) => {
+        const responsaveis = t.responsavel.split(",").map((r) => r.trim());
+        return responsaveis.includes(user) && Number(t.concluido) === 1;
+      }).length;
       return { pendentes, finalizados, total };
     } else {
       if (!Array.isArray(db)) return { pendentes: 0, concluidos: 0, total: 0 };
@@ -85,7 +90,6 @@ export default function AdminTarefas() {
     const users = Array.from(
       new Map(dataBase.map((t) => [t.responsavel.split(",")[0], t])).values(),
     );
-
     setUserBD(users);
   }, [dataBase]);
 
@@ -112,7 +116,6 @@ export default function AdminTarefas() {
         tarefas: novaOrdem.map((t, index) => ({ id: t.id, ordem: index })), // 0-based; ajuste se precisar 1-based
         // se o backend usa "responsavel=?"
       });
-      console.log(novaOrdem);
     } catch (err) {
       console.log(err);
     }
@@ -153,10 +156,11 @@ export default function AdminTarefas() {
             style={{ padding: "8px" }}
           >
             <option value="">Todos os responsáveis</option>
+
             {userBD &&
               userBD.map((user) => (
                 <option key={user.id} value={user.responsavel}>
-                  {user.responsavel}
+                  {user.responsavel.split(',')[0]}
                 </option>
               ))}
           </select>
