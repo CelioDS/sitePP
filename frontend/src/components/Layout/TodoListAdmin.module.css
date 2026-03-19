@@ -1,0 +1,53 @@
+.main {
+  display: flex;
+  position: relative;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  width: 100%;
+  height: 100%;
+}
+
+.main .card {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-around;
+  align-items: start;
+  text-align: start;
+  width: 100%;
+  height: 100%;
+}
+.main > .card > aside {
+  border: 1px solid #a5a1a1;
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  justify-content: center;
+  text-align: center;
+  width: 100px;
+  height: 80px;
+  border-radius: 5px;
+  background-color: #ffffff;
+  filter: drop-shadow(3px 3px 3px #000000cc);
+  margin: 15px;
+}
+
+.main > .searchs {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-around;
+  align-items: start;
+  text-align: start;
+  width: 100%;
+  height: 100%;
+}
+.main > .searchs input,
+.main > .searchs select {
+  width: 300px;
+}
+
+.main > .leganda {
+  display: inline-flex;
+  gap: 5px;
+}

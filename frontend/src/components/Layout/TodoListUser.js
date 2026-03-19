@@ -648,7 +648,13 @@ export default function ToDo() {
           </div>
         </header>
 
-        <h4>Ver terafas</h4>
+        <h4>
+          Ver as{" "}
+          {tarefaShow
+            ? countTarefas(dataBase, login).pendentes
+            : countTarefas(dataBase, login).finalizados}{" "}
+          terafas
+        </h4>
         <button
           aria-label="ver tarefa"
           title="ver tarefa"
@@ -1031,10 +1037,7 @@ export default function ToDo() {
                     {Array.isArray(t.etapas) && t.etapas.length > 0 ? (
                       <ul>
                         {t.etapas
-                          .sort(
-                            (a, b) =>
-                              a.concluido - b.concluido 
-                          )
+                          .sort((a, b) => a.concluido - b.concluido)
                           .map((et, i) => {
                             const st = normalize(et.status);
                             <h4>ETAPAS</h4>;

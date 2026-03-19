@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import Container from "./Container";
 import Loading from "../Item-Layout/Loading";
 import { BsClockFill, BsCheckCircleFill } from "react-icons/bs";
-import Style from "../Layout/TodoList.module.css";
+import Style from "../Layout/TodoListAdmin.module.css";
 
 import { DndContext, closestCenter } from "@dnd-kit/core";
 
@@ -43,8 +43,8 @@ export default function AdminTarefas() {
   }, [Url]);
 
   function countTarefas(db, user) {
-    const userClear = user.split(',')[0]
-   
+    const userClear = user.split(",")[0];
+
     if (user !== "") {
       if (!Array.isArray(db)) return { pendentes: 0, concluidos: 0, total: 0 };
       const total = db.filter((t) => t.responsavel === userClear).length;
@@ -127,13 +127,13 @@ export default function AdminTarefas() {
 
   return (
     <Container>
-      <main style={{ width: "100%" }}>
+      <main style={{ width: "100%" }} className={Style.main}>
         <div className={Style.card}>
-          <div>
+          <aside>
             <span>pendente</span>
             <BsClockFill color="#9fa11a" />
             <h1>{countTarefas(dataBase, userSearch).pendentes}</h1>
-          </div>
+          </aside>
 
           <h1>Painel Administrador</h1>
           <aside>
@@ -143,7 +143,7 @@ export default function AdminTarefas() {
           </aside>
         </div>
 
-        <div style={{ marginBottom: "20px" }}>
+        <div style={{ marginBottom: "20px" }} className={Style.searchs}>
           <input
             type="text"
             placeholder="Filtrar por responsável..."
@@ -161,22 +161,29 @@ export default function AdminTarefas() {
 
             {userBD &&
               userBD.map((user) => (
-                <option key={user.id} value={user.responsavel.split(',')[0]}>
-                  {user.responsavel.split(',')[0]}
+                <option key={user.id} value={user.responsavel.split(",")[0]}>
+                  {user.responsavel.split(",")[0]}
                 </option>
               ))}
           </select>
         </div>
 
-        <div>
+        <div className={Style.leganda}>
           <p>
-            Ver as
-            {changeStatus
-              ? countTarefas(dataBase, userSearch).finalizados
-              : countTarefas(dataBase, userSearch).pendentes}
-            tarefas
+            {` Ver as ${
+              changeStatus
+                ? countTarefas(dataBase, userSearch).finalizados
+                : countTarefas(dataBase, userSearch).pendentes
+            }
+            tarefas  `}
           </p>
-          <button onClick={() => setChangeStatus((prev) => !prev)}>
+          <button
+            onClick={() => setChangeStatus((prev) => !prev)}
+            style={{
+              color: changeStatus ? "#ffffff" : "#ffffff",
+              background: changeStatus ? "#25a11a" : "#9fa11a",
+            }}
+          >
             {changeStatus
               ? countTarefas(dataBase, userSearch).finalizados.length >= 1
                 ? "finalizadas"
