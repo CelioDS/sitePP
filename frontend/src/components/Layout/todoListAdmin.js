@@ -43,20 +43,22 @@ export default function AdminTarefas() {
   }, [Url]);
 
   function countTarefas(db, user) {
+    const userClear = user.split(',')[0]
    
     if (user !== "") {
       if (!Array.isArray(db)) return { pendentes: 0, concluidos: 0, total: 0 };
-      const total = db.filter((t) => t.responsavel === user).length;
+      const total = db.filter((t) => t.responsavel === userClear).length;
 
       const pendentes = db.filter((t) => {
         const responsaveis = t.responsavel.split(",").map((r) => r.trim());
-        return responsaveis.includes(user) && Number(t.concluido) === 0;
+        return responsaveis.includes(userClear) && Number(t.concluido) === 0;
       }).length;
 
       const finalizados = db.filter((t) => {
         const responsaveis = t.responsavel.split(",").map((r) => r.trim());
-        return responsaveis.includes(user) && Number(t.concluido) === 1;
+        return responsaveis.includes(userClear) && Number(t.concluido) === 1;
       }).length;
+
       return { pendentes, finalizados, total };
     } else {
       if (!Array.isArray(db)) return { pendentes: 0, concluidos: 0, total: 0 };
@@ -159,7 +161,7 @@ export default function AdminTarefas() {
 
             {userBD &&
               userBD.map((user) => (
-                <option key={user.id} value={user.responsavel}>
+                <option key={user.id} value={user.responsavel.split(',')[0]}>
                   {user.responsavel.split(',')[0]}
                 </option>
               ))}

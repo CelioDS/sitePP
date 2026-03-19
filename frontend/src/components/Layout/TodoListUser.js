@@ -79,16 +79,27 @@ export default function ToDo() {
   }
 
   function countTarefas(db, user) {
-    if (!Array.isArray(db)) return { pendentes: 0, concluidos: 0, total: 0 };
-    const total = db.filter((t) => t.responsavel === user).length;
-    const pendentes = db.filter(
-      (t) => t.responsavel === user && Number(t.concluido) === 0,
-    ).length;
-    const finalizados = db.filter(
-      (t) => t.responsavel === user && Number(t.concluido) === 1,
-    ).length;
+    if (user !== "") {
+      if (!Array.isArray(db)) return { pendentes: 0, concluidos: 0, total: 0 };
+      const total = db.filter((t) => t.responsavel === user).length;
 
-    return { pendentes, finalizados, total };
+      const pendentes = db.filter((t) => {
+        const responsaveis = t.responsavel.split(",").map((r) => r.trim());
+        return responsaveis.includes(user) && Number(t.concluido) === 0;
+      }).length;
+
+      const finalizados = db.filter((t) => {
+        const responsaveis = t.responsavel.split(",").map((r) => r.trim());
+        return responsaveis.includes(user) && Number(t.concluido) === 1;
+      }).length;
+      return { pendentes, finalizados, total };
+    } else {
+      if (!Array.isArray(db)) return { pendentes: 0, concluidos: 0, total: 0 };
+      const total = db.filter((t) => t).length;
+      const pendentes = db.filter((t) => Number(t.concluido) === 0).length;
+      const finalizados = db.filter((t) => Number(t.concluido) === 1).length;
+      return { pendentes, finalizados, total };
+    }
   }
 
   function toggleEtapas(tarefaId) {
@@ -1019,113 +1030,118 @@ export default function ToDo() {
 
                     {Array.isArray(t.etapas) && t.etapas.length > 0 ? (
                       <ul>
-                        {t.etapas.map((et, i) => {
-                          const st = normalize(et.status);
-                          <h4>ETAPAS</h4>;
-                          return (
-                            <>
-                              <div
-                                className={Style.divEtapas}
-                                key={et.id ?? i}
-                                style={{
-                                  textDecoration:
-                                    st === "concluido"
-                                      ? "line-through"
-                                      : "none",
-                                  fontStyle:
-                                    st === "concluido" ? "italic" : "normal",
-                                  color:
-                                    st === "concluido"
-                                      ? "#968b8b"
-                                      : st === "pendente"
-                                        ? "#79d45d"
-                                        : "#a2b91f",
+                        {t.etapas
+                          .sort(
+                            (a, b) =>
+                              a.concluido - b.concluido 
+                          )
+                          .map((et, i) => {
+                            const st = normalize(et.status);
+                            <h4>ETAPAS</h4>;
+                            return (
+                              <>
+                                <div
+                                  className={Style.divEtapas}
+                                  key={et.id ?? i}
+                                  style={{
+                                    textDecoration:
+                                      st === "concluido"
+                                        ? "line-through"
+                                        : "none",
+                                    fontStyle:
+                                      st === "concluido" ? "italic" : "normal",
+                                    color:
+                                      st === "concluido"
+                                        ? "#968b8b"
+                                        : st === "pendente"
+                                          ? "#79d45d"
+                                          : "#a2b91f",
 
-                                  justifyContent: tarefaShow ? "center" : "",
-                                }}
-                              >
-                                <strong className={Style.etapasLine}>
-                                  {et.etapas}
-                                  <span>
-                                    {et.peso && <> peso: {et.peso}</>}
-                                    <br />
-                                    {et.status && <> {et.status}</>}
-                                  </span>
-                                </strong>
-                                {!tarefaShow && (
-                                  <>
-                                    {/* Finalizar (mantido sem handler, como no seu código) */}
+                                    justifyContent: tarefaShow ? "center" : "",
+                                  }}
+                                >
+                                  <strong className={Style.etapasLine}>
+                                    {et.etapas}
+                                    <span>
+                                      {et.peso && <> peso: {et.peso}</>}
+                                      <br />
+                                      {et.status && <> {et.status}</>}
+                                    </span>
+                                  </strong>
+                                  {!tarefaShow && (
+                                    <>
+                                      {/* Finalizar (mantido sem handler, como no seu código) */}
 
-                                    <aside>
-                                      {
-                                        <button
-                                          aria-label="Marcar etapa como concluída"
-                                          disabled={et.concluido === 1}
-                                          key={et.id ?? i}
-                                          className={Style.btnFinished}
-                                          onClick={() =>
-                                            handleFinishedEtapas(et)
-                                          }
-                                          title="Marcar etapa como concluída"
-                                        >
-                                          <BsCheck />
-                                        </button>
-                                      }
-
-                                      {/* Excluir */}
-
-                                      <button
-                                        aria-label="deletar Etapa"
-                                        title="deletar Etapa"
-                                        className={Style.btnDelete}
-                                        key={et.id ?? i}
-                                        disabled={et.concluido === 1}
-                                        onClick={() =>
-                                          setdeleteEtapas((prev) => !prev)
+                                      <aside>
+                                        {
+                                          <button
+                                            aria-label="Marcar etapa como concluída"
+                                            disabled={et.concluido === 1}
+                                            key={et.id ?? i}
+                                            className={Style.btnFinished}
+                                            onClick={() =>
+                                              handleFinishedEtapas(et)
+                                            }
+                                            title="Marcar etapa como concluída"
+                                          >
+                                            <BsCheck />
+                                          </button>
                                         }
-                                      >
-                                        <BsTrashFill />
-                                      </button>
 
-                                      {!!deleteEtapas && (
-                                        <Modal
-                                          cancelar={() => {
-                                            setdeleteEtapas((prev) => !prev);
-                                          }}
-                                          confirmar={(e) =>
-                                            handleDeleteEtapas(et)
+                                        {/* Excluir */}
+
+                                        <button
+                                          aria-label="deletar Etapa"
+                                          title="deletar Etapa"
+                                          className={Style.btnDelete}
+                                          key={et.id ?? i}
+                                          disabled={et.concluido === 1}
+                                          onClick={() =>
+                                            setdeleteEtapas((prev) => !prev)
                                           }
-                                          titulo={"Deletar etapa?"}
-                                          texto={`Deseja deletar a etapa?`}
-                                        />
-                                      )}
+                                        >
+                                          <BsTrashFill />
+                                        </button>
 
-                                      {/* Editar */}
-                                      <button
-                                        aria-label="Editar Etapa"
-                                        title="Editar Etapa"
-                                        className={Style.btnEdit}
-                                        disabled={et.concluido === 1}
-                                        onClick={() => {
-                                          handlaEditEtapas(et); // <- passe a etapa
-                                          setHandleNumberEdit(
-                                            (prev) => prev + 1,
-                                          );
-                                        }}
-                                      >
-                                        {editEtapas?.id === et?.id ? (
-                                          <BsXCircle />
-                                        ) : (
-                                          <BsPenFill />
+                                        {!!deleteEtapas && (
+                                          <Modal
+                                            cancelar={() => {
+                                              setdeleteEtapas((prev) => !prev);
+                                            }}
+                                            confirmar={(e) =>
+                                              handleDeleteEtapas(et)
+                                            }
+                                            titulo={"Deletar etapa?"}
+                                            texto={`Deseja deletar a etapa?`}
+                                          />
                                         )}
-                                      </button>
-                                    </aside>
-                                  </>
-                                )}
-                              </div>
-                            </>
-                          );
-                        })}
+
+                                        {/* Editar */}
+                                        <button
+                                          aria-label="Editar Etapa"
+                                          title="Editar Etapa"
+                                          className={Style.btnEdit}
+                                          disabled={et.concluido === 1}
+                                          onClick={() => {
+                                            handlaEditEtapas(et); // <- passe a etapa
+                                            setHandleNumberEdit(
+                                              (prev) => prev + 1,
+                                            );
+                                          }}
+                                        >
+                                          {editEtapas?.id === et?.id ? (
+                                            <BsXCircle />
+                                          ) : (
+                                            <BsPenFill />
+                                          )}
+                                        </button>
+                                      </aside>
+                                    </>
+                                  )}
+                                </div>
+                              </>
+                            );
+                          })}
                       </ul>
                     ) : (
                       <em style={{ color: "#888" }}>Sem etapas</em>
