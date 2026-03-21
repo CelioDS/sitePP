@@ -16,7 +16,7 @@ import {
 
 import { CSS } from "@dnd-kit/utilities";
 
-export default function AdminTarefas() {
+export default function TodoListAdmin() {
   const [dataBase, setDataBase] = useState([]);
   const [tarefasOrdenadas, setTarefasOrdenadas] = useState([]);
   const [userBD, setUserBD] = useState([]);
