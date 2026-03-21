@@ -1,7 +1,6 @@
 import Container from "../Layout/Container";
 import { useEffect, useState } from "react";
 import ValidarToken from "../Tools/ValidarToken";
-import TodoAdmin from "../Layout/TodoListAdmin.js";
 import TodoUser from "../Layout/TodoListUser.js";
 
 export default function TodoList() {
@@ -10,14 +9,14 @@ export default function TodoList() {
 
   const login = userData?.login;
   //const adminMis = userData?.adminMis;
-  
+
   useEffect(() => {
     let isMounted = true; // Garante que não vamos atualizar estado se o componente desmontar
-    
+
     async function fetchUserData() {
       try {
         const data = await ValidarToken();
-        
+
         // Só atualiza se o componente ainda estiver na tela e o dado for válido
         if (isMounted && data) {
           setUserData(data);
@@ -40,7 +39,7 @@ export default function TodoList() {
       <main>
         <button onClick={() => setView((prev) => (prev = !prev))}>mudar</button>
 
-        { view ? <TodoAdmin login={login} /> :  <TodoUser />}
+        {view ? <TodoAdmin login={login} /> : <TodoUser />}
       </main>
     </Container>
   );
