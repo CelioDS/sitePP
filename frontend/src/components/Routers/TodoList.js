@@ -1,7 +1,8 @@
 import Container from "../Layout/Container";
 import { useEffect, useState } from "react";
 import ValidarToken from "../Tools/ValidarToken";
-import TodoUser from "../Layout/TodoListUser.js";
+import TodoListUser from "../Layout/TodoListUser.js";
+import TodoListAdmin from  '../Layout/TodoListAdmin.js'
 
 export default function TodoList() {
   const [userData, setUserData] = useState();
@@ -39,7 +40,7 @@ export default function TodoList() {
       <main>
         <button onClick={() => setView((prev) => (prev = !prev))}>mudar</button>
 
-        {view ? /*<TodoAdmin login={login} /> */ login: <TodoUser />}
+        {view ? <TodoListAdmin login={login} /> : <TodoListUser />}
       </main>
     </Container>
   );
