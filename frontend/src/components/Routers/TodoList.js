@@ -10,8 +10,6 @@ export default function TodoList() {
 
   const login = userData?.login;
   //const adminMis = userData?.adminMis;
-
-
   
   useEffect(() => {
     let isMounted = true; // Garante que não vamos atualizar estado se o componente desmontar
