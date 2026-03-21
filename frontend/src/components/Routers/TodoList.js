@@ -4,7 +4,7 @@ import ValidarToken from "../Tools/ValidarToken";
 import TodoAdmin from "../Layout/TodoListAdmin";
 import TodoUser from "../Layout/TodoListUser";
 
-export default function ToDo() {
+export default function TodoList() {
   const [userData, setUserData] = useState();
   const [view, setView] = useState(0);
 
