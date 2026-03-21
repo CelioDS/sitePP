@@ -39,7 +39,7 @@ export default function TodoList() {
       <main>
         <button onClick={() => setView((prev) => (prev = !prev))}>mudar</button>
 
-        {view ? <TodoAdmin login={login} /> : <TodoUser />}
+        {view ? /*<TodoAdmin login={login} /> */ login: <TodoUser />}
       </main>
     </Container>
   );
