@@ -1,8 +1,8 @@
 import Container from "../Layout/Container";
 import { useEffect, useState } from "react";
 import ValidarToken from "../Tools/ValidarToken";
-import TodoAdmin from "../Layout/TodoListAdmin";
-import TodoUser from "../Layout/TodoListUser";
+import TodoAdmin from "../Layout/TodoListAdmin.js";
+import TodoUser from "../Layout/TodoListUser.js";
 
 export default function TodoList() {
   const [userData, setUserData] = useState();
