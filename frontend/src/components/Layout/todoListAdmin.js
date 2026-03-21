@@ -220,6 +220,7 @@ export default function AdminTarefas() {
                           key={tarefa.id}
                           tarefa={tarefa}
                           responsavel={tarefa.responsavel.split(",")[0]}
+                          changeStatus={changeStatus}
                         />
                       ))
                   : tarefasFiltradas
@@ -236,7 +237,7 @@ export default function AdminTarefas() {
   );
 }
 
-function SortableRow({ tarefa, responsavel = "" }) {
+function SortableRow({ tarefa, changeStatus, responsavel = "" }) {
   const { attributes, listeners, setNodeRef, transform, transition } =
     useSortable({ id: tarefa.id });
 
@@ -256,7 +257,14 @@ function SortableRow({ tarefa, responsavel = "" }) {
         {tarefa.responsavel}
       </td>
 
-      <td style={{ border: "1px solid #ccc", padding: "8px" }}>
+      <td
+        style={{
+          background: !changeStatus ? "#25a11a7a" : "#9fa11a50",
+          border: "none",
+          margin: "5px",
+          color: !changeStatus ? "#25a11a" : "#9fa11a",
+        }}
+      >
         {Number(tarefa.concluido) === 1 ? "Concluído" : "Pendente"}
       </td>
 

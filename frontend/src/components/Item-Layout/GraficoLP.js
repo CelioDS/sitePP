@@ -542,6 +542,8 @@ export default function RelatorioUser({ Url }) {
               </div>
             </aside>
 
+            <h1>{console.log(statusData)}</h1>
+
             {/* Donut */}
             <aside className={Style.card}>
               <h5>Participação por Coordenador (Lojas)</h5>

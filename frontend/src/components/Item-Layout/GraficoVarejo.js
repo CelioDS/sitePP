@@ -36,6 +36,7 @@ export default function Varejo({ Url }) {
 
   // Seletor de range para a linha (null=todos, 6, 12)
   const [lineRange, setLineRange] = useState(12);
+  setLineRange(12)
 
   // Mês selecionado (YYYY-MM)
   const tz = "America/Sao_Paulo";
@@ -199,12 +200,7 @@ export default function Varejo({ Url }) {
     return { coords, totalColab, totalLojas, totalCidades, totalParceiro };
   }, [byCoord]);
 
-  // -------- Alturas dinâmicas --------
-  const barHeight = useMemo(() => {
-    // Ajusta a altura de acordo com o nº de coordenadores (mín 320, máx 520)
-    const base = 32 * Math.max(5, byCoord.length); // 32px por item
-    return Math.max(320, Math.min(base, 520));
-  }, [byCoord.length]);
+
 
   // -------- Séries e opções (BARRAS) --------
   const seriesBar = useMemo(

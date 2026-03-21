@@ -2,7 +2,7 @@ import axios from "axios";
 import { toast } from "react-toastify";
 import Container from "./Container";
 import { useParams } from "react-router-dom";
-import { useEffect, useState, useRef, useCallback } from "react";
+import { useEffect, useState, useRef, useMemo } from "react";
 import {
   BsPenFill,
   BsCheck,
@@ -552,20 +552,19 @@ export default function ToDo() {
     }
   }
 
-  const UpdateHandleSumitTextarea = useCallback(
-    debounce(async (tarefa, value) => {
-      try {
-        const { data } = await axios.patch(`${Url}/todo/${tarefa.id}`, {
-          obs: value,
-        });
+const UpdateHandleSumitTextarea = useMemo(() => {
+  return debounce(async (tarefa, value) => {
+    try {
+      const { data } = await axios.patch(`${Url}/todo/${tarefa.id}`, {
+        obs: value,
+      });
 
-        toast.success("OBS atualizada! ", { data });
-      } catch (err) {
-        toast.error(err.response?.data || err.message);
-      }
-    }, 2000),
-    [],
-  );
+      toast.success("OBS atualizada! ", { data });
+    } catch (err) {
+      toast.error(err.response?.data || err.message);
+    }
+  }, 2000);
+}, [Url]);
 
   async function handleSubmitTextarea(e, tarefa) {
     const value = e.target.value;
@@ -680,7 +679,7 @@ export default function ToDo() {
                 <thead>
                   <tr>
                     <th>Tarefa</th>
-                    <th>Obs</th>
+                    {!etapasShow && <th>Obs</th>}
                     {!tarefaShow && (
                       <>
                         <th>Finalizar </th>
@@ -717,6 +716,7 @@ export default function ToDo() {
                                     : Number(tarefa.id) === Number(etapasShow)
                                       ? "#cebebe"
                                       : "#fff",
+                                padding: "5px",
                               }}
                             >
                               <p>{tarefa.tarefa}</p>
@@ -774,6 +774,21 @@ export default function ToDo() {
                               >
                                 Autor: {tarefa.responsavel.split(",")[0]}
                               </small>
+                              <br />
+                              <small
+                                style={{
+                                  background: tarefaShow
+                                    ? "#25a11a7a"
+                                    : "#9fa11a50",
+                                  padding: "3px",
+                                  margin: "3px",
+                                  borderRadius: "15px",
+                                  border: "none",
+                                  color: tarefaShow ? "#25a11a" : "#9fa11a",
+                                }}
+                              >
+                                {tarefaShow ? "Finalizados" : "Pendente"}
+                              </small>
                             </td>
 
                             {tarefaShow ? (
@@ -781,16 +796,18 @@ export default function ToDo() {
                                 <p>{tarefa.obs}</p>
                               </td>
                             ) : (
-                              <td>
-                                <textarea
-                                  onChange={(e) =>
-                                    handleSubmitTextarea(e, tarefa)
-                                  }
-                                  value={tarefa.obs}
-                                  name="obs"
-                                  id="obs"
-                                ></textarea>
-                              </td>
+                              !etapasShow && (
+                                <td>
+                                  <textarea
+                                    onChange={(e) =>
+                                      handleSubmitTextarea(e, tarefa)
+                                    }
+                                    value={tarefa.obs}
+                                    name="obs"
+                                    id="obs"
+                                  ></textarea>
+                                </td>
+                              )
                             )}
 
                             {!tarefaShow && (

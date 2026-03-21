@@ -11,15 +11,15 @@ import {
 import {
   getDBtarefas,
   setDBtarefas,
-  getDBtarefasID,
+  ordenarTarefa,
   patchDBtarefas,
+  getDBtarefasID,
   updateDBtarefas,
   deleteDBtarefas,
   setDBtarefasEtapas,
   patchDBtarefasEtapas,
   updateDBtarefasEtapas,
   deleteDBtarefasEtapas,
-  ordenarTarefa,
 } from "../Controllers/Todo.js";
 
 import {
@@ -37,6 +37,7 @@ import {
   getVAREJO_grafico,
   getPduFullGrafico,
   getLP_graficoStatus,
+  getStatusAtualizacao,
   getLP_graficoHistorico,
   getVAREJO_graficoHistorico,
 } from "../Controllers/Controllers.js";
@@ -76,6 +77,7 @@ router.get("/lojapropriaGraficoStatus", getLP_graficoStatus);
 router.get("/VAREJOGrafico", getVAREJO_grafico);
 router.get("/VAREJOGraficoHistorico", getVAREJO_graficoHistorico);
 router.get("/lojapropriaGraficoHistorico", getLP_graficoHistorico);
+router.get("/statusatualizacao", getStatusAtualizacao);
 
 /*------------------ ROTAS RAIZ To Do ------------------*/
 // PUT /todo/reorder

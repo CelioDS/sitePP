@@ -4,7 +4,7 @@ import { useEffect } from "react";
 export default function Error() {
   useEffect(() => {
     const timer = setTimeout(() => {
-      window.location.reload('/Home');
+      window.location.href = "/";
     }, 1000);
 
     return () => clearTimeout(timer);
@@ -12,9 +12,7 @@ export default function Error() {
 
   return (
     <main className={styleExt.container}>
-      <h1 className={styleExt.titles} >
-        ERROR 404
-      </h1>
+      <h1 className={styleExt.titles}>ERROR 404</h1>
       <a
         href="https://planejamentoperformance.netlify.app"
         target="_blank"

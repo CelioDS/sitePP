@@ -1038,23 +1038,6 @@ export const getVAREJO_grafico = async (req, res) => {
   }
 };
 
-export const getAPARELHO = async (req, res) => {
-  try {
-    const query = `
-    SELECT * FROM tbl_dataset_timeline_to_excel3
-
-    `; // ex.: ?year=2026&referencia=SP_INT
-
-    const [rows] = await dataBase.query(query);
-    return res.status(200).json(rows);
-  } catch (err) {
-    console.error(err);
-    return res
-      .status(500)
-      .json({ error: "Erro ao buscar tbl_dataset_timeline_to_excel3" });
-  }
-};
-
 export const getVAREJO_graficoHistorico = async (req, res) => {
   try {
     const query = `
@@ -1260,5 +1243,47 @@ export const getPduFullGrafico = async (req, res) => {
   }
 };
 
+export const getStatusAtualizacao = async (req, res) => {
+  try {
+    const query = `
+SELECT
+    'aa' AS tabela, (SELECT MAX(data_atualizacao) FROM aa) AS ultima
+UNION ALL
+SELECT 
+    'lp', (SELECT MAX(data_atualizacao) FROM lp)
+UNION ALL
+SELECT 
+    'pap', (SELECT MAX(data_atualizacao) FROM pap)
+UNION ALL
+SELECT 
+'varejo', (SELECT MAX(data_atualizacao) FROM varejo)
+UNION ALL
+SELECT 
+    'pme', (SELECT MAX(data_atualizacao) FROM pme); 
+    `;
+    const [rows] = await dataBase.query(query);
+    return res.status(200).json(rows);
+  } catch (err) {
+    console.error(err);
+    return res
+      .status(500)
+      .json({ error: "Erro ao buscar data maximas dos relatorios" });
+  }
+};
 
+export const getAPARELHO = async (req, res) => {
+  try {
+    const query = `
+        SELECT * FROM tbl_dataset_timeline_to_excel3
+    
+        `; // ex.: ?year=2026&referencia=SP_INT
 
+    const [rows] = await dataBase.query(query);
+    return res.status(200).json(rows);
+  } catch (err) {
+    console.error(err);
+    return res
+      .status(500)
+      .json({ error: "Erro ao buscar tbl_dataset_timeline_to_excel3" });
+  }
+};

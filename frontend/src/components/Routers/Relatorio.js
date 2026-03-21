@@ -11,6 +11,7 @@ import ValidarToken from "../Tools/ValidarToken";
 export default function Relatorio() {
   const Url = process.env.REACT_APP_API_URL || "http://localhost:8000";
   const [userData, setUserData] = useState(null);
+
   const today = format(
     fromZonedTime(new Date(), "America/Sao_Paulo"),
     "yyyy-MM-dd",
@@ -31,6 +32,7 @@ export default function Relatorio() {
     loadUser();
   }, []);
 
+  
   return (
     <Container>
       <main className={Style.main}>

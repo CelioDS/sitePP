@@ -9,7 +9,7 @@ export default function ToDo() {
   const [view, setView] = useState(0);
 
   const login = userData?.login;
-  const adminMis = userData?.adminMis;
+  //const adminMis = userData?.adminMis;
 
 
   

@@ -77,7 +77,7 @@ export default function RelatorioAdmin({ user, DataBase }) {
 
     const dadosForm = ref.current;
 
-    const loginValue = dadosForm.login.value.toLowerCase();
+    const loginValue = dadosForm.login.value?.toLowerCase();
     const senhaValue = dadosForm.senha.value;
     const canalValue = dadosForm.canal?.value || "MIS";
     const misValue = Number(dadosForm.mis.value);
@@ -100,7 +100,7 @@ export default function RelatorioAdmin({ user, DataBase }) {
     if (editUser) {
       await axios
         .put(`${Url}/users/${editUser.id}`, {
-          login: dadosForm.login.value.toLowerCase(),
+          login: dadosForm.login.value?.toLowerCase(),
           senha: dadosForm.senha.value,
           canal: dadosForm.canal?.value || "MIS",
           mis: Number(dadosForm.mis.value),
@@ -115,7 +115,7 @@ export default function RelatorioAdmin({ user, DataBase }) {
               info.id === editUser.id
                 ? {
                     ...info,
-                    login: dadosForm.login.value.toLowerCase(),
+                    login: dadosForm.login.value?.toLowerCase(),
                     senha: dadosForm.senha.value,
                     canal: dadosForm.canal.value || "MIS",
                     mis: Number(dadosForm.mis.value),
@@ -130,7 +130,7 @@ export default function RelatorioAdmin({ user, DataBase }) {
       if (
         dataBaseLogin.some(
           (user) =>
-            user.login.toLowerCase() === dadosForm.login.value.toLowerCase(),
+            user.login.toLowerCase() === dadosForm.login.value?.toLowerCase(),
         )
       ) {
         toast.warning("Login ja cadastrado!!!");
@@ -168,7 +168,7 @@ export default function RelatorioAdmin({ user, DataBase }) {
       }
       await axios
         .post(`${Url}/users/add`, {
-          login: dadosForm.login.value.toLowerCase(),
+          login: dadosForm.login.value?.toLowerCase(),
           senha: dadosForm.senha.value,
           canal: dadosForm.canal?.value || "MIS",
           mis: Number(dadosForm.mis.value),
@@ -271,6 +271,7 @@ export default function RelatorioAdmin({ user, DataBase }) {
                 <option value="LP">Loja Propria</option>
                 <option value="PAP">Porta a Porta</option>
                 <option value="AA">Agente Autorizado</option>
+                <option value="admin">Admin</option>
               </select>
             </div>
           )}
@@ -293,24 +294,25 @@ export default function RelatorioAdmin({ user, DataBase }) {
             </thead>
             <tbody>
               {dataBaseLogin.map((info, index) =>
-                info.login !== "admin" ? (
-                  <tr key={index || info.id}>
-                    <td>{info.login}</td>
+                info[index]?.login !== "admin" ? (
+                  <tr key={index || info[index]?.id}>
+                    {console.log(info[index]?.login)}
+                    <td>{info[index]?.login}</td>
                     <td>{"*".repeat(10)}</td>
-                    <td>{info.canal}</td>
-                    <td>{info.mis}</td>
-                    <td>{info.admin === 1 ? "Sim" : "Não"}</td>
+                    <td>{info[index]?.canal}</td>
+                    <td>{info[index]?.mis}</td>
+                    <td>{info[index]?.admin === 1 ? "Sim" : "Não"}</td>
                     <th>
                       <button
                         onClick={() => {
-                          handleEdit(info);
+                          handleEdit(info[index]);
                           setHandleNumberEdit(
                             (prevState) => prevState + 1,
-                            info.id,
+                            info[index]?.id,
                           );
                         }}
                       >
-                        {editUser?.id === info?.id && info?.id
+                        {editUser?.id === info[index]?.id && info?.id
                           ? "Editando..."
                           : "Editar"}
                       </button>
@@ -319,7 +321,7 @@ export default function RelatorioAdmin({ user, DataBase }) {
                       <button
                         type="button"
                         disabled={editUser || isSubmit ? true : false}
-                        onClick={() => handleExcluir(info.id)}
+                        onClick={() => handleExcluir(info[index]?.id)}
                       >
                         Excluir
                       </button>
