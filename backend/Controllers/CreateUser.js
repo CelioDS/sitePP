@@ -12,16 +12,9 @@ export const getDBLogin = async (_, res) => {
     const query = "SELECT * FROM usuariosAgen";
     const [rows] = await dataBase.query(query);
 
-    const formatteRowns = rows.map((r) => {
-      return {
-        ...rows,
-        responsavel: rows.responsavel
-          ? rows.responsavel(",").map((r) => r.trim())
-          : [],
-      };
-    });
 
-    return res.status(200).json(formatteRowns);
+
+    return res.status(200).json(rows);
   } catch (err) {
     console.error("Erro getDBLogin:", err);
     return res.status(500).json({ error: "Erro ao buscar usuários." });
@@ -62,7 +55,14 @@ export const setDBLogin = async (req, res) => {
 
     return res
       .status(201)
-      .json({ id: result.insertId, message: "Usuario criado" });
+      .json({
+        id: result.insertId,
+        login: login,
+        mis: mis,
+        admin:admin,
+        canal: canal,
+        message: "Usuario criado",
+      });
   } catch (err) {
     console.error("Erro setDBLogin:", err);
     return res.status(500).json({ error: "Erro ao criar usuário." });

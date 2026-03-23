@@ -17,7 +17,7 @@ import ptBR from "date-fns/locale/pt-BR";
  * - Exibe KPIs e Loading
  * - **Possui filtro por mês/ano (input type="month")**
  */
-export default function RelatorioUser({ Url }) {
+export default function GraficoPAP({ Url }) {
   const [userData, setUserData] = useState(null);
   const [dataBase, setDataBase] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -122,7 +122,7 @@ export default function RelatorioUser({ Url }) {
         const anomes = toAnomes(monthFilter);
         if (anomes) params.anomes = anomes;
 
-        const resp = await axios.get(`${Url}/portaaportaGrafico`, { params });
+        const resp = await axios.get(`${Url}/lojapropriaGrafico`, { params });
         const rows = Array.isArray(resp.data) ? resp.data : [];
         const parsed = rows.map(normalizeRow);
 

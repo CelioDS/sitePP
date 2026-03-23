@@ -301,58 +301,6 @@ export const getVAREJO = async (req, res) => {
   }
 };
 
-export const getPAP_PREMIUM = async (req, res) => {
-  try {
-    let {
-      q,
-      start,
-      end,
-      latest,
-      limit = 2000,
-      offset = 0,
-      orderBy = "ID",
-      orderDir = "DESC",
-    } = req.query;
-
-    limit = Math.min(Number(limit) || 2000, 5000);
-    offset = Number(offset) || 0;
-
-    const validOrder = ["ID", "CIDADE", "IBGE"];
-    orderBy = validOrder.includes(orderBy) ? orderBy : "ID";
-    orderDir = orderDir.toUpperCase() === "ASC" ? "ASC" : "DESC";
-
-    const mainFilters = buildDateFilter("pap_premium", start, end, latest);
-    const where = mainFilters.where;
-    const params = mainFilters.params;
-
-    if (q) {
-      const like = `%${q}%`;
-      where.push(`
-        (pap_premium.CANAL LIKE ? OR pap_premium.IBGE LIKE ? OR pap_premium.CIDADE LIKE ? OR 
-         pap_premium.RAZAO_SOCIAL LIKE ? OR pap_premium.CNPJ LIKE ? OR pap_premium.NOME LIKE ? OR
-         pap_premium.CLASSIFICACAO LIKE ? OR pap_premium.SEGMENTO LIKE ? OR pap_premium.PRODUTO_ATUACAO LIKE ?)
-      `);
-      params.push(like, like, like, like, like, like, like, like, like);
-    }
-
-    const sql = `
-      SELECT pap_premium.*
-      FROM pap_premium
-      ${where.length ? `WHERE ${where.join(" AND ")}` : ""}
-      ORDER BY pap_premium.${orderBy} ${orderDir}
-      LIMIT ? OFFSET ?
-    `;
-
-    params.push(limit, offset);
-
-    const [rows] = await dataBase.query(sql, params);
-    return res.status(200).json(rows);
-  } catch (err) {
-    console.error(err);
-    return res.status(500).json({ error: "Erro ao buscar pap_premium" });
-  }
-};
-
 export const getPDU = async (req, res) => {
   try {
     const { refDate, year, referencia, movel } = req.query; // ex.: ?year=2026&referencia=SP_INT&movel=true
@@ -1285,5 +1233,114 @@ export const getAPARELHO = async (req, res) => {
     return res
       .status(500)
       .json({ error: "Erro ao buscar tbl_dataset_timeline_to_excel3" });
+  }
+};
+
+export const getPAP_grafico = async (req, res) => {
+  try {
+    // Aceita ?anomes=202601 ou ?ano=2026&mes=1
+    let { anomes, ano, mes } = req.query || {};
+    anomes = anomes ? Number(anomes) : undefined;
+
+    if (!anomes && ano && mes) {
+      ano = Number(ano);
+      mes = Number(mes);
+      if (!Number.isNaN(ano) && !Number.isNaN(mes) && mes >= 1 && mes <= 12) {
+        anomes = ano * 100 + (mes < 10 ? Number(`0${mes}`) : mes);
+      }
+    }
+
+    let query = "";
+    let params = [];
+
+    if (anomes) {
+      // Máximo dentro do mês selecionado
+      query = `
+        WITH CTE_MAX AS (
+          SELECT MAX(DATA_ATUALIZACAO) AS data_maxima
+          FROM PAP
+          WHERE ANOMES = ?
+        )
+        SELECT
+          PAP.anomes,
+	PAP.FILIAL_COORDENADOR, 
+	count(distinct PAP.PARCEIRO_LOJA) as PARCEIRO_LOJA,
+	count(distinct PAP.executivo) as executivo,
+	count(distinct PAP.ibge) as ibge
+        FROM PAP AS PAP
+        JOIN CTE_MAX AS m
+          ON PAP.DATA_ATUALIZACAO = m.data_maxima
+        WHERE PAP.ANOMES = ?
+        GROUP BY PAP.FILIAL_COORDENADOR, PAP.ANOMES
+        ORDER BY PARCEIRO_LOJA DESC, executivo DESC, FILIAL_COORDENADOR;
+      `;
+      params = [anomes, anomes];
+    } else {
+      // Snapshot global (sem filtro)
+      query = `
+        WITH CTE_MAX AS (
+          SELECT MAX(DATA_ATUALIZACAO) AS data_maxima
+          FROM PAP
+        )
+        SELECT
+          PAP.anomes,
+	PAP.FILIAL_COORDENADOR, 
+	count(distinct PAP.PARCEIRO_LOJA) as PARCEIRO_LOJA,
+	count(distinct PAP.executivo) as executivo,
+	count(distinct PAP.ibge) as ibge
+        FROM PAP AS PAP
+        JOIN CTE_MAX AS m
+          ON PAP.DATA_ATUALIZACAO = m.data_maxima
+         GROUP BY PAP.FILIAL_COORDENADOR, PAP.ANOMES
+        ORDER BY PARCEIRO_LOJA DESC, executivo DESC, FILIAL_COORDENADOR;
+      `;
+      params = [];
+    }
+
+    const [rows] = await dataBase.query(query, params);
+    return res.status(200).json(rows);
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ error: "Erro ao buscar getPAP_grafico" });
+  }
+};
+
+export const getPAP_graficoHistorico = async (req, res) => {
+  try {
+    const query = `
+     WITH max_por_mes AS (
+  SELECT
+    ANOMES,
+    MAX(DATA_ATUALIZACAO) AS data_maxima_mes
+  FROM PAP
+  GROUP BY ANOMES
+)
+SELECT
+  PAP.ANOMES AS anomes,
+  CASE
+    WHEN PAP.FILIAL_COORDENADOR IS NULL OR PAP.FILIAL_COORDENADOR = '' THEN NULL
+    ELSE SUBSTRING_INDEX(TRIM(PAP.FILIAL_COORDENADOR), ' ', 1)
+  END AS FILIAL_COORDENADOR,  -- agora é só o primeiro nome
+  COUNT(DISTINCT PAP.PARCEIRO_LOJA) AS PARCEIRO_LOJA,
+  COUNT(DISTINCT PAP.executivo)        AS qtde_executivos_distintas,
+  COUNT(DISTINCT PAP.ibge)      AS ibge
+FROM PAP
+JOIN max_por_mes m
+  ON PAP.ANOMES = m.ANOMES
+ AND PAP.DATA_ATUALIZACAO = m.data_maxima_mes
+GROUP BY
+  PAP.ANOMES,
+  CASE
+    WHEN PAP.FILIAL_COORDENADOR IS NULL OR PAP.FILIAL_COORDENADOR = '' THEN NULL
+    ELSE SUBSTRING_INDEX(TRIM(PAP.FILIAL_COORDENADOR), ' ', 1)
+  END
+ORDER BY anomes ASC, FILIAL_COORDENADOR ASC;
+    `;
+
+    const [rows] = await dataBase.query(query);
+    return res.status(200).json(rows);
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ error: "Erro ao buscar histórico PAP" });
   }
 };

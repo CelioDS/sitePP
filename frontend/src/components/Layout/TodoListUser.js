@@ -14,7 +14,7 @@ import {
   BsCheckCircleFill,
   BsShare,
 } from "react-icons/bs";
-import Style from "./TodoList.module.css";
+import Style from "./TodoListUser.module.css";
 import Loading from "../Item-Layout/Loading";
 import debounce from "lodash/debounce";
 import Modal from "../Item-Layout/Modal";
@@ -552,19 +552,19 @@ export default function TodoListUser() {
     }
   }
 
-const UpdateHandleSumitTextarea = useMemo(() => {
-  return debounce(async (tarefa, value) => {
-    try {
-      const { data } = await axios.patch(`${Url}/todo/${tarefa.id}`, {
-        obs: value,
-      });
+  const UpdateHandleSumitTextarea = useMemo(() => {
+    return debounce(async (tarefa, value) => {
+      try {
+        const { data } = await axios.patch(`${Url}/todo/${tarefa.id}`, {
+          obs: value,
+        });
 
-      toast.success("OBS atualizada! ", { data });
-    } catch (err) {
-      toast.error(err.response?.data || err.message);
-    }
-  }, 2000);
-}, [Url]);
+        toast.success("OBS atualizada! ", { data });
+      } catch (err) {
+        toast.error(err.response?.data || err.message);
+      }
+    }, 2000);
+  }, [Url]);
 
   async function handleSubmitTextarea(e, tarefa) {
     const value = e.target.value;
@@ -706,7 +706,26 @@ const UpdateHandleSumitTextarea = useMemo(() => {
                       .map((tarefa) => {
                         const isOpen = expanded.has(tarefa.id);
                         return (
-                          <tr key={tarefa.id}>
+                          <tr
+                            key={tarefa.id}
+                            style={{
+                              background:
+                                Number(idFirst) === Number(tarefa.id) &&
+                                editTarefa
+                                  ? "#b80b0b56"
+                                  : Number(tarefa.id) === Number(etapasShow)
+                                    ? "#cebebe63"
+                                    : "#fff",
+                              padding: "5px",
+                              filter:
+                                Number(idFirst) === Number(tarefa.id) &&
+                                editTarefa
+                                  ? "drop-shadow(3px 3px 3px #000000cc)"
+                                  : Number(tarefa.id) === Number(etapasShow)
+                                    ? "drop-shadow(3px 3px 3px #000000cc)"
+                                    : "",
+                            }}
+                          >
                             <td
                               style={{
                                 background:
@@ -717,6 +736,13 @@ const UpdateHandleSumitTextarea = useMemo(() => {
                                       ? "#cebebe"
                                       : "#fff",
                                 padding: "5px",
+                                filter:
+                                  Number(idFirst) === Number(tarefa.id) &&
+                                  editTarefa
+                                    ? "drop-shadow(3px 3px 3px #000000cc)"
+                                    : Number(tarefa.id) === Number(etapasShow)
+                                      ? "drop-shadow(3px 3px 3px #000000cc)"
+                                      : "",
                               }}
                             >
                               <p>{tarefa.tarefa}</p>

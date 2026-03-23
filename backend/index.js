@@ -34,7 +34,7 @@ const allowedOrigins = [
   "http://localhost:3000",
   "http://10.69.152.193:3000",
   "https://ppspi.netlify.app",
-  "http://192.168.1.15:3000",
+  "http://192.168.1.9:3000",
   ...(process.env.FRONTEND_URL?.split(",") || []),
 ];
 

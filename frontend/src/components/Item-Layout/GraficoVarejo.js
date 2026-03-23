@@ -14,13 +14,6 @@ import { RiTeamFill } from "react-icons/ri";
 import { GiShop } from "react-icons/gi";
 import { FaCity } from "react-icons/fa";
 
-/**
- * Novo componente Varejo com gráficos melhorados
- * - Usa /VAREJOgrafico e /VAREJOgraficoHISTORICO (conforme payload enviado)
- * - Corrige campos: filial_coordenador, loja, colaborador, cidades, parceiro
- * - Adiciona seletor de métrica no donut e range na linha
- * - Responsivo (100% width) e alturas dinâmicas
- */
 
 export default function Varejo({ Url }) {
   // Dados filtrados pelo mês
@@ -35,9 +28,7 @@ export default function Varejo({ Url }) {
   const [donutMetric, setDonutMetric] = useState("lojas"); // lojas | colab | cidades | parceiro
 
   // Seletor de range para a linha (null=todos, 6, 12)
-  const [lineRange, setLineRange] = useState(12);
-  setLineRange(12)
-
+  
   // Mês selecionado (YYYY-MM)
   const tz = "America/Sao_Paulo";
   const hojeBR = toZonedTime(new Date(), tz);
@@ -380,10 +371,10 @@ export default function Varejo({ Url }) {
   }, [dataHistory]);
 
   const { lineCategories, lineSeries } = useMemo(() => {
-    const { categories, series } = buildLineSeries(byCoordHistory, lineRange);
+    const { categories, series } = buildLineSeries(byCoordHistory, 12);
     return { lineCategories: categories, lineSeries: series };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [byCoordHistory, lineRange]);
+  }, [byCoordHistory, 12]);
 
   const optionsLine = useMemo(
     () => ({
@@ -678,12 +669,12 @@ export default function Varejo({ Url }) {
 
 function Kpi({ title, value, icon }) {
   return (
-    <main className={Style.card} style={{ padding: 12 }}>
+    <section className={Style.card} style={{ padding: 12 }}>
       {icon}
       <section style={{ fontSize: 12, color: "#6b7280", marginBottom: 4 }}>
         {title}
       </section>
       <section style={{ fontSize: 28, fontWeight: 700 }}>{value}</section>
-    </main>
+    </section>
   );
 }

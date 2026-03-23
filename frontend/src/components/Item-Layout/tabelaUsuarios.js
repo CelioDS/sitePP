@@ -6,13 +6,10 @@ import Loading from "./Loading";
 
 export default function RelatorioAdmin({ user, DataBase }) {
   const ref = useRef();
-  const dadosForm = ref.current;
   const [isMis, setIsMis] = useState("");
-  const [idFirst, setIdFirst] = useState();
   const [editUser, setEditUser] = useState();
   const [isSubmit, setIsSubmit] = useState(false);
   const [dataBaseLogin, setDataBaseLogin] = useState([]);
-  const [handleNumberEdit, setHandleNumberEdit] = useState(1);
   const [textButtonForm, setTextButtonForm] = useState("Salvar");
   const Url = process.env.REACT_APP_API_URL || "http://localhost:8000";
 
@@ -36,27 +33,21 @@ export default function RelatorioAdmin({ user, DataBase }) {
   }, []);
 
   function handleEdit(user) {
-    setEditUser(user);
-    if (!idFirst) {
-      setIdFirst(user.id);
-    }
+    if (isSubmit) return; // evita cliques durante submit
 
-    if (idFirst === user.id) {
-      // verifica se o id recebeu 2 click e cancela a edição
-      if (handleNumberEdit % 2 === 0) {
-        dadosForm.login.value = "";
-        dadosForm.senha.value = "";
-        dadosForm.canal.value = "";
-        dadosForm.mis.value = "";
-        dadosForm.admin.value = "";
-        setEditUser(null);
-      } else {
-        setEditUser(user);
+    // Se já está editando exatamente esse usuário → toggle (cancelar edição)
+    if (editUser?.id === user.id) {
+      if (ref.current) {
+        ref.current.reset(); // limpa o form
       }
-    } else {
-      // se nenhuma condição é antiginda, nova tarefa, novo id e nova cotagem inicia
+      setEditUser(null);
+      // se quiser resetar o contador também:
+      // setHandleNumberEdit(1);
+    }
+    // Senão → inicia edição desse usuário
+    else {
       setEditUser(user);
-      setIdFirst(user.id);
+      // O preenchimento do form acontece no useEffect, NÃO aqui
     }
   }
   //preencher o formulario
@@ -77,12 +68,10 @@ export default function RelatorioAdmin({ user, DataBase }) {
 
     const dadosForm = ref.current;
 
-    const loginValue = dadosForm.login.value?.toLowerCase();
     const senhaValue = dadosForm.senha.value;
     const canalValue = dadosForm.canal?.value || "MIS";
     const misValue = Number(dadosForm.mis.value);
     const adminValue = Number(dadosForm.admin.value);
-    e.preventDefault();
 
     if (
       !dadosForm.login.value ||
@@ -100,14 +89,13 @@ export default function RelatorioAdmin({ user, DataBase }) {
     if (editUser) {
       await axios
         .put(`${Url}/users/${editUser.id}`, {
-          login: dadosForm.login.value?.toLowerCase(),
+          login: dadosForm.login?.value?.toLowerCase(),
           senha: dadosForm.senha.value,
           canal: dadosForm.canal?.value || "MIS",
           mis: Number(dadosForm.mis.value),
           admin: Number(dadosForm.admin.value),
         })
         .then(({ data }) => {
-          console.log(data.message);
           toast.success(data.message);
           // Atualiza localmente sem precisar buscar no banco
           setDataBaseLogin((prev) =>
@@ -115,7 +103,7 @@ export default function RelatorioAdmin({ user, DataBase }) {
               info.id === editUser.id
                 ? {
                     ...info,
-                    login: dadosForm.login.value?.toLowerCase(),
+                    login: dadosForm.login?.value?.toLowerCase(),
                     senha: dadosForm.senha.value,
                     canal: dadosForm.canal.value || "MIS",
                     mis: Number(dadosForm.mis.value),
@@ -130,11 +118,11 @@ export default function RelatorioAdmin({ user, DataBase }) {
       if (
         dataBaseLogin.some(
           (user) =>
-            user.login.toLowerCase() === dadosForm.login.value?.toLowerCase(),
+            user?.login?.toLowerCase() ===
+            dadosForm.login?.value?.toLowerCase(),
         )
       ) {
         toast.warning("Login ja cadastrado!!!");
-        setHandleNumberEdit(0);
         setTextButtonForm("Enviar");
         setIsSubmit(false);
         setEditUser(null);
@@ -143,7 +131,6 @@ export default function RelatorioAdmin({ user, DataBase }) {
 
       if (dadosForm.senha.value.length < 8) {
         toast.warning("A senha deve ter pelo menos 8 caracteres.");
-        setHandleNumberEdit(0);
         setTextButtonForm("Enviar");
         setIsSubmit(false);
         setEditUser(null);
@@ -156,7 +143,6 @@ export default function RelatorioAdmin({ user, DataBase }) {
         !/[0-9]/.test(dadosForm.senha.value) ||
         !/[^A-Za-z0-9]/.test(dadosForm.senha.value)
       ) {
-        setHandleNumberEdit(0);
         setTextButtonForm("Enviar");
         setIsSubmit(false);
         setEditUser(null);
@@ -168,7 +154,7 @@ export default function RelatorioAdmin({ user, DataBase }) {
       }
       await axios
         .post(`${Url}/users/add`, {
-          login: dadosForm.login.value?.toLowerCase(),
+          login: dadosForm.login?.value?.toLowerCase(),
           senha: dadosForm.senha.value,
           canal: dadosForm.canal?.value || "MIS",
           mis: Number(dadosForm.mis.value),
@@ -181,7 +167,7 @@ export default function RelatorioAdmin({ user, DataBase }) {
             ...prev,
             {
               id: data.id,
-              login: loginValue,
+              login: data.login,
               senha: senhaValue,
               canal: canalValue,
               mis: misValue,
@@ -193,7 +179,6 @@ export default function RelatorioAdmin({ user, DataBase }) {
           toast.error(err.response?.data || err.message);
         });
     }
-    setHandleNumberEdit(0);
     setTextButtonForm("Enviar");
     setIsSubmit(false);
     setEditUser(null);
@@ -201,15 +186,15 @@ export default function RelatorioAdmin({ user, DataBase }) {
   }
 
   async function handleExcluir(id) {
-    if (isSubmit) {
+    if (isSubmit || !id) {
       toast.warn("Aguarde!!!");
       return;
     }
     setIsSubmit(true);
 
     await axios.delete(`${Url}/users/${id}`).then(({ data }) => {
-      setDataBaseLogin((prev) => prev.filter((item) => item.id !== id));
-      toast.success(data);
+      setDataBaseLogin((prev) => prev.filter((item) => Number(item.id) !== id));
+      toast.success(data.message);
     });
 
     setIsSubmit(false);
@@ -294,25 +279,21 @@ export default function RelatorioAdmin({ user, DataBase }) {
             </thead>
             <tbody>
               {dataBaseLogin.map((info, index) =>
-                info[index]?.login !== "admin" ? (
-                  <tr key={index || info[index]?.id}>
-                    {console.log(info[index]?.login)}
-                    <td>{info[index]?.login}</td>
+                info?.login !== "admin" ? (
+                  <tr key={index || info?.id}>
+                    <td>{info?.login}</td>
                     <td>{"*".repeat(10)}</td>
-                    <td>{info[index]?.canal}</td>
-                    <td>{info[index]?.mis}</td>
-                    <td>{info[index]?.admin === 1 ? "Sim" : "Não"}</td>
+                    <td>{info?.canal}</td>
+                    <td>{info?.mis}</td>
+                    <td>{info?.admin === 1 ? "Sim" : "Não"}</td>
                     <th>
                       <button
                         onClick={() => {
-                          handleEdit(info[index]);
-                          setHandleNumberEdit(
-                            (prevState) => prevState + 1,
-                            info[index]?.id,
-                          );
+                          handleEdit(info);
+                          
                         }}
                       >
-                        {editUser?.id === info[index]?.id && info?.id
+                        {editUser?.id === info?.id && info?.id
                           ? "Editando..."
                           : "Editar"}
                       </button>
@@ -321,7 +302,10 @@ export default function RelatorioAdmin({ user, DataBase }) {
                       <button
                         type="button"
                         disabled={editUser || isSubmit ? true : false}
-                        onClick={() => handleExcluir(info[index]?.id)}
+                        onClick={() => {
+                          handleExcluir(info.id);
+                          console.log("1");
+                        }}
                       >
                         Excluir
                       </button>

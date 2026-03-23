@@ -33,7 +33,7 @@ import {
   getPDUMovel,
   getAPARELHO,
   getLP_grafico,
-  getPAP_PREMIUM,
+  getPAP_grafico,
   getVAREJO_grafico,
   getPduFullGrafico,
   getLP_graficoStatus,
@@ -64,7 +64,6 @@ router.get("/varejo", getVAREJO);
 router.get("/lojapropria", getLP);
 router.get("/portaaporta", getPAP);
 router.get("/agenteautorizado", getAA);
-router.get("/pap_premium", getPAP_PREMIUM);
 
 /*------------------ ROTAS RAIZ ANALLITICAS ------------------*/
 
@@ -73,6 +72,7 @@ router.get("/aparelho", getAPARELHO);
 router.get("/PduMovel", getPDUMovel);
 router.get("/PduFullGrafico", getPduFullGrafico);
 router.get("/lojapropriaGrafico", getLP_grafico);
+router.get("/portaaportaGrafico", getPAP_grafico);
 router.get("/lojapropriaGraficoStatus", getLP_graficoStatus);
 router.get("/VAREJOGrafico", getVAREJO_grafico);
 router.get("/VAREJOGraficoHistorico", getVAREJO_graficoHistorico);

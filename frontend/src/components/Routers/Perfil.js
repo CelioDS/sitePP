@@ -5,8 +5,8 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
 import ValidarToken from "../Tools/ValidarToken";
+import TabelaUsuarios from "../Item-Layout/tabelaUsuarios";
 import RenameTitle from "../Tools/RenameTitle";
-
 
 export default function Perfil() {
   const Url = process.env.REACT_APP_API_URL || "http://localhost:8000";
@@ -54,6 +54,7 @@ export default function Perfil() {
     <Container>
       <RenameTitle initialTitle={"P&P - Perfil"} />
       <main className={Style.perfil}>
+        {admin && mis && <TabelaUsuarios Url={Url}></TabelaUsuarios>}
         {loading ? (
           <p>Carregando…</p>
         ) : perfilData?.length > 0 ? (
@@ -81,7 +82,7 @@ export default function Perfil() {
           <p>Nenhum dado de perfil encontrado.</p>
         )}
 
-        {admin === "admin" && mis === 'iu' ? 'todo': 'nada'}
+        {admin === "admin" && mis === "iu" ? "todo" : "nada"}
         <h1>{console.log(userData)}</h1>
         <h1>{mis}a</h1>
       </main>

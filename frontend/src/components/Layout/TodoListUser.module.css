@@ -1,0 +1,283 @@
+.main {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+.main .card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-direction: row;
+  width: 80%;
+  height: 100%;
+}
+
+.main .card div {
+  border: 1px solid #a5a1a1;
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  justify-content: center;
+  text-align: center;
+  width: 100px;
+  height: 80px;
+  border-radius: 5px;
+  background-color: #ffffff;
+  filter: drop-shadow(3px 3px 3px #000000cc);
+}
+
+.main .formTarefa {
+  margin-bottom: 30px;
+  width: 100%;
+  
+}
+
+.main .formTarefa input {
+  outline: none;
+  padding: 5px;
+  width: 300px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  margin-bottom: 5px;
+}
+
+.main .formTarefa button {
+  outline: none;
+  font-weight: bolder;
+  padding: 5px;
+  color: #ffff;
+  height: 35%;
+  width: 100px;
+  border: none;
+  background-color: var(--color-brand-primary-darkest);
+  border-radius: 5px;
+  margin-bottom: 5px;
+  cursor: pointer;
+  filter: drop-shadow(3px 3px 3px #000000cc);
+}
+
+.main button:hover {
+  opacity: 0.6;
+  cursor: pointer;
+}
+.main ul {
+  list-style: none;
+}
+.main .section {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  gap: 10px;
+  align-items: center;
+  justify-content: center;
+  align-items: start;
+  text-align: center;
+  flex-direction: row;
+}
+.main .section table {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+.main .section tr {
+  border: 1px solid #b3b1b1cc;
+  
+}
+
+.main .section th,
+.main .section h4 {
+  height: 60px;
+  background-color: var(--color-brand-primary-darkest);
+  color: #ffff;
+  border: 1px solid var(--color-brand-primary-darkest);
+
+  padding: 5px;
+}
+.main .section h4 {
+  display: flex;
+  width: 400px;
+  flex-direction: column;
+  text-align: center;
+  align-self: center;
+  justify-content: center;
+  border-radius: 5px;
+}
+
+.main .sectionTarefas {
+  width: 100%;
+  table-layout: fixed; /* evita expansão */
+}
+
+.main .sectionTarefas textarea {
+  display: inline-flex;
+  justify-content: center;
+  width: 200px;
+  min-height: 80px;
+  text-align: center;
+  align-items: center;
+  resize: none;
+  outline: none;
+  overflow-wrap: break-word; /* quebra dentro de palavras */
+  word-break: break-normal;
+}
+.main .sectionTarefas td:first-child {
+  white-space: normal;
+  overflow-wrap: break-word; /* quebra dentro de palavras */
+  word-break: break-normal;
+  width: 300px;
+}
+
+.main .btnDelete,
+.main .btnEdit,
+.main .btnFinished,
+.main .btnHidden,
+.main .btnShare {
+  font-size: 13px;
+  background-color: rgb(247, 226, 226);
+  width: 25px;
+  justify-content: center;
+  align-items: center;
+  height: 25px;
+  text-align: center;
+  border-radius: 5px;
+  border: none;
+  filter: drop-shadow(3px 3px 3px #000000cc);
+}
+.main .main .btnShare {
+  color: #060474;
+  background-color: rgb(252, 215, 215);
+}
+.main .btnDelete {
+  color: #f31414;
+  background-color: rgb(252, 215, 215);
+}
+
+.main .btnFinished {
+  color: #1448f3;
+  background-color: rgb(215, 234, 252);
+  font-size: 22px;
+}
+
+.main .btnEdit {
+  color: #27f314;
+  background-color: rgb(218, 252, 215);
+}
+.main .btnHidden {
+  color: #f3ac14;
+  background-color: rgb(246, 252, 215);
+}
+.main button:disabled {
+  color: #d8d8d8;
+  background-color: rgb(141, 141, 141);
+  cursor: not-allowed;
+}
+.main .btnTarefa {
+  padding: 5px 8px;
+  margin: 5px;
+  background-color: #f31414;
+  outline: none;
+  border: none;
+  font-weight: bold;
+  border-radius: 5px;
+  filter: drop-shadow(3px 3px 3px #000000cc);
+  color: #fff;
+  width: 100px;
+}
+.main .formEtapas {
+  background: rgb(207, 205, 205);
+  padding: 5px;
+  margin: 5px;
+  border-radius: 5px;
+}
+.main .formEtapas input {
+  outline: none;
+  padding: 5px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  margin-bottom: 5px;
+}
+
+.main .formEtapas button {
+  margin: 5px;
+  outline: none;
+  font-weight: bolder;
+  padding: 5px;
+  color: #ffff;
+  height: 35%;
+  width: 100px;
+  border: none;
+  background-color: #f31414;
+  border-radius: 5px;
+  cursor: pointer;
+  filter: drop-shadow(3px 3px 3px #000000cc);
+}
+
+.main .formEtapas select {
+  outline: none;
+  padding: 5px;
+  height: 35%;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.main .sectionEtapas .divEtapas {
+  background-color: #ffffff;
+  margin-bottom: 5px;
+  padding: 5px;
+  display: flex;
+  align-items: center;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  filter: drop-shadow(2px 4px 2px #ccc);
+  justify-content: space-between;
+  flex-direction: row;
+}
+.main .sectionEtapas .divEtapas .etapasLine {
+  display: inline-flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+.main .sectionEtapas .divEtapas .etapasLine span {
+  display: inline-flex;
+  flex-direction: column;
+  font-size: 12px;
+}
+.main .sectionEtapas .divEtapas aside {
+  display: inline-flex;
+  transition: all 5s;
+}
+
+.main .finalizadoCard {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  border: 1px solid #ccc;
+}
+
+.main .finalizadoEtapas {
+  background-color: #ddf0da;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: row;
+  margin: 5px;
+}
+.main .finalizadoEtapas {
+  position: relative;
+  flex-direction: column;
+  width: 300px;
+  padding: 5px;
+}
+
+.main .finalizadoEtapas li {
+  background: #eceaea;
+  width: 100%;
+}
