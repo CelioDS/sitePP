@@ -6,13 +6,11 @@ import { useState } from "react";
 import { toast } from "react-toastify";
 import axios from "axios";
 
-export default function Login({
-  setPermission,
-  setLoginBD,
-}) {
+export default function Login({ setPermission, setLoginBD }) {
   const [Text, setText] = useState("Entrar");
   const [login, setLogin] = useState();
   const [senha, setSenha] = useState();
+  const [id, setId] = useState(2);
   //const [admin, setAdmin] = useState();
 
   const Url = process.env.REACT_APP_API_URL || "http://localhost:8000";
@@ -33,6 +31,8 @@ export default function Login({
         localStorage.setItem("login", user.login);
         localStorage.setItem("permission", true);
         setLoginBD(user.login);
+        setId(user.id);
+        console.log('a',user)
 
         toast.success("Login realizado com sucesso!");
         setPermission(true);
@@ -52,6 +52,26 @@ export default function Login({
       setText("Entrar");
     }
   }
+
+  useState(
+    async function ultimoAcesso() {
+      try {
+        if (!id) {
+          console.log('a',id);
+          return;
+        }
+        const today = new Date().toString();
+
+        await axios.patch(`${Url}/users/2`, {
+          ultimo_acesso: today,
+        });
+      } catch (error) {
+        console.error("Error ao atualizar o ultimo acesso:", error);
+      }
+      ultimoAcesso();
+    },
+    [id, setId],
+  );
 
   function handleKeyPress(e) {
     if (e.key === "Enter" || e.key === "NumpadEnter") {

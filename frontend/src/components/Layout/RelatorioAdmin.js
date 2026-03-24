@@ -29,9 +29,9 @@ export default function RelatorioAdmin({ Url }) {
         </section>
       )}
 
-      {grafico === "LP" && <GraficoLP Url={Url} />}
-      {grafico === "PAP" && <GraficoPAP Url={Url} />}
-      {grafico === "Varejo" && <GraficoVarejo Url={Url} />}
+      {pagina && grafico === "LP" && <GraficoLP Url={Url} />}
+      {pagina && grafico   === "PAP" && <GraficoPAP Url={Url} />}
+      {pagina && grafico === "Varejo" && <GraficoVarejo Url={Url} />}
 
       {!pagina && <TabelaResponsavel Url={Url}></TabelaResponsavel>}
     </main>

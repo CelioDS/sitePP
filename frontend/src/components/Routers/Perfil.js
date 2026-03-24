@@ -15,6 +15,7 @@ export default function Perfil() {
   const [userData, setUserData] = useState(null);
 
   const mis = userData?.mis;
+  const login = userData?.login;
   const id = userData?.userId;
   const admin = userData?.admin;
 
@@ -54,7 +55,7 @@ export default function Perfil() {
     <Container>
       <RenameTitle initialTitle={"P&P - Perfil"} />
       <main className={Style.perfil}>
-        {admin && mis && <TabelaUsuarios Url={Url}></TabelaUsuarios>}
+        {admin && mis && <TabelaUsuarios Url={Url} login={login}></TabelaUsuarios>}
         {loading ? (
           <p>Carregando…</p>
         ) : perfilData?.length > 0 ? (

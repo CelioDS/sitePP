@@ -4,7 +4,7 @@ import { toast } from "react-toastify";
 import Style from "./tabelaUsuarios.module.css";
 import Loading from "./Loading";
 
-export default function RelatorioAdmin({ user, DataBase }) {
+export default function RelatorioAdmin({ login, DataBase }) {
   const ref = useRef();
   const [isMis, setIsMis] = useState("");
   const [editUser, setEditUser] = useState();
@@ -273,6 +273,7 @@ export default function RelatorioAdmin({ user, DataBase }) {
                 <th>Canal</th>
                 <th>mis</th>
                 <th>Admin</th>
+                <th>ultimo acesso</th>
                 <th>Editar</th>
                 <th>Excluir</th>
               </tr>
@@ -286,11 +287,11 @@ export default function RelatorioAdmin({ user, DataBase }) {
                     <td>{info?.canal}</td>
                     <td>{info?.mis}</td>
                     <td>{info?.admin === 1 ? "Sim" : "Não"}</td>
+                    <th>{info?.ultimo_acesso}</th>
                     <th>
                       <button
                         onClick={() => {
                           handleEdit(info);
-                          
                         }}
                       >
                         {editUser?.id === info?.id && info?.id
@@ -298,18 +299,21 @@ export default function RelatorioAdmin({ user, DataBase }) {
                           : "Editar"}
                       </button>
                     </th>
-                    <th>
-                      <button
-                        type="button"
-                        disabled={editUser || isSubmit ? true : false}
-                        onClick={() => {
-                          handleExcluir(info.id);
-                          console.log("1");
-                        }}
-                      >
-                        Excluir
-                      </button>
-                    </th>
+
+                    {login === "admin" && (
+                      <th>
+                        <button
+                          type="button"
+                          disabled={editUser || isSubmit ? true : false}
+                          onClick={() => {
+                            handleExcluir(info.id);
+                            console.log("1");
+                          }}
+                        >
+                          Excluir
+                        </button>
+                      </th>
+                    )}
                   </tr>
                 ) : null,
               )}

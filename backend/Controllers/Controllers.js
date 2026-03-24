@@ -1264,6 +1264,7 @@ export const getPAP_grafico = async (req, res) => {
         SELECT
           PAP.anomes,
 	PAP.FILIAL_COORDENADOR, 
+  PAP.ESTRUTURA,
 	count(distinct PAP.PARCEIRO_LOJA) as PARCEIRO_LOJA,
 	count(distinct PAP.executivo) as executivo,
 	count(distinct PAP.ibge) as ibge
@@ -1284,7 +1285,8 @@ export const getPAP_grafico = async (req, res) => {
         )
         SELECT
           PAP.anomes,
-	PAP.FILIAL_COORDENADOR, 
+	PAP.FILIAL_COORDENADOR,
+    PAP.ESTRUTURA, 
 	count(distinct PAP.PARCEIRO_LOJA) as PARCEIRO_LOJA,
 	count(distinct PAP.executivo) as executivo,
 	count(distinct PAP.ibge) as ibge
@@ -1320,7 +1322,7 @@ SELECT
   CASE
     WHEN PAP.FILIAL_COORDENADOR IS NULL OR PAP.FILIAL_COORDENADOR = '' THEN NULL
     ELSE SUBSTRING_INDEX(TRIM(PAP.FILIAL_COORDENADOR), ' ', 1)
-  END AS FILIAL_COORDENADOR,  -- agora é só o primeiro nome
+  END AS FILIAL_COORDENADOR, 
   COUNT(DISTINCT PAP.PARCEIRO_LOJA) AS PARCEIRO_LOJA,
   COUNT(DISTINCT PAP.executivo)        AS qtde_executivos_distintas,
   COUNT(DISTINCT PAP.ibge)      AS ibge

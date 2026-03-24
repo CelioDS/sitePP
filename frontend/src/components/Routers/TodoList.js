@@ -21,7 +21,6 @@ export default function TodoList() {
         // Só atualiza se o componente ainda estiver na tela e o dado for válido
         if (isMounted && data) {
           setUserData(data);
-          console.log(data);
         }
       } catch (error) {
         console.error("Erro ao validar token:", error);

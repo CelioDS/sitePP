@@ -12,8 +12,6 @@ export const getDBLogin = async (_, res) => {
     const query = "SELECT * FROM usuariosAgen";
     const [rows] = await dataBase.query(query);
 
-
-
     return res.status(200).json(rows);
   } catch (err) {
     console.error("Erro getDBLogin:", err);
@@ -53,16 +51,14 @@ export const setDBLogin = async (req, res) => {
 
     const [result] = await dataBase.query(query, values);
 
-    return res
-      .status(201)
-      .json({
-        id: result.insertId,
-        login: login,
-        mis: mis,
-        admin:admin,
-        canal: canal,
-        message: "Usuario criado",
-      });
+    return res.status(201).json({
+      id: result.insertId,
+      login: login,
+      mis: mis,
+      admin: admin,
+      canal: canal,
+      message: "Usuario criado",
+    });
   } catch (err) {
     console.error("Erro setDBLogin:", err);
     return res.status(500).json({ error: "Erro ao criar usuário." });
@@ -72,7 +68,7 @@ export const setDBLogin = async (req, res) => {
 // PUT: atualiza usuário
 export const updateDBLogin = async (req, res) => {
   try {
-    const { login, senha, canal, mis, admin } = req.body;
+    const { login, senha, canal, mis, admin, ultimo_acesso } = req.body;
     const { id } = req.params;
 
     if (!id) {
@@ -89,17 +85,17 @@ export const updateDBLogin = async (req, res) => {
       const hashed = await bcrypt.hash(senha, 10);
       sql = `
         UPDATE usuariosAgen
-           SET \`login\` = ?, \`senha\` = ?, \`canal\` = ?, \`mis\` = ?, \`admin\` = ?
+           SET \`login\` = ?, \`senha\` = ?, \`canal\` = ?, \`mis\` = ?, \`admin\` = ?, \`ultimo_acesso\` = ?
          WHERE \`id\` = ?
       `;
-      params = [login, hashed, canal, mis, admin, id];
+      params = [login, hashed, canal, mis, admin, ultimo_acesso, id];
     } else {
       sql = `
         UPDATE usuariosAgen
-           SET \`login\` = ?, \`canal\` = ?, \`mis\` = ?, \`admin\` = ?
+           SET \`login\` = ?, \`canal\` = ?, \`mis\` = ?, \`admin\` = ?, \`ultimo_acesso\` = ?
          WHERE \`id\` = ?
       `;
-      params = [login, canal, mis, admin, id];
+      params = [login, canal, mis, admin, ultimo_acesso, id];
     }
 
     const [result] = await dataBase.query(sql, params);
