@@ -303,11 +303,15 @@ function SortableRow({ tarefa, changeStatus, setTarefasOrdenadas, Url }) {
       </td>
 
       <td>
-        <button onClick={() => handlePrioridade(tarefa)}>
+        <button
+          onClick={() => handlePrioridade(tarefa)}
+          className={Style.btnPrioridade}
+          style={{ background: tarefa.prioridade ? "#ff00002c" : "#9c989817" }}
+        >
           {tarefa.prioridade ? (
             <FaExclamation color="#ff0000" />
           ) : (
-            <FaExclamation color="#e4e4e4" />
+            <FaExclamation color="#9c9898" />
           )}{" "}
         </button>
       </td>

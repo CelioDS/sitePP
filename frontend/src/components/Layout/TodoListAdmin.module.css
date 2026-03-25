@@ -51,3 +51,30 @@
   display: inline-flex;
   gap: 5px;
 }
+
+.main .btnPrioridade {
+  width: 30px;
+  height: 30px;
+  cursor: pointer;
+  border: none;
+}
+.main .btnPrioridade:hover {
+  width: 30px;
+  height: 30px;
+  cursor: pointer;
+  border: none;
+  background: var(--color-brand-primary-darkest) !important;
+}
+
+.main textarea {
+  display: inline-flex;
+  justify-content: center;
+  width: 200px;
+  min-height: 80px;
+  text-align: center;
+  align-items: center;
+  resize: none;
+  outline: none;
+  overflow-wrap: break-word; /* quebra dentro de palavras */
+  word-break: break-normal;
+}

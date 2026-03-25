@@ -26,11 +26,11 @@ export default function RelatorioUser({ Url }) {
 
   return (
     <main className={Style.main}>
-      {canal === "LP" && <GraficoLP Url={Url}></GraficoLP>}
+      {canal === "LP"     && <GraficoLP     Url={Url}></GraficoLP>}
       {canal === "Varejo" && <GraficoVarejo Url={Url}></GraficoVarejo>}
-      {canal === "PAP" && <GraficoPAP Url={Url}></GraficoPAP>}
-      {canal === "AA" && <GraficoPAP Url={Url}></GraficoPAP>}
-      {canal === "PME" && <GraficoPAP Url={Url}></GraficoPAP>}
+      {canal === "PAP"    && <GraficoPAP    Url={Url}></GraficoPAP>}
+      {canal === "AA"     && <GraficoPAP    Url={Url}></GraficoPAP>}
+      {canal === "PME"    && <GraficoPAP    Url={Url}></GraficoPAP>}
      
     </main>
   );

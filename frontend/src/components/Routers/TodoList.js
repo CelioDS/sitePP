@@ -10,6 +10,7 @@ export default function TodoList() {
 
   const login = userData?.login;
   const misAdmin = userData?.mis_admin;
+  const nome = userData?.nome;
   //const adminMis = userData?.adminMis;
 
   useEffect(() => {
@@ -40,7 +41,7 @@ export default function TodoList() {
       <main>
         <button onClick={() => setView((prev) => (prev = !prev))}>mudar</button>
 
-         {view ? <TodoListAdmin login={login} /> : <TodoListUser />}
+         {view ? <TodoListAdmin login={login}  /> : <TodoListUser nome={nome}/>}
       </main>
     </Container>
   );

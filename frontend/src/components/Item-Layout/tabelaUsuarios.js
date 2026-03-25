@@ -192,10 +192,18 @@ export default function RelatorioAdmin({ login, DataBase }) {
     }
     setIsSubmit(true);
 
-    await axios.delete(`${Url}/users/${id}`).then(({ data }) => {
+    /*await axios.delete(`${Url}/users/${id}`).then(({ data }) => {
       setDataBaseLogin((prev) => prev.filter((item) => Number(item.id) !== id));
       toast.success(data.message);
+    });*/
+
+    const { data } = await axios.patch(`${Url}/users/${id}`, {
+      ocultar: 1,
     });
+
+    setDataBaseLogin((prev) => prev.filter((item) => Number(item.id) !== id));
+
+    toast.success(data, 'Login excluido com sucesso!');
 
     setIsSubmit(false);
   }
@@ -268,6 +276,7 @@ export default function RelatorioAdmin({ login, DataBase }) {
           <table className={Style.tableLogin}>
             <thead>
               <tr>
+                <th>Nome</th>
                 <th>Login</th>
                 <th>Senha</th>
                 <th>Canal</th>
@@ -280,8 +289,9 @@ export default function RelatorioAdmin({ login, DataBase }) {
             </thead>
             <tbody>
               {dataBaseLogin.map((info, index) =>
-                info?.login !== "admin" ? (
+                info?.login !== "admin" && !info?.ocultar ? (
                   <tr key={index || info?.id}>
+                    <td>{info?.nome}</td>
                     <td>{info?.login}</td>
                     <td>{"*".repeat(10)}</td>
                     <td>{info?.canal}</td>

@@ -45,6 +45,8 @@ export default function TodoListUser() {
 
   const Url = process.env.REACT_APP_API_URL || "http://localhost:8000";
 
+
+  
   // Normaliza strings removendo acentos e padronizando para minúsculas
   function normalize(str) {
     return (str ?? "")
@@ -683,11 +685,11 @@ export default function TodoListUser() {
                     {!etapasShow && <th>Obs</th>}
                     {!tarefaShow && (
                       <>
-                        <th>Finalizar </th>
-                        <th>Excluir </th>
-                        <th>Editar </th>
-                        <th>Etapas </th>
-                        {!etapasShow && <th>share </th>}
+                        <th> </th>
+                        <th> </th>
+                        <th> </th>
+                        <th> </th>
+                        {!etapasShow && <th> </th>}
                         {!etapasShow && !!shareTarefa && <th>destinatario </th>}
                       </>
                     )}
@@ -832,6 +834,8 @@ export default function TodoListUser() {
                             ) : (
                               !etapasShow && (
                                 <td>
+                                  <span>{tarefa.obs_admin}</span>
+                                  <br />
                                   <textarea
                                     onChange={(e) =>
                                       handleSubmitTextarea(e, tarefa)

@@ -17,7 +17,7 @@ export const LoginDB = async (req, res) => {
 
     // 1) Busca só pelo login
     const [rows] = await dataBase.query(
-      "SELECT id, login, senha AS senha_hash, admin, canal, mis, mis_admin FROM usuariosAgen WHERE login = ? LIMIT 1",
+      "SELECT id, login,nome, senha AS senha_hash, admin, canal, mis, mis_admin FROM usuariosAgen WHERE login = ? LIMIT 1",
       [login],
     );
 
@@ -47,6 +47,7 @@ export const LoginDB = async (req, res) => {
       {
         userId: user.id,
         mis: user.mis,
+        nome: user.nome,
         login: user.login,
         admin: user.admin,
         canal: user.canal,
@@ -64,6 +65,7 @@ export const LoginDB = async (req, res) => {
       user: {
         id: user.id,
         login: user.login,
+        nome: user.nome,
         admin: user.admin,
         mis: user.mis,
         canal: user.canal,
