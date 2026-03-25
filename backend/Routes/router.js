@@ -3,6 +3,7 @@ import express from "express";
 import {
   getDBLogin,
   setDBLogin,
+  patchDBLogin,
   getDBLoginID,
   deleteDBLogin,
   updateDBLogin,
@@ -113,6 +114,7 @@ router.get("/users", getDBLogin);
 router.post("/users/add", setDBLogin);
 router.get("/users/:id", getDBLoginID);
 router.put("/users/:id", updateDBLogin);
+router.patch("/users/:id", patchDBLogin);
 router.delete("/users/:id", deleteDBLogin);
 
 export default router;

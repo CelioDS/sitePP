@@ -13,6 +13,7 @@ import {
   BsClockFill,
   BsCheckCircleFill,
   BsShare,
+  BsExclamation,
 } from "react-icons/bs";
 import Style from "./TodoListUser.module.css";
 import Loading from "../Item-Layout/Loading";
@@ -745,6 +746,13 @@ export default function TodoListUser() {
                                       : "",
                               }}
                             >
+                              <span>
+                                {tarefa.prioridade ? (
+                                  <BsExclamation color="#ff0000" size={38} />
+                                ) : (
+                                  <BsExclamation color="#e4e4e4" />
+                                )}
+                              </span>
                               <p>{tarefa.tarefa}</p>
 
                               {

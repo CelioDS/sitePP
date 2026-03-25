@@ -487,7 +487,7 @@ export default function Table({ canal, login, admin, Url }) {
                       <td>{item.NM_EQUIPE_VENDA}</td>
                     </>
                   )}
-                  ``
+                  
                 </tr>
               ))
             )}

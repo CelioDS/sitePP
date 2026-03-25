@@ -166,8 +166,20 @@ export default function PortaAPorta({ Url }) {
   const optionsBar = useMemo(
     () => ({
       chart: { type: "bar", toolbar: { show: true } },
-      plotOptions: { bar: { horizontal: false, columnWidth: "55%" } },
-      dataLabels: { enabled: true },
+      plotOptions: {
+        bar: {
+          horizontal: false,
+          columnWidth: "55%",
+          dataLabels: { position: "top" },
+        },
+      },
+      dataLabels: {
+        enabled: true,
+        formatter: (val) =>
+          val >= 1000 ? `${(val / 1000).toFixed(1)}k` : `${val}`,
+        style: { fontSize: "12px", colors: ["#000000"] },
+        offsetY: -20,
+      },
       xaxis: {
         categories: byCoord.map((x) => x.coordenador.split(" ")[0]),
       },

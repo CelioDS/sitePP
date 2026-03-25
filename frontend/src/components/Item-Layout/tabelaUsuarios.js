@@ -285,10 +285,17 @@ export default function RelatorioAdmin({ login, DataBase }) {
                     <td>{info?.login}</td>
                     <td>{"*".repeat(10)}</td>
                     <td>{info?.canal}</td>
-                    <td>{info?.mis}</td>
+                    <td>{info?.mis ? "Sim" : "Não"}</td>
                     <td>{info?.admin === 1 ? "Sim" : "Não"}</td>
-                    <th>{info?.ultimo_acesso}</th>
-                    <th>
+                    <td>
+                      {info?.ultimo_acesso
+                        ? new Date(info.ultimo_acesso).toLocaleDateString(
+                            "pt-BR",
+                            { timeZone: "UTC" },
+                          )
+                        : "SEM ACESSO!!!"}
+                    </td>
+                    <td>
                       <button
                         onClick={() => {
                           handleEdit(info);
@@ -298,21 +305,20 @@ export default function RelatorioAdmin({ login, DataBase }) {
                           ? "Editando..."
                           : "Editar"}
                       </button>
-                    </th>
+                    </td>
 
                     {login === "admin" && (
-                      <th>
+                      <td>
                         <button
                           type="button"
                           disabled={editUser || isSubmit ? true : false}
                           onClick={() => {
                             handleExcluir(info.id);
-                            console.log("1");
                           }}
                         >
                           Excluir
                         </button>
-                      </th>
+                      </td>
                     )}
                   </tr>
                 ) : null,

@@ -130,7 +130,7 @@ export const patchDBtarefas = async (req, res) => {
     }
 
     // Campos permitidos para update parcial
-    const allowed = ["tarefa", "obs", "responsavel", "concluido"];
+    const allowed = ["tarefa", "obs", "responsavel", "concluido","obs_admin", 'prioridade'];
 
     // Monta dinamicamente o SET somente com campos presentes
     const setClauses = [];

@@ -74,7 +74,7 @@ export default function Perfil() {
                   <td>{item.login}</td>
                   <td>{item.canal}</td>
                   <td>{item.admin ? "Sim" : "Não"}</td>
-                  <td>{item.mis === 1 ? "Sim" : "Não"}</td>
+                  <td>{item.mis  ? "Sim" : "Não"}</td>
                 </tr>
               ))}
             </tbody>
@@ -84,7 +84,6 @@ export default function Perfil() {
         )}
 
         {admin === "admin" && mis === "iu" ? "todo" : "nada"}
-        <h1>{console.log(userData)}</h1>
         <h1>{mis}a</h1>
       </main>
     </Container>

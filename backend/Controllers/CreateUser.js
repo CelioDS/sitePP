@@ -1,6 +1,7 @@
 import { dataBase } from "../DataBase/dataBase.js";
 import dotenv from "dotenv";
 import bcrypt from "bcrypt";
+import { error } from "console";
 
 dotenv.config();
 
@@ -135,3 +136,53 @@ export const deleteDBLogin = async (req, res) => {
   }
 };
 ``;
+
+export const patchDBLogin = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!id) {
+      return res.status(400).json({ error: "ID, não informado!" });
+    }
+
+    const allowed = ["login", "canal", "mis", "admin", "ultimo_acesso"];
+    const setClauses = [];
+    const params = [];
+
+    for (const key of allowed) {
+      if (Object.prototype.hasOwnProperty.call(req.body, key)) {
+        setClauses.push(`\`${key}\` = ? `);
+        params.push(req.body[key]);
+      }
+    }
+
+    if (setClauses.length === 0) {
+      return res
+        .status(400)
+        .jsohn({ error: "patchDBLogin nenhum campo valido para atualizar!" });
+    }
+
+    const sql = `
+  UPDATE usuariosagen
+  SET ${setClauses.join(",")}
+  WHERE \`id\` = ?
+`;
+
+    params.push(id);
+    const [result] = await dataBase.query(sql, params);
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: "Usuario não encontrado!!" });
+    }
+
+    return res.status(200).json({ data: "Ultimo acesso ok" });
+  } catch (err) {
+    console.error("Erro patchDBLogin", {
+      message: err.message,
+      code: err.code,
+      sqlMessage: err.sqlMessage,
+      stack: err.stack,
+    });
+    return res.status(500).json({ error: "erro ao atualizar o patchDBLogin" });
+  }
+};

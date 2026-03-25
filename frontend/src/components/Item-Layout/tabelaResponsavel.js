@@ -31,7 +31,6 @@ export default function TabelaResponsavel({ Url }) {
             <th>Status</th>
           </tr>
         </thead>
-        {console.log("e", setStatusAtualizacao)}
         <tbody>
           {statusAtualicao
             .sort((a, b) => new Date(a.ultima) - new Date(b.ultima))

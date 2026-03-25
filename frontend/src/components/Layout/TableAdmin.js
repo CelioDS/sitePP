@@ -164,8 +164,6 @@ export default function TableAdmin({ Url }) {
           >
             Varejo
           </button>
-          {console.log(rota)}
-
           <button
             style={{
               background: rota === "PME" ? "#740404" : undefined,
