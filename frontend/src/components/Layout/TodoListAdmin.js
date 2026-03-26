@@ -170,13 +170,12 @@ export default function TodoListAdmin() {
             onClick={() => setChangeStatus((prev) => !prev)}
             style={{
               color: "#ffffff",
-              background: changeStatus ? "#9fa11a" : "#25a11a",
-              padding: "5px 15px",
+              background: changeStatus ? "#25a11a" : "#9fa11a",
               border: "none",
               cursor: "pointer",
             }}
           >
-            {changeStatus ? "Ver Finalizadas" : "Ver Pendentes"}
+            {changeStatus ? "Finalizadas" : "Pendentes"}
           </button>
         </div>
 
@@ -185,10 +184,15 @@ export default function TodoListAdmin() {
             <tr>
               <th></th>
               <th>Tarefa</th>
+
+              {changeStatus && (
+                <>
+                  <th>Obs Admin</th>
+                  <th>priorizar</th>
+                </>
+              )}
               <th>Responsável</th>
               <th>Status</th>
-              <th>priorizar</th>
-              <th>Obs Admin</th>
             </tr>
           </thead>
 
@@ -287,8 +291,40 @@ function SortableRow({ tarefa, changeStatus, setTarefasOrdenadas, Url }) {
 
       <td style={{ border: "1px solid #ccc" }}>{tarefa.tarefa}</td>
 
+      {!tarefa.concluido && (
+        <>
+          <td style={{ border: "1px solid #ccc" }}>
+            <textarea
+              onChange={handleObsAdmin}
+              name="obs_admin"
+              value={tarefa.obs_admin || ""}
+              style={{
+                width: "100%",
+                display: "block",
+                minHeight: "50px",
+                padding: "5px",
+                border: "1px solid #eee",
+              }}
+            />
+          </td>
+          <td>
+            <button
+              onClick={() => handlePrioridade(tarefa)}
+              className={Style.btnPrioridade}
+              style={{
+                background: tarefa.prioridade ? "#ff00002c" : "#9c989817",
+              }}
+            >
+              {tarefa.prioridade ? (
+                <FaExclamation color="#ff0000" />
+              ) : (
+                <FaExclamation color="#9c9898" />
+              )}{" "}
+            </button>
+          </td>
+        </>
+      )}
       <td style={{ border: "1px solid #ccc" }}>{tarefa.responsavel}</td>
-
       <td
         style={{
           background:
@@ -300,35 +336,6 @@ function SortableRow({ tarefa, changeStatus, setTarefasOrdenadas, Url }) {
         }}
       >
         {Number(tarefa.concluido) === 1 ? "Concluído" : "Pendente"}
-      </td>
-
-      <td>
-        <button
-          onClick={() => handlePrioridade(tarefa)}
-          className={Style.btnPrioridade}
-          style={{ background: tarefa.prioridade ? "#ff00002c" : "#9c989817" }}
-        >
-          {tarefa.prioridade ? (
-            <FaExclamation color="#ff0000" />
-          ) : (
-            <FaExclamation color="#9c9898" />
-          )}{" "}
-        </button>
-      </td>
-
-      <td style={{ border: "1px solid #ccc" }}>
-        <textarea
-          onChange={handleObsAdmin}
-          name="obs_admin"
-          value={tarefa.obs_admin || ""}
-          style={{
-            width: "100%",
-            display: "block",
-            minHeight: "50px",
-            padding: "5px",
-            border: "1px solid #eee",
-          }}
-        />
       </td>
     </tr>
   );

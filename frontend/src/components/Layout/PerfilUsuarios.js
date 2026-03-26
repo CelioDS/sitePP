@@ -1,24 +1,18 @@
 // components/Routers/Perfil.jsx
-import Style from "./Perfil.module.css";
+import Style from "./PerfilUsuarios.module.css";
 import Container from "../Layout/Container";
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
 import ValidarToken from "../Tools/ValidarToken";
-import TabelaUsuarios from "../Item-Layout/tabelaUsuarios";
 import RenameTitle from "../Tools/RenameTitle";
-import PerfilUsuario from "../Layout/PerfilUsuarios";
 
-export default function Perfil() {
-  const Url = process.env.REACT_APP_API_URL || "http://localhost:8000";
+export default function PerfilUsuario({ Url }) {
   const [perfilData, setPerfilData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [userData, setUserData] = useState(null);
 
-  const mis = userData?.mis;
-  const login = userData?.login;
   const id = userData?.userId;
-  const admin = userData?.admin;
 
   useEffect(() => {
     async function loadUser() {
@@ -56,11 +50,38 @@ export default function Perfil() {
     <Container>
       <RenameTitle initialTitle={"P&P - Perfil"} />
       <main className={Style.perfil}>
-        {admin && mis ? (
-          <TabelaUsuarios Url={Url} login={login}/>
+        {loading ? (
+          <p>Carregando…</p>
+        ) : perfilData?.length > 0 ? (
+          <table className={Style.tabelaPerfil}>
+            <thead>
+              <tr>
+                <th>Login</th>
+                <th>Canal</th>
+                <th>Admin</th>
+                <th>MIS</th>
+              </tr>
+            </thead>
+            <tbody>
+              {perfilData.map((item) => (
+                <tr key={item.id}>
+                  <td>{item.login}</td>
+                  <td>{item.canal}</td>
+                  <td>{item.admin ? "Sim" : "Não"}</td>
+                  <td>{item.mis ? "Sim" : "Não"}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         ) : (
-          <PerfilUsuario Url={Url} />
+          <p>Nenhum dado de perfil encontrado.</p>
         )}
+
+        <form action="">
+            <label htmlFor="senha">Alterar senha</label>
+          <input type="text" />
+          <button>Salvar</button>
+        </form>
       </main>
     </Container>
   );

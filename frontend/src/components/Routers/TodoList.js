@@ -39,9 +39,16 @@ export default function TodoList() {
   return (
     <Container>
       <main>
-        <button onClick={() => setView((prev) => (prev = !prev))}>mudar</button>
-
-         {view ? <TodoListAdmin login={login}  /> : <TodoListUser nome={nome}/>}
+        {login === "admin" && (
+          <button onClick={() => setView((prev) => (prev = !prev))}>
+            mudar
+          </button>
+        )}
+        {login === "admin" && view ? (
+          <TodoListAdmin login={login} />
+        ) : (
+          <TodoListUser nome={nome} />
+        )}
       </main>
     </Container>
   );

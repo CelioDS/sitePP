@@ -203,7 +203,7 @@ export default function RelatorioAdmin({ login, DataBase }) {
 
     setDataBaseLogin((prev) => prev.filter((item) => Number(item.id) !== id));
 
-    toast.success(data, 'Login excluido com sucesso!');
+    toast.success(data, "Login excluido com sucesso!");
 
     setIsSubmit(false);
   }
@@ -317,19 +317,17 @@ export default function RelatorioAdmin({ login, DataBase }) {
                       </button>
                     </td>
 
-                    {login === "admin" && (
-                      <td>
-                        <button
-                          type="button"
-                          disabled={editUser || isSubmit ? true : false}
-                          onClick={() => {
-                            handleExcluir(info.id);
-                          }}
-                        >
-                          Excluir
-                        </button>
-                      </td>
-                    )}
+                    <td>
+                      <button
+                        type="button"
+                        disabled={editUser || isSubmit ? true : false}
+                        onClick={() => {
+                          handleExcluir(info.id);
+                        }}
+                      >
+                        Excluir
+                      </button>
+                    </td>
                   </tr>
                 ) : null,
               )}
