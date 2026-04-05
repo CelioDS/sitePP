@@ -1,0 +1,56 @@
+.tabela-wrapper {
+  display: flex;
+  gap: 20px;
+}
+
+.tabela {
+  font-size: 12px;
+  border-collapse: collapse;
+  min-width: 600px;
+}
+
+.tabela th {
+  background: #e5e5e5;
+  padding: 6px;
+  border: 1px solid #999;
+  text-align: center;
+}
+
+.tabela td {
+  padding: 4px;
+  border: 1px solid #ccc;
+}
+
+.grupo-header {
+  background: #b30000;
+  color: white;
+  font-weight: bold;
+}
+
+.tt {
+  background: #f2f2f2;
+  font-weight: bold;
+}
+
+.backlog {
+  background: #ffcccc;
+}
+
+.futura {
+  background: #ccffcc;
+}
+
+.cotas th {
+  background: #444;
+  color: white;
+}
+
+.cotas td {
+  text-align: center;
+}
+
+/* Alarme cores */
+.al24 { background: #6fcf97; }
+.al48 { background: #f2c94c; }
+.al72 { background: #f2994a; }
+.al96 { background: #eb5757; }

@@ -29,12 +29,14 @@ import {
   getPAP,
   getPDU,
   getPME,
+  getCotas,
   getVAREJO,
   getPduFull,
   getPDUMovel,
   getAPARELHO,
   getLP_grafico,
   getPAP_grafico,
+  getFullCarteiras,
   getVAREJO_grafico,
   getPduFullGrafico,
   getLP_graficoStatus,
@@ -69,6 +71,8 @@ router.get("/agenteautorizado", getAA);
 /*------------------ ROTAS RAIZ ANALLITICAS ------------------*/
 
 router.get("/PduFull", getPduFull);
+router.get("/cotas", getCotas);
+router.get("/FullCateiras", getFullCarteiras);
 router.get("/aparelho", getAPARELHO);
 router.get("/PduMovel", getPDUMovel);
 router.get("/PduFullGrafico", getPduFullGrafico);

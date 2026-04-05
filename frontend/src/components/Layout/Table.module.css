@@ -116,20 +116,23 @@
   color: #ccc;
 }
 
+
+.number {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
 .main .sectionTable {
   width: 100%;
+  overflow-y: auto;
 }
 
 .main .sectionTable table {
   width: 100%;
   border-collapse: collapse;
-  table-layout: fixed;
   border: 1px solid #ccc;
   margin: 5px;
-  border-radius: 5px !important;
-  border-radius: 8px;
-  overflow: hidden;
-  background: white;
+  table-layout: fixed;
+  overflow: scroll;
 }
 .main .sectionTable thead {
   font-weight: bolder;
@@ -143,30 +146,29 @@
   letter-spacing: 0.5px;
   text-transform: uppercase;
 }
-.main .sectionTable td {
-  vertical-align: middle;
-}
+
 .number {
   text-align: right;
   font-variant-numeric: tabular-nums;
 }
-.main .sectionTable td,
 .main .sectionTable th {
   font-size: 12px;
   padding: 0.75rem;
   text-align: left;
+  text-align: left;
   white-space: normal;
-  word-break: no-word;
+  word-break: keep-all; /* mantém palavras juntas */
+}
+.main .sectionTable td {
+  font-size: 12px;
+  padding: 0.75rem;
+  text-align: left;
+  white-space: normal;
+  word-break: keep-all; /* mantém palavras juntas */
 }
 
 /* Faz o th herdar a cor do thead e mantém o fundo escuro */
-.main .sectionTable th {
-  position: sticky;
-  top: 0;
-  background: var(--color-brand-primary-darkest);
-  color: white;
-  z-index: 10;
-}
+
 
 /* Opcional: uma leve sombra para destacar o cabeçalho fixo */
 .main .sectionTable thead th {
@@ -190,7 +192,6 @@
   filter: drop-shadow(3px 4px 6px #000000);
 }
 @media (max-width: 768px) {
-
   .main .sectionTable table {
     font-size: 11px;
   }
@@ -199,5 +200,4 @@
   .main .sectionTable td {
     padding: 6px;
   }
-
 }

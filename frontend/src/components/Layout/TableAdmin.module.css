@@ -107,7 +107,7 @@
 /* Botões */
 .main button {
   border: none;
-  background: var(--color-brand-primary-medium);
+  background: var(--color-brand-primary-darkest);
   color: #fff;
   padding: 8px 14px;
   font-size: 14px;
@@ -120,6 +120,11 @@
     transform 0.06s ease;
   filter: drop-shadow(3px 4px 6px #303030cc);
   border-radius: 8px;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
 }
 
 .main input[type="file"] {
@@ -134,6 +139,7 @@
   background: var(--color-brand-primary-medium);
   opacity: 0.9;
   color: #ccc;
+  text-align: center;
 }
 
 .main .asideBTN {
@@ -152,16 +158,15 @@
 
 .main .sectionTable {
   width: 100%;
+  overflow-y: auto;
 }
 
 .main .sectionTable table {
   width: 100%;
   border-collapse: collapse;
-  table-layout: fixed;
   border: 1px solid #ccc;
   margin: 5px;
-  border-radius: 5px !important;
-  border-radius: 8px;
+  table-layout: fixed;
   overflow: scroll;
 }
 .main .sectionTable thead {
@@ -176,30 +181,29 @@
   letter-spacing: 0.5px;
   text-transform: uppercase;
 }
-.main .sectionTable td {
-  vertical-align: middle;
-}
+
 .number {
   text-align: right;
   font-variant-numeric: tabular-nums;
 }
-.main .sectionTable td,
 .main .sectionTable th {
   font-size: 12px;
   padding: 0.75rem;
   text-align: left;
+  text-align: left;
   white-space: normal;
-  word-break: break-word;
+  word-break: keep-all; /* mantém palavras juntas */
+}
+.main .sectionTable td {
+  font-size: 12px;
+  padding: 0.75rem;
+  text-align: left;
+  white-space: normal;
+  word-break: keep-all; /* mantém palavras juntas */
 }
 
 /* Faz o th herdar a cor do thead e mantém o fundo escuro */
-.main .sectionTable th {
-  position: sticky;
-  top: 0;
-  background: var(--color-brand-primary-darkest);
-  color: white;
-  z-index: 10;
-}
+
 
 /* Opcional: uma leve sombra para destacar o cabeçalho fixo */
 .main .sectionTable thead th {

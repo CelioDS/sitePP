@@ -1,5 +1,10 @@
 import { dataBase } from "../DataBase/dataBase.js";
 import dotenv from "dotenv";
+import XLSX from "xlsx";
+import fs from "fs";
+import path from "path";
+import { format } from "date-fns";
+import { fromZonedTime } from "date-fns-tz";
 
 dotenv.config();
 
@@ -47,13 +52,13 @@ export const getLP = async (req, res) => {
       start,
       end,
       latest,
-      limit = 1000,
+      limit = 200000,
       offset = 0,
       orderBy = "ID",
       orderDir = "DESC",
     } = req.query;
 
-    limit = Math.min(Number(limit) || 1000, 5000);
+    limit = Math.min(Number(limit) || 1000, 200000);
     offset = Number(offset) || 0;
 
     const validOrder = ["ID", "DATA_ATUALIZACAO", "LOGIN_NET", "LOGIN_CLARO"];
@@ -100,13 +105,13 @@ export const getPME = async (req, res) => {
       start,
       end,
       latest,
-      limit = 1000,
+      limit = 200000,
       offset = 0,
       orderBy = "ID",
       orderDir = "DESC",
     } = req.query;
 
-    limit = Math.min(Number(limit) || 1000, 5000);
+    limit = Math.min(Number(limit) || 1000, 200000);
     offset = Number(offset) || 0;
 
     const validOrder = ["ID", "DATA_ATUALIZACAO", "LOGIN_NET", "LOGIN_CLARO"];
@@ -153,13 +158,13 @@ export const getPAP = async (req, res) => {
       start,
       end,
       latest,
-      limit = 2000,
+      limit = 200000,
       offset = 0,
       orderBy = "ID",
       orderDir = "DESC",
     } = req.query;
 
-    limit = Math.min(Number(limit) || 2000, 5000);
+    limit = Math.min(Number(limit) || 2000, 200000);
     offset = Number(offset) || 0;
 
     const validOrder = ["ID", "DATA_CADASTRO", "ESTRUTURA", "IBGE", "NOME"];
@@ -204,13 +209,13 @@ export const getAA = async (req, res) => {
       start,
       end,
       latest,
-      limit = 2000,
+      limit = 200000,
       offset = 0,
       orderBy = "ID",
       orderDir = "DESC",
     } = req.query;
 
-    limit = Math.min(Number(limit) || 2000, 5000);
+    limit = Math.min(Number(limit) || 2000, 200000);
     offset = Number(offset) || 0;
 
     const validOrder = ["ID", "DATA_CADASTRO", "CIDADE", "IBGE", "NOME"];
@@ -256,13 +261,13 @@ export const getVAREJO = async (req, res) => {
       start,
       end,
       latest,
-      limit = 2000,
+      limit = 200000,
       offset = 0,
       orderBy = "ID",
       orderDir = "DESC",
     } = req.query;
 
-    limit = Math.min(Number(limit) || 2000, 5000);
+    limit = Math.min(Number(limit) || 2000, 200000);
     offset = Number(offset) || 0;
 
     const validOrder = ["ID", "DATA_CADASTRO", "CIDADE", "IBGE", "NOME"];
@@ -1193,21 +1198,119 @@ export const getPduFullGrafico = async (req, res) => {
 
 export const getStatusAtualizacao = async (req, res) => {
   try {
-    const query = `
+    const query = `SELECT
+    'aa' AS tabela,
+    MAX(data_atualizacao) AS ultima_data,
+    COUNT(*) AS total_registros,
+    COUNT(*) / COUNT(DISTINCT DATE(data_atualizacao)) AS media_registros_dia,
+    SUM(CASE 
+            WHEN DATE(data_atualizacao) = (
+                SELECT MAX(DATE(data_atualizacao)) FROM db_projetos.aa
+            ) THEN 1 ELSE 0 
+        END) AS registros_ultimo_dia,
+    (
+        SUM(CASE 
+                WHEN DATE(data_atualizacao) = (
+                    SELECT MAX(DATE(data_atualizacao)) FROM db_projetos.aa
+                ) THEN 1 ELSE 0 
+            END)
+        -
+        (COUNT(*) / COUNT(DISTINCT DATE(data_atualizacao)))
+    ) AS variacao_registros
+FROM db_projetos.aa
+
+UNION ALL
+
 SELECT
-    'aa' AS tabela, (SELECT MAX(data_atualizacao) FROM aa) AS ultima
+    'lp',
+    MAX(data_atualizacao),
+    COUNT(*),
+    COUNT(*) / COUNT(DISTINCT DATE(data_atualizacao)),
+    SUM(CASE 
+            WHEN DATE(data_atualizacao) = (
+                SELECT MAX(DATE(data_atualizacao)) FROM db_projetos.lp
+            ) THEN 1 ELSE 0 
+        END),
+    (
+        SUM(CASE 
+                WHEN DATE(data_atualizacao) = (
+                    SELECT MAX(DATE(data_atualizacao)) FROM db_projetos.lp
+                ) THEN 1 ELSE 0 
+            END)
+        -
+        (COUNT(*) / COUNT(DISTINCT DATE(data_atualizacao)))
+    )
+FROM db_projetos.lp
+
 UNION ALL
-SELECT 
-    'lp', (SELECT MAX(data_atualizacao) FROM lp)
+
+SELECT
+    'pap',
+    MAX(data_atualizacao),
+    COUNT(*),
+    COUNT(*) / COUNT(DISTINCT DATE(data_atualizacao)),
+    SUM(CASE 
+            WHEN DATE(data_atualizacao) = (
+                SELECT MAX(DATE(data_atualizacao)) FROM db_projetos.pap
+            ) THEN 1 ELSE 0 
+        END),
+    (
+        SUM(CASE 
+                WHEN DATE(data_atualizacao) = (
+                    SELECT MAX(DATE(data_atualizacao)) FROM db_projetos.pap
+                ) THEN 1 ELSE 0 
+            END)
+        -
+        (COUNT(*) / COUNT(DISTINCT DATE(data_atualizacao)))
+    )
+FROM db_projetos.pap
+
 UNION ALL
-SELECT 
-    'pap', (SELECT MAX(data_atualizacao) FROM pap)
+
+SELECT
+    'varejo',
+    MAX(data_atualizacao),
+    COUNT(*),
+    COUNT(*) / COUNT(DISTINCT DATE(data_atualizacao)),
+    SUM(CASE 
+            WHEN DATE(data_atualizacao) = (
+                SELECT MAX(DATE(data_atualizacao)) FROM db_projetos.varejo
+            ) THEN 1 ELSE 0 
+        END),
+    (
+        SUM(CASE 
+                WHEN DATE(data_atualizacao) = (
+                    SELECT MAX(DATE(data_atualizacao)) FROM db_projetos.varejo
+                ) THEN 1 ELSE 0 
+            END)
+        -
+        (COUNT(*) / COUNT(DISTINCT DATE(data_atualizacao)))
+    )
+FROM db_projetos.varejo
+
 UNION ALL
-SELECT 
-'varejo', (SELECT MAX(data_atualizacao) FROM varejo)
-UNION ALL
-SELECT 
-    'pme', (SELECT MAX(data_atualizacao) FROM pme); 
+
+SELECT
+    'pme',
+    MAX(data_atualizacao),
+    COUNT(*),
+    COUNT(*) / COUNT(DISTINCT DATE(data_atualizacao)),
+    SUM(CASE 
+            WHEN DATE(data_atualizacao) = (
+                SELECT MAX(DATE(data_atualizacao)) FROM db_projetos.pme
+            ) THEN 1 ELSE 0 
+        END),
+    (
+        SUM(CASE 
+                WHEN DATE(data_atualizacao) = (
+                    SELECT MAX(DATE(data_atualizacao)) FROM db_projetos.pme
+                ) THEN 1 ELSE 0 
+            END)
+        -
+        (COUNT(*) / COUNT(DISTINCT DATE(data_atualizacao)))
+    )
+FROM db_projetos.pme;
+
     `;
     const [rows] = await dataBase.query(query);
     return res.status(200).json(rows);
@@ -1344,5 +1447,262 @@ ORDER BY anomes ASC, FILIAL_COORDENADOR ASC;
   } catch (err) {
     console.error(err);
     return res.status(500).json({ error: "Erro ao buscar histórico PAP" });
+  }
+};
+
+/**RELATORIOS */
+
+export const getCotas = async (req, res) => {
+  try {
+    const query = `
+WITH cte_union AS (
+
+    /* =========================
+       AA
+       ========================= */
+    SELECT
+        ANOMES,
+        CAST(REPLACE(UPPER(CANAL), ' ', '_') AS CHAR) COLLATE utf8mb4_general_ci AS CANAL,
+        CAST(UPPER(TRIM(LOGIN_NET)) AS CHAR) COLLATE utf8mb4_general_ci AS CHAVE,
+        IBGE,
+        CAST(CIDADE AS CHAR) COLLATE utf8mb4_general_ci AS CIDADE,
+        CAST(RAZAO_SOCIAL AS CHAR) COLLATE utf8mb4_general_ci AS RAZAO_SOCIAL,
+        CAST(PARCEIRO_LOJA AS CHAR) COLLATE utf8mb4_general_ci AS PARCEIRO_LOJA,
+        CAST(CNPJ AS CHAR) COLLATE utf8mb4_general_ci AS CNPJ,
+        CAST(NOME AS CHAR) COLLATE utf8mb4_general_ci AS NOME,
+        CAST(CLASSIFICACAO AS CHAR) COLLATE utf8mb4_general_ci AS CLASSIFICACAO,
+        CAST(SEGMENTO AS CHAR) COLLATE utf8mb4_general_ci AS SEGMENTO,
+        CAST(PRODUTO_ATUACAO AS CHAR) COLLATE utf8mb4_general_ci AS PRODUTO_ATUACAO,
+        CAST(SITUACAO AS CHAR) COLLATE utf8mb4_general_ci AS SITUACAO,
+        CAST(LOGIN_NET AS CHAR) COLLATE utf8mb4_general_ci AS LOGIN_NET,
+        CAST(TIPO AS CHAR) COLLATE utf8mb4_general_ci AS TIPO,
+        CAST(LOGIN_CLARO AS CHAR) COLLATE utf8mb4_general_ci AS LOGIN_CLARO,
+        CAST(EXECUTIVO AS CHAR) COLLATE utf8mb4_general_ci AS EXECUTIVO,
+        CAST(COMTA AS CHAR) COLLATE utf8mb4_general_ci AS COMTA,
+        CAST(CABEAMENTO AS CHAR) COLLATE utf8mb4_general_ci AS CABEAMENTO,
+        CAST(FILIAL_COORDENADOR AS CHAR) COLLATE utf8mb4_general_ci AS FILIAL_COORDENADOR
+
+    FROM aa
+    WHERE ANOMES = (SELECT MAX(ANOMES) FROM aa)
+
+    UNION ALL
+
+    /* =========================
+       LP
+       ========================= */
+    SELECT
+        ANOMES,
+        CAST(CANAL AS CHAR) COLLATE utf8mb4_general_ci,
+        CAST(UPPER(TRIM(LOGIN_NET)) AS CHAR) COLLATE utf8mb4_general_ci,
+        NULL,
+        CAST(CIDADE AS CHAR) COLLATE utf8mb4_general_ci,
+        NULL,
+        CAST(LOJA AS CHAR) COLLATE utf8mb4_general_ci,
+        NULL,
+        CAST(COLABORADOR AS CHAR) COLLATE utf8mb4_general_ci,
+        NULL,
+        NULL,
+        NULL,
+        CAST(STATUS AS CHAR) COLLATE utf8mb4_general_ci,
+        CAST(LOGIN_NET AS CHAR) COLLATE utf8mb4_general_ci,
+        NULL,
+        CAST(LOGIN_CLARO AS CHAR) COLLATE utf8mb4_general_ci,
+        NULL,
+        CAST(COMTA AS CHAR) COLLATE utf8mb4_general_ci,
+        CAST(CABEAMENTO AS CHAR) COLLATE utf8mb4_general_ci,
+        CAST(COORDENADOR AS CHAR) COLLATE utf8mb4_general_ci
+
+    FROM lp
+    WHERE ANOMES = (SELECT MAX(ANOMES) FROM lp)
+
+)
+
+SELECT *
+FROM cte_union;
+    `;
+
+    const [rows] = await dataBase.query(query);
+    return res.status(200).json(rows);
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ error: "Erro ao buscar tbl_backlog_agenda" });
+  }
+};
+
+export const getFullCarteiras = async (req, res) => {
+  try {
+    const TODAY = format(
+      fromZonedTime(new Date(), "America/Sao_Paulo"),
+      "yyyyMMdd_HHmmss",
+    );
+
+    const query = `
+WITH cte_union AS (
+
+    /* =========================
+       AA
+       ========================= */
+    SELECT
+        ANOMES,
+        CAST(REPLACE(UPPER(CANAL), ' ', '_') AS CHAR(255)) COLLATE utf8mb4_general_ci AS CANAL,
+        CAST(UPPER(TRIM(LOGIN_NET)) AS CHAR(255)) COLLATE utf8mb4_general_ci AS CHAVE,
+        IBGE,
+        CAST(CIDADE AS CHAR(255)) COLLATE utf8mb4_general_ci AS CIDADE,
+        CAST(RAZAO_SOCIAL AS CHAR(255)) COLLATE utf8mb4_general_ci AS RAZAO_SOCIAL,
+        CAST(PARCEIRO_LOJA AS CHAR(255)) COLLATE utf8mb4_general_ci AS PARCEIRO_LOJA,
+        CAST(CNPJ AS CHAR(255)) COLLATE utf8mb4_general_ci AS CNPJ,
+        CAST(NOME AS CHAR(255)) COLLATE utf8mb4_general_ci AS NOME,
+        CAST(CLASSIFICACAO AS CHAR(255)) COLLATE utf8mb4_general_ci AS CLASSIFICACAO,
+        CAST(SEGMENTO AS CHAR(255)) COLLATE utf8mb4_general_ci AS SEGMENTO,
+        CAST(PRODUTO_ATUACAO AS CHAR(255)) COLLATE utf8mb4_general_ci AS PRODUTO_ATUACAO,
+        CAST(SITUACAO AS CHAR(255)) COLLATE utf8mb4_general_ci AS SITUACAO,
+        CAST(LOGIN_NET AS CHAR(255)) COLLATE utf8mb4_general_ci AS LOGIN_NET,
+        CAST(TIPO AS CHAR(255)) COLLATE utf8mb4_general_ci AS TIPO,
+        CAST(LOGIN_CLARO AS CHAR(255)) COLLATE utf8mb4_general_ci AS LOGIN_CLARO,
+        CAST(EXECUTIVO AS CHAR(255)) COLLATE utf8mb4_general_ci AS EXECUTIVO,
+        CAST(COMTA AS CHAR(255)) COLLATE utf8mb4_general_ci AS COMTA,
+        CAST(CABEAMENTO AS CHAR(255)) COLLATE utf8mb4_general_ci AS CABEAMENTO,
+        CAST(FILIAL_COORDENADOR AS CHAR(255)) COLLATE utf8mb4_general_ci AS FILIAL_COORDENADOR
+    FROM aa
+    WHERE ANOMES = (SELECT MAX(ANOMES) FROM aa)
+
+    UNION ALL
+
+    /* =========================
+       LP
+       ========================= */
+    SELECT
+        ANOMES,
+        CAST(CANAL AS CHAR(255)) COLLATE utf8mb4_general_ci,
+        CAST(UPPER(TRIM(LOGIN_NET)) AS CHAR(255)) COLLATE utf8mb4_general_ci,
+        NULL,
+        CAST(CIDADE AS CHAR(255)) COLLATE utf8mb4_general_ci,
+        NULL,
+        CAST(LOJA AS CHAR(255)) COLLATE utf8mb4_general_ci,
+        NULL,
+        CAST(COLABORADOR AS CHAR(255)) COLLATE utf8mb4_general_ci,
+        NULL,
+        NULL,
+        NULL,
+        CAST(STATUS AS CHAR(255)) COLLATE utf8mb4_general_ci,
+        CAST(LOGIN_NET AS CHAR(255)) COLLATE utf8mb4_general_ci,
+        NULL,
+        CAST(LOGIN_CLARO AS CHAR(255)) COLLATE utf8mb4_general_ci,
+        NULL,
+        CAST(COMTA AS CHAR(255)) COLLATE utf8mb4_general_ci,
+        CAST(CABEAMENTO AS CHAR(255)) COLLATE utf8mb4_general_ci,
+        CAST(COORDENADOR AS CHAR(255)) COLLATE utf8mb4_general_ci
+    FROM lp
+    WHERE ANOMES = (SELECT MAX(ANOMES) FROM lp)
+
+    UNION ALL
+
+    /* =========================
+       PAP
+       ========================= */
+    SELECT
+        ANOMES,
+        CAST(CONCAT(CANAL, '_', ESTRUTURA) AS CHAR(255)) COLLATE utf8mb4_general_ci,
+        CAST(
+          CASE
+            WHEN ESTRUTURA = 'INDIRETO'
+              THEN CONCAT(IBGE, CNPJ)
+            ELSE CONCAT(IBGE, LOGIN_NET)
+          END AS CHAR(255)
+        ) COLLATE utf8mb4_general_ci,
+        IBGE,
+        NULL,
+        NULL,
+        CAST(PARCEIRO_LOJA AS CHAR(255)) COLLATE utf8mb4_general_ci,
+        CAST(CNPJ AS CHAR(255)) COLLATE utf8mb4_general_ci,
+        CAST(NOME AS CHAR(255)) COLLATE utf8mb4_general_ci,
+        CAST(CLASSIFICACAO AS CHAR(255)) COLLATE utf8mb4_general_ci,
+        CAST(SEGMENTO AS CHAR(255)) COLLATE utf8mb4_general_ci,
+        NULL,
+        CAST(SITUACAO AS CHAR(255)) COLLATE utf8mb4_general_ci,
+        CAST(LOGIN_NET AS CHAR(255)) COLLATE utf8mb4_general_ci,
+        NULL,
+        CAST(LOGIN_CLARO AS CHAR(255)) COLLATE utf8mb4_general_ci,
+        CAST(EXECUTIVO AS CHAR(255)) COLLATE utf8mb4_general_ci,
+        NULL,
+        NULL,
+        CAST(FILIAL_COORDENADOR AS CHAR(255)) COLLATE utf8mb4_general_ci
+    FROM pap
+    WHERE ANOMES = (SELECT MAX(ANOMES) FROM pap)
+
+    UNION ALL
+
+    /* =========================
+       VAREJO
+       ========================= */
+    SELECT
+        ANOMES,
+        CAST(CANAL AS CHAR(255)) COLLATE utf8mb4_general_ci,
+        CAST(CONCAT(IBGE, LEFT(CNPJ, 8)) AS CHAR(255)) COLLATE utf8mb4_general_ci,
+        IBGE,
+        NULL,
+        NULL,
+        CAST(PARCEIRO_LOJA AS CHAR(255)) COLLATE utf8mb4_general_ci,
+        CAST(CNPJ AS CHAR(255)) COLLATE utf8mb4_general_ci,
+        CAST(NOME_COLABORADOR AS CHAR(255)) COLLATE utf8mb4_general_ci,
+        NULL,
+        NULL,
+        CAST(PRODUTO_ATUACAO AS CHAR(255)) COLLATE utf8mb4_general_ci,
+        CAST(SITUACAO AS CHAR(255)) COLLATE utf8mb4_general_ci,
+        CAST(LOGIN_NET AS CHAR(255)) COLLATE utf8mb4_general_ci,
+        NULL,
+        NULL,
+        CAST(GN AS CHAR(255)) COLLATE utf8mb4_general_ci,
+        CAST(COD_PDV AS CHAR(255)) COLLATE utf8mb4_general_ci,
+        NULL,
+        CAST(FILIAL_COORDENADOR AS CHAR(255)) COLLATE utf8mb4_general_ci
+    FROM varejo
+    WHERE ANOMES = (SELECT MAX(ANOMES) FROM varejo)
+)
+
+SELECT * FROM cte_union;
+    `;
+
+    // Detecta abort do cliente (não é erro)
+    req.on("aborted", () => {
+      console.warn("⚠️ Cliente abortou o download.");
+    });
+
+    const [rows] = await dataBase.query(query);
+
+    if (!rows.length) {
+      return res.status(204).json({ message: "Nenhum dado para exportar" });
+    }
+
+    // Excel
+    const worksheet = XLSX.utils.json_to_sheet(rows);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Carteiras");
+
+    const tmpDir = path.join(process.cwd(), "tmp");
+    fs.mkdirSync(tmpDir, { recursive: true });
+
+    const fileName = `carteiras_completas_${TODAY}.xlsx`;
+    const filePath = path.join(tmpDir, fileName);
+    XLSX.writeFile(workbook, filePath);
+
+    res.setHeader(
+      "Content-Type",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    );
+    res.setHeader("Content-Disposition", `attachment; filename="${fileName}"`);
+
+    res.download(filePath, fileName, (err) => {
+      if (err && err.code !== "ECONNABORTED") {
+        console.error("Erro no download:", err);
+      }
+      fs.unlink(filePath, () => {});
+    });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({
+      error: "Erro ao gerar Excel – Carteiras completas",
+      sql: err.sqlMessage || err.message,
+    });
   }
 };

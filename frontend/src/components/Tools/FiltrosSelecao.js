@@ -16,7 +16,7 @@ export default function TableFilters({
 
   // Debounce do search
   useEffect(() => {
-    const timer = setTimeout(() => setSearch(localSearch), 500);
+    const timer = setTimeout(() => setSearch(localSearch), 2000);
     return () => clearTimeout(timer);
   }, [localSearch, setSearch]);
 

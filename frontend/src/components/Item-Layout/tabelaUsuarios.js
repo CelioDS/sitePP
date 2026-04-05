@@ -154,11 +154,15 @@ export default function RelatorioAdmin({ login, DataBase }) {
       }
       await axios
         .post(`${Url}/users/add`, {
+          nome : 'n',
           login: dadosForm.login?.value?.toLowerCase(),
           senha: dadosForm.senha.value,
           canal: dadosForm.canal?.value || "MIS",
           mis: Number(dadosForm.mis.value),
           admin: Number(dadosForm.admin.value),
+          mis_admin: 0,
+          ultimo_acesso: '00/00/0000 00:00' ,
+          ocultar: 0,
         })
         .then(({ data }) => {
           toast.success(data);

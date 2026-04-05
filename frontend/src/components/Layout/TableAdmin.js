@@ -7,6 +7,7 @@ import { saveAs } from "file-saver";
 import { format } from "date-fns";
 import { fromZonedTime } from "date-fns-tz";
 import Style from "./TableAdmin.module.css";
+import { FiDownload } from "react-icons/fi";
 
 import TableFilters from "./../Tools/FiltrosSelecao";
 
@@ -15,11 +16,30 @@ export default function TableAdmin({ Url }) {
   const [rota, setRota] = useState("lojapropria");
   const [isLoading, setIsLoading] = useState(false);
 
+  //paginação
+  const [page, setPage] = useState(1);
+  const pageSize = 10;
+
+  const totalPages = useMemo(() => {
+    return Math.ceil(dataBase.length / pageSize) || 1;
+  }, [dataBase, pageSize]);
+
+  const paginatedData = useMemo(() => {
+    const startIndex = (page - 1) * pageSize;
+    const endIndex = startIndex + pageSize;
+
+    return dataBase.slice(startIndex, endIndex);
+  }, [dataBase, page, pageSize]);
+
   // Filtros
   const [search, setSearch] = useState("");
   const [start, setStart] = useState("");
   const [end, setEnd] = useState("");
   const [latest, setLatest] = useState(true); // Padrão ligado ou desligado conforme preferir
+
+  useEffect(() => {
+    setPage(1);
+  }, [rota, search, start, end, latest]);
 
   const lastReqId = useRef(0);
 
@@ -73,7 +93,7 @@ export default function TableAdmin({ Url }) {
         start: start || undefined,
         end: end || undefined,
         latest: latest, // true ou false
-        limit: 2000,
+        limit: 2000000,
       };
 
       const resp = await axios.get(endpoint, { params });
@@ -121,6 +141,19 @@ export default function TableAdmin({ Url }) {
     saveAs(blob, `${rota}_${prefix}${range}.xlsx`);
   };
 
+  const handleDownloadAll = () => {
+    const base = Url.endsWith("/") ? Url.slice(0, -1) : Url;
+    const url = `${base}/FullCateiras`;
+
+    const link = document.createElement("a");
+    link.href = url;
+    link.target = "_blank";
+    link.rel = "noopener noreferrer";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   return (
     <main className={Style.main}>
       <TableFilters
@@ -139,16 +172,18 @@ export default function TableAdmin({ Url }) {
         <section className={Style.asideBTN}>
           <button
             style={{
-              background: rota === "lojapropria" ? "#740404" : undefined,
+              background: rota === "lojapropria" ? "#ff0000" : undefined,
+              color: rota === "lojapropria" ? "#ffffff" : undefined,
             }}
-            disabled={rota === "lojapropria" || isLoading}
+            disabled={rota  === "lojapropria" || isLoading}
             onClick={() => setRota("lojapropria")}
           >
             Loja Própria
           </button>
           <button
             style={{
-              background: rota === "portaaporta" ? "#740404" : undefined,
+              background: rota === "portaaporta" ? "#ff0000" : undefined,
+              color: rota === "portaaporta" ? "#ffffff" : undefined,  
             }}
             disabled={rota === "portaaporta" || isLoading}
             onClick={() => setRota("portaaporta")}
@@ -157,7 +192,8 @@ export default function TableAdmin({ Url }) {
           </button>
           <button
             style={{
-              background: rota === "Varejo" ? "#740404" : undefined,
+              background: rota === "Varejo" ? "#ff0000" : undefined,
+              color: rota === "Varejo" ? "#ffffff" : undefined,     
             }}
             disabled={rota === "Varejo" || isLoading}
             onClick={() => setRota("Varejo")}
@@ -166,7 +202,8 @@ export default function TableAdmin({ Url }) {
           </button>
           <button
             style={{
-              background: rota === "PME" ? "#740404" : undefined,
+              background: rota === "PME" ? "#ff0000" : undefined,
+              color: rota === "PME" ? "#ffffff" : undefined,
             }}
             disabled={rota === "PME" || isLoading}
             onClick={() => setRota("PME")}
@@ -175,7 +212,8 @@ export default function TableAdmin({ Url }) {
           </button>
           <button
             style={{
-              background: rota === "agenteautorizado" ? "#740404" : undefined,
+              background: rota === "agenteautorizado" ? "#ff0000" : undefined,
+              color: rota === "agenteautorizado" ? "#ffffff" : undefined,
             }}
             disabled={rota === "agenteautorizado" || isLoading}
             onClick={() => setRota("agenteautorizado")}
@@ -186,11 +224,28 @@ export default function TableAdmin({ Url }) {
             onClick={handleDownload}
             disabled={isLoading || dataBase.length === 0}
             style={{
-              background: dataBase.length === 0 ? "#5e5d5d" : "",
+              color: "#ff0000",
+              borderRadius: 0,
+              background: dataBase.length === 0 ? "#5e5d5d" : "hsl(0, 0%, 0%)",
               cursor: dataBase.length === 0 ? "not-allowed" : null,
             }}
           >
             Download Excel
+            <FiDownload color="#ffffff" size={18} />
+          </button>
+
+          <button
+            onClick={handleDownloadAll}
+            disabled={isLoading || dataBase.length === 0}
+            style={{
+              color: "#ff0000",
+              borderRadius: 0,
+              background: dataBase.length === 0 ? "#5e5d5d" : "#000000",
+              cursor: dataBase.length === 0 ? "not-allowed" : null,
+            }}
+          >
+            Consolidado
+            <FiDownload color="#ffffff" size={18} />
           </button>
         </section>
 
@@ -203,13 +258,14 @@ export default function TableAdmin({ Url }) {
           <table>
             <thead>
               <tr>
-                {isLoading ? (
+                {isLoading && dataBase.length === 0 ? (
                   <th colSpan={colSpan}>
                     <LoadingSvg text="Carregando..." />
                   </th>
                 ) : (
                   rota === "lojapropria" && (
                     <>
+                      <th>ANOMES</th>
                       <th>CANAL</th>
                       <th>COLABORADOR</th>
                       <th>LOGIN_CLARO</th>
@@ -226,6 +282,7 @@ export default function TableAdmin({ Url }) {
 
                 {rota === "portaaporta" && (
                   <>
+                    <th>ANOMES</th>
                     <th>CANAL</th>
                     <th>IBGE</th>
                     <th>CIDADE</th>
@@ -310,10 +367,11 @@ export default function TableAdmin({ Url }) {
                 </tr>
               )}
               {!isLoading &&
-                dataBase.map((item, idx) => (
+                paginatedData.map((item, idx) => (
                   <tr key={idx}>
                     {rota === "lojapropria" && (
                       <>
+                        <td>{item.ANOMES}</td>
                         <td>{item.CANAL}</td>
                         <td>{item.COLABORADOR}</td>
                         <td>{item.LOGIN_CLARO}</td>
@@ -328,6 +386,7 @@ export default function TableAdmin({ Url }) {
                     )}
                     {rota === "portaaporta" && (
                       <>
+                        <td>{item.ANOMES}</td>
                         <td>{item.CANAL}</td>
                         <td>{item.IBGE}</td>
                         <td>{item.CIDADE}</td>
@@ -406,6 +465,26 @@ export default function TableAdmin({ Url }) {
             </tbody>
           </table>
         </section>
+
+        <div className={Style.pagination}>
+          <button
+            onClick={() => setPage((p) => Math.max(p - 1, 1))}
+            disabled={page === 1 || isLoading}
+          >
+            ◀ anterior
+          </button>
+
+          <span>
+            Pagina {page} de {totalPages} - {dataBase.length} registros
+          </span>
+
+          <button
+            onClick={() => setPage((p) => Math.min(p + 1, totalPages))}
+            disabled={page === totalPages || isLoading}
+          >
+            proximo ▶
+          </button>
+        </div>
       </section>
     </main>
   );

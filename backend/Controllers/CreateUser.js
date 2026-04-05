@@ -34,7 +34,17 @@ export const getDBLoginID = async (req, res) => {
 // POST: cria usuário
 export const setDBLogin = async (req, res) => {
   try {
-    const { login, nome, senha, canal, mis, admin } = req.body;
+    const {
+      login,
+      nome,
+      senha,
+      canal,
+      mis,
+      admin,
+      mis_admin,
+      ultimo_acesso,
+      ocultar,
+    } = req.body;
 
     if (!login || !senha || canal === undefined || admin === undefined) {
       return res.status(400).json({ error: "Campos obrigatórios ausentes." });
@@ -43,12 +53,22 @@ export const setDBLogin = async (req, res) => {
     const hashedPassword = await bcrypt.hash(senha, 10);
 
     const query = `
-      INSERT INTO usuariosAgen (\`login\`, \`nome\`, \`senha\`, \`canal\`, \`mis\`, \`admin\`)
-      VALUES (?, ?, ?, ?, ?)
+      INSERT INTO usuariosAgen (\`login\`, \`nome\`, \`senha\`, \`canal\`, \`mis\`, \`admin\`, \`mis_admin\`, \`ultimo_acesso\`, \`ocultar\`)
+      VALUES (?, ?, ?, ?, ?,?,?,?,?)
     `;
 
     // ⚠️ Ordem corrigida: login, senha, canal, mis, admin
-    const values = [login, nome, hashedPassword, canal, mis, admin];
+    const values = [
+      login,
+      nome,
+      hashedPassword,
+      canal,
+      mis,
+      admin,
+      mis_admin,
+      ultimo_acesso,
+      ocultar,
+    ];
 
     const [result] = await dataBase.query(query, values);
 
@@ -59,6 +79,9 @@ export const setDBLogin = async (req, res) => {
       mis: mis,
       admin: admin,
       canal: canal,
+      mis_admin: mis_admin,
+      ultimo_acesso: ultimo_acesso,
+      ocultar: ocultar,
       message: "Usuario criado",
     });
   } catch (err) {
@@ -70,7 +93,7 @@ export const setDBLogin = async (req, res) => {
 // PUT: atualiza usuário
 export const updateDBLogin = async (req, res) => {
   try {
-    const { login, nome,senha, canal, mis, admin, ultimo_acesso } = req.body;
+    const { login, nome, senha, canal, mis, admin, ultimo_acesso } = req.body;
     const { id } = req.params;
 
     if (!id) {
@@ -90,14 +113,14 @@ export const updateDBLogin = async (req, res) => {
            SET \`login\` = ?, \`nome\` = ?, \`senha\` = ?, \`canal\` = ?, \`mis\` = ?, \`admin\` = ?, \`ultimo_acesso\` = ?
          WHERE \`id\` = ?
       `;
-      params = [login,nome, hashed, canal, mis, admin, ultimo_acesso, id];
+      params = [login, nome, hashed, canal, mis, admin, ultimo_acesso, id];
     } else {
       sql = `
         UPDATE usuariosAgen
            SET \`login\` = ?,  \`nome\` = ?,\`canal\` = ?, \`mis\` = ?, \`admin\` = ?, \`ultimo_acesso\` = ?
          WHERE \`id\` = ?
       `;
-      params = [login,nome, canal, mis, admin, ultimo_acesso, id];
+      params = [login, nome, canal, mis, admin, ultimo_acesso, id];
     }
 
     const [result] = await dataBase.query(sql, params);
@@ -146,7 +169,15 @@ export const patchDBLogin = async (req, res) => {
       return res.status(400).json({ error: "ID, não informado!" });
     }
 
-    const allowed = ["login", 'nome',"canal", "mis", "admin", "ultimo_acesso",'ocultar'];
+    const allowed = [
+      "login",
+      "nome",
+      "canal",
+      "mis",
+      "admin",
+      "ultimo_acesso",
+      "ocultar",
+    ];
     const setClauses = [];
     const params = [];
 

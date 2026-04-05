@@ -9,6 +9,7 @@ import { toZonedTime, formatInTimeZone } from "date-fns-tz";
 import ptBR from "date-fns/locale/pt-BR";
 import GraficoLinhaPDU from "../Tools/GraficoLinhaPDU";
 import Loading from "../Item-Layout/Loading";
+import Cotas from "../Layout/Cotas";
 import GraficoPDU from "../Item-Layout/GraficoPDU";
 
 export default function Home() {
@@ -145,6 +146,8 @@ export default function Home() {
   return (
     <Container className={Style.main}>
       <RenameTitle initialTitle={"P&P - Home"} />
+
+      <Cotas Url={Url} />
 
       <main style={styles.container}>
         {/* Barra de filtros */}
@@ -470,8 +473,6 @@ export default function Home() {
             referencia={referencia}
           />
         </section>
-
-        
       </main>
     </Container>
   );
