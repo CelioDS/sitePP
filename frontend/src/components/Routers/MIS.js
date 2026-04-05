@@ -142,7 +142,10 @@ export default function MIS() {
                   <th>Frequência</th>
                   <th>Responsável</th>
                   <th>Descrição</th>
+
+                  {!!mis &&
                   <th>Origem</th>
+                  }
                 </tr>
               </thead>
 
@@ -166,8 +169,8 @@ export default function MIS() {
                     <td>{relatorio.responsavel}</td>
 
                     <td>{relatorio.descricao}</td>
-
-                    <td className={styles.origin}>{relatorio.origem}</td>
+    {!!mis &&
+                    <td className={styles.origin}>{relatorio.origem}</td> }
                   </tr>
                 ))}
               </tbody>
