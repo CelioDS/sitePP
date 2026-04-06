@@ -8,6 +8,7 @@ import { fromZonedTime } from "date-fns-tz";
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
 import FiltrosSelecao from "./../Tools/FiltrosSelecao";
+import { FiDownload } from "react-icons/fi";
 
 export default function Table({ canal, login, admin, Url }) {
   const [search, setSearch] = useState("");
@@ -17,6 +18,20 @@ export default function Table({ canal, login, admin, Url }) {
   const lastReqId = useRef(0);
   const [isLoading, setIsLoading] = useState(false);
   const [dataBase, setDatabase] = useState([]);
+
+  //paginacao
+  const [page, setPage] = useState(1);
+  const pageSize = 10;
+  const totalPages = Math.ceil(dataBase.length / pageSize) || 1;
+
+  const paginatedData = useMemo(() => {
+    const startIndex = (page - 1) * pageSize;
+    return dataBase.slice(startIndex, startIndex + pageSize);
+  }, [dataBase, page, pageSize]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [search, start, end, latest]);
 
   const rotas = {
     PME: "pme",
@@ -220,8 +235,6 @@ export default function Table({ canal, login, admin, Url }) {
     );
   };
 
-  const filteredData = dataBase ?? [];
-
   return (
     <main className={Style.main}>
       <section>
@@ -244,7 +257,18 @@ export default function Table({ canal, login, admin, Url }) {
           {!admin && (
             <>
               <input type="file" accept=".xlsx,.xls" onChange={handleUpload} />
-              <button onClick={handleDownload}>Download Excel</button>
+              <button
+                onClick={handleDownload}
+                style={{
+                  color: "#ff0000",
+                  borderRadius: 0,
+                  background:
+                    dataBase.length === 0 ? "#5e5d5d" : "hsl(0, 0%, 0%)",
+                  cursor: dataBase.length === 0 ? "not-allowed" : null,
+                }}
+              >
+                Download Excel <FiDownload color="#ffffff" size={18} />
+              </button>
             </>
           )}
         </div>
@@ -264,7 +288,7 @@ export default function Table({ canal, login, admin, Url }) {
       <section className={Style.sectionTable}>
         <table>
           <thead>
-            {isLoading ? (
+            {isLoading && dataBase === undefined ? (
               <tr></tr>
             ) : (
               <tr>
@@ -370,20 +394,19 @@ export default function Table({ canal, login, admin, Url }) {
                     <th>NM EQUIPE VENDA</th>
                   </>
                 )}
-                
               </tr>
             )}
           </thead>
 
           <tbody>
-            {isLoading ? (
+            {isLoading && paginatedData.length === 0 ? (
               <tr>
                 <td colSpan={12}>
                   <LoadingSvg text="Carregando..." />
                 </td>
               </tr>
             ) : (
-              filteredData.map((item, idx) => (
+              paginatedData.map((item, idx) => (
                 <tr key={item.ID || idx}>
                   {canal === "LP" && (
                     <>
@@ -487,13 +510,39 @@ export default function Table({ canal, login, admin, Url }) {
                       <td>{item.NM_EQUIPE_VENDA}</td>
                     </>
                   )}
-                  
                 </tr>
               ))
             )}
           </tbody>
         </table>
       </section>
+      <div className={Style.pagination}>
+        <button
+          onClick={() => setPage((p) => Math.max(p - 1, 1))}
+          disabled={page === 1 || isLoading}
+          style={{
+            background: page === 1 ? "#504e4e" : "",
+            cursor: page === 1 && "not-allowed",
+          }}
+        >
+          ◀ anterior
+        </button>
+
+        <span>
+          Pagina {page} de {totalPages} - {dataBase.length} registros
+        </span>
+
+        <button
+          onClick={() => setPage((p) => Math.min(p + 1, totalPages))}
+          disabled={page === totalPages || isLoading}
+          style={{
+            background: page === totalPages ? "#ccc" : "",
+            cursor: page === totalPages && "not-allowed",
+          }}
+        >
+          proximo ▶
+        </button>
+      </div>
     </main>
   );
 }

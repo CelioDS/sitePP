@@ -15,6 +15,7 @@ export default function TableAdmin({ Url }) {
   const [dataBase, setDatabase] = useState([]);
   const [rota, setRota] = useState("lojapropria");
   const [isLoading, setIsLoading] = useState(false);
+  const cacheRef = useRef(new Map()); // Cache para armazenar os dados por rota
 
   //paginação
   const [page, setPage] = useState(1);
@@ -84,22 +85,39 @@ export default function TableAdmin({ Url }) {
     const endpoint = `${base}/${rota}`;
     const reqId = ++lastReqId.current;
 
+    const params = {
+      q: search || undefined,
+      start: start || undefined,
+      end: end || undefined,
+      latest,
+      limit: 2000000,
+    };
+
+    const cacheKey = JSON.stringify({ rota, ...params });
+
+    // 🔥 SE EXISTIR CACHE → NÃO FAZ REQUEST
+    if (cacheRef.current.has(cacheKey)) {
+      setDatabase(cacheRef.current.get(cacheKey));
+      return;
+    }
+
     setIsLoading(true);
 
     try {
-      // MUDANÇA AQUI: Enviamos start, end e latest JUNTOS.
-      const params = {
-        q: search || undefined,
-        start: start || undefined,
-        end: end || undefined,
-        latest: latest, // true ou false
-        limit: 2000000,
-      };
-
       const resp = await axios.get(endpoint, { params });
 
       if (reqId !== lastReqId.current) return;
-      setDatabase(toArray(resp.data));
+
+      const data = toArray(resp.data);
+
+      // 🔥 SALVA NO CACHE
+      cacheRef.current.set(cacheKey, data);
+
+      if (cacheRef.current.size > 20) {
+        cacheRef.current.clear();
+      }
+
+      setDatabase(data);
     } catch (err) {
       if (reqId !== lastReqId.current) return;
       console.error("Erro ao carregar:", err);
@@ -172,18 +190,20 @@ export default function TableAdmin({ Url }) {
         <section className={Style.asideBTN}>
           <button
             style={{
-              background: rota === "lojapropria" ? "#ff0000" : undefined,
-              color: rota === "lojapropria" ? "#ffffff" : undefined,
+              background: rota === "lojapropria" ? "#cc8686" : undefined,
+              color: rota === "lojapropria" ? "#6b5757" : undefined,
+              cursor: rota === "lojapropria" ? "not-allowed" : null,
             }}
-            disabled={rota  === "lojapropria" || isLoading}
+            disabled={rota === "lojapropria" || isLoading}
             onClick={() => setRota("lojapropria")}
           >
             Loja Própria
           </button>
           <button
             style={{
-              background: rota === "portaaporta" ? "#ff0000" : undefined,
-              color: rota === "portaaporta" ? "#ffffff" : undefined,  
+              background: rota === "portaaporta" ? "#cc8686" : undefined,
+              color: rota === "portaaporta" ? "#6b5757" : undefined,
+              cursor: rota === "portaaporta" ? "not-allowed" : null,
             }}
             disabled={rota === "portaaporta" || isLoading}
             onClick={() => setRota("portaaporta")}
@@ -192,8 +212,9 @@ export default function TableAdmin({ Url }) {
           </button>
           <button
             style={{
-              background: rota === "Varejo" ? "#ff0000" : undefined,
-              color: rota === "Varejo" ? "#ffffff" : undefined,     
+              background: rota === "Varejo" ? "#cc8686" : undefined,
+              color: rota === "Varejo" ? "#6b5757" : undefined,
+              cursor: rota === "Varejo" ? "not-allowed" : null,
             }}
             disabled={rota === "Varejo" || isLoading}
             onClick={() => setRota("Varejo")}
@@ -202,8 +223,9 @@ export default function TableAdmin({ Url }) {
           </button>
           <button
             style={{
-              background: rota === "PME" ? "#ff0000" : undefined,
-              color: rota === "PME" ? "#ffffff" : undefined,
+              background: rota === "PME" ? "#cc8686" : undefined,
+              color: rota === "PME" ? "#6b5757" : undefined,
+              cursor: rota === "PME" ? "not-allowed" : null,
             }}
             disabled={rota === "PME" || isLoading}
             onClick={() => setRota("PME")}
@@ -212,8 +234,9 @@ export default function TableAdmin({ Url }) {
           </button>
           <button
             style={{
-              background: rota === "agenteautorizado" ? "#ff0000" : undefined,
-              color: rota === "agenteautorizado" ? "#ffffff" : undefined,
+              background: rota === "agenteautorizado" ? "#cc8686" : undefined,
+              color: rota === "agenteautorizado" ? "#6b5757" : undefined,
+              cursor: rota === "agenteautorizado" ? "not-allowed" : null,
             }}
             disabled={rota === "agenteautorizado" || isLoading}
             onClick={() => setRota("agenteautorizado")}
@@ -465,11 +488,14 @@ export default function TableAdmin({ Url }) {
             </tbody>
           </table>
         </section>
-
         <div className={Style.pagination}>
           <button
             onClick={() => setPage((p) => Math.max(p - 1, 1))}
             disabled={page === 1 || isLoading}
+            style={{
+              background: page === 1 ? "#504e4e" : "",
+              cursor: page === 1 && "not-allowed",
+            }}
           >
             ◀ anterior
           </button>
@@ -481,6 +507,10 @@ export default function TableAdmin({ Url }) {
           <button
             onClick={() => setPage((p) => Math.min(p + 1, totalPages))}
             disabled={page === totalPages || isLoading}
+            style={{
+              background: page === totalPages ? "#ccc" : "",
+              cursor: page === totalPages && "not-allowed",
+            }}
           >
             proximo ▶
           </button>

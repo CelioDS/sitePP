@@ -16,7 +16,7 @@ export default function TabelaResponsavel({ Url }) {
 
   useEffect(() => {
     fetchStatus();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
@@ -29,26 +29,46 @@ export default function TabelaResponsavel({ Url }) {
             <th>Ultima atualizacao</th>
             <th>Dias</th>
             <th>Status</th>
+            <th>media</th>
+            <th>ultimo registro </th>
+            <th>difereça</th>
           </tr>
         </thead>
         <tbody>
           {statusAtualicao
-            .sort((a, b) => new Date(a.ultima) - new Date(b.ultima))
+            .sort((a, b) => new Date(a.ultima_data) - new Date(b.ultima_data))
             .map((s) => (
               <tr key={s.tabela}>
                 <td>{s.tabela}</td>
-                <td>{new Date(s.ultima).toLocaleString()}</td>
+                <td>{new Date(s.ultima_data).toLocaleString()}</td>
                 <td>
                   {(() => {
                     const diffDias =
-                      (new Date() - new Date(s.ultima)) / (1000 * 60 * 60 * 24);
+                      (new Date() - new Date(s.ultima_data)) /
+                      (1000 * 60 * 60 * 24);
                     return `${Math.floor(diffDias)} dias atrás`;
                   })()}
                 </td>
-                <td>
-                  {(() => {
+                <td
+                  style={
+                    (() => {
+                      const dataAtual = new Date();
+                      const dataUltima = new Date(s.ultima_data);
+
+                      const diffMs = dataAtual - dataUltima;
+
+                      const diffDias = diffMs / (1000 * 60 * 60 * 24);
+                      const diffmeses = diffDias / 30.44;
+
+                      return diffmeses > 1 ? "Priorizar" : "OK";
+                    })() === "Priorizar"
+                      ? { color: "#ff0000", background: "#be8181a9" }
+                      : { color: "#12380a",background: "#638a5ffb" }
+                  }
+                >
+                  {((e) => {
                     const dataAtual = new Date();
-                    const dataUltima = new Date(s.ultima);
+                    const dataUltima = new Date(s.ultima_data);
 
                     const diffMs = dataAtual - dataUltima;
 
@@ -58,6 +78,10 @@ export default function TabelaResponsavel({ Url }) {
                     return diffmeses > 1 ? "Priorizar" : "OK";
                   })()}
                 </td>
+
+                <td>{Number(s.media_registros_dia).toFixed(2)}</td>
+                <td>{Number(s.registros_ultimo_dia).toFixed(2)}</td>
+                <td>{Number(s.variacao_registros).toFixed(2)}</td>
               </tr>
             ))}
         </tbody>
