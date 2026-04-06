@@ -295,15 +295,15 @@ export default function TableAdmin({ Url }) {
         </div>
 
         <section className={Style.sectionTable}>
-          <table>
-            <thead>
-              <tr>
-                {isLoading && dataBase.length === 0 ? (
-                  <th colSpan={colSpan}>
-                    <LoadingSvg text="Carregando..." />
-                  </th>
-                ) : (
-                  rota === "lojapropria" && (
+          {isLoading && dataBase.length === 0 ? (
+            <p colSpan={colSpan}>
+              <LoadingSvg text="Carregando..." />
+            </p>
+          ) : (
+            <table>
+              <thead>
+                <tr>
+                  {rota === "lojapropria" && (
                     <>
                       <th>ANOMES</th>
                       <th>CANAL</th>
@@ -317,181 +317,179 @@ export default function TableAdmin({ Url }) {
                       <th>COORDENADOR</th>
                       <th>STATUS</th>
                     </>
-                  )
-                )}
-
-                {rota === "portaaporta" && (
-                  <>
-                    <th>ANOMES</th>
-                    <th>CANAL</th>
-                    <th>ESTRUTURA</th>
-                    <th>IBGE</th>
-                    <th>CNPJ</th>
-                    <th>PARCEIRO LOJA</th>
-                    <th>CLASSIFICAÇÃO</th>
-                    <th>SEGMENTO</th>
-                    <th>LOGIN NET</th>
-                    <th>LOGIN CLARO</th>
-                    <th>NOME</th>
-                    <th>DATA_CADASTRO</th>
-                    <th>SITUACAO</th>
-                    <th>EXECUTIVO</th>
-                    <th>FILIAL COORDENADOR</th>
-                  </>
-                )}
-                {rota === "Varejo" && (
-                  <>
-                    <th>ANOMES</th>
-                    <th>CANAL</th>
-                    <th>IBGE</th>
-                    <th>COD_PDV</th>
-                    <th>PARCEIRO_LOJA</th>
-                    <th>CNPJ</th>
-                    <th>NM_VEND</th>
-                    <th>CARGO</th>
-                    <th>CPF_VEND</th>
-                    <th>PRODUTO_ATUACAO</th>
-                    <th>DATA_CADASTRO</th>
-                    <th>SITUACAO</th>
-                    <th>FILIAL</th>
-                    <th>GN</th>
-                  </>
-                )}
-                {rota === "PME" && (
-                  <>
-                    <th>ANOMES</th>
-                    <th>CANAL</th>
-                    <th>COMTA</th>
-                    <th>GRUPO</th>
-                    <th>PARCEIRO LOJA</th>
-                    <th>CNPJ</th>
-                    <th>NOME</th>
-                    <th>LOGIN NET</th>
-                    <th>TERRITORIO</th>
-                  </>
-                )}
-
-                {rota === "agenteautorizado" && (
-                  <>
-                    <th>ANOMES</th>
-                    <th>CANAL</th>
-                    <th>IBGE</th>
-                    <th>CIDADE</th>
-                    <th>PARCEIRO_LOJA</th>
-                    <th>CNPJ</th>
-                    <th>NOME</th>
-                    <th>CLASSIFICACAO</th>
-                    <th>SEGMENTO</th>
-                    <th>PRODUTO_ATUACAO</th>
-                    <th>DATA_CADASTRO</th>
-                    <th>SITUACAO</th>
-                    <th>LOGIN_NET</th>
-                    <th>TIPO</th>
-                    <th>LOGIN_CLARO</th>
-                  </>
-                )}
-              </tr>
-            </thead>
-            <tbody>
-              {!isLoading && !dataBase.length && (
-                <tr>
-                  <td colSpan={colSpan} style={{ textAlign: "center" }}>
-                    Sem dados...
-                  </td>
+                  )}
+                  {rota === "portaaporta" && (
+                    <>
+                      <th>ANOMES</th>
+                      <th>CANAL</th>
+                      <th>ESTRUTURA</th>
+                      <th>IBGE</th>
+                      <th>CNPJ</th>
+                      <th>PARCEIRO LOJA</th>
+                      <th>CLASSIFICAÇÃO</th>
+                      <th>SEGMENTO</th>
+                      <th>LOGIN NET</th>
+                      <th>LOGIN CLARO</th>
+                      <th>NOME</th>
+                      <th>DATA_CADASTRO</th>
+                      <th>SITUACAO</th>
+                      <th>EXECUTIVO</th>
+                      <th>FILIAL COORDENADOR</th>
+                    </>
+                  )}
+                  {rota === "Varejo" && (
+                    <>
+                      <th>ANOMES</th>
+                      <th>CANAL</th>
+                      <th>IBGE</th>
+                      <th>COD_PDV</th>
+                      <th>PARCEIRO_LOJA</th>
+                      <th>CNPJ</th>
+                      <th>NM_VEND</th>
+                      <th>CARGO</th>
+                      <th>CPF_VEND</th>
+                      <th>PRODUTO_ATUACAO</th>
+                      <th>DATA_CADASTRO</th>
+                      <th>SITUACAO</th>
+                      <th>FILIAL</th>
+                      <th>GN</th>
+                    </>
+                  )}
+                  {rota === "PME" && (
+                    <>
+                      <th>ANOMES</th>
+                      <th>CANAL</th>
+                      <th>COMTA</th>
+                      <th>GRUPO</th>
+                      <th>PARCEIRO LOJA</th>
+                      <th>CNPJ</th>
+                      <th>NOME</th>
+                      <th>LOGIN NET</th>
+                      <th>TERRITORIO</th>
+                    </>
+                  )}
+                  {rota === "agenteautorizado" && (
+                    <>
+                      <th>ANOMES</th>
+                      <th>CANAL</th>
+                      <th>IBGE</th>
+                      <th>CIDADE</th>
+                      <th>PARCEIRO_LOJA</th>
+                      <th>CNPJ</th>
+                      <th>NOME</th>
+                      <th>CLASSIFICACAO</th>
+                      <th>SEGMENTO</th>
+                      <th>PRODUTO_ATUACAO</th>
+                      <th>DATA_CADASTRO</th>
+                      <th>SITUACAO</th>
+                      <th>LOGIN_NET</th>
+                      <th>TIPO</th>
+                      <th>LOGIN_CLARO</th>
+                    </>
+                  )}
                 </tr>
-              )}
-              {!isLoading &&
-                paginatedData.map((item, idx) => (
-                  <tr key={idx}>
-                    {rota === "lojapropria" && (
-                      <>
-                        <td>{item.ANOMES}</td>
-                        <td>{item.CANAL}</td>
-                        <td>{item.COLABORADOR}</td>
-                        <td>{item.LOGIN_CLARO}</td>
-                        <td>{item.COMTA}</td>
-                        <td>{item.CABEAMENTO}</td>
-                        <td>{item.LOGIN_NET}</td>
-                        <td>{item.LOJA}</td>
-                        <td>{item.CIDADE}</td>
-                        <td>{item.COORDENADOR}</td>
-                        <td>{item.STATUS}</td>
-                      </>
-                    )}
-                    {rota === "portaaporta" && (
-                      <>
-                        <td>{item.ANOMES}</td>
-                        <td>{item.CANAL}</td>
-                        <td>{item.ESTRUTURA}</td>
-                        <td>{item.IBGE}</td>
-                        <td>{item.CNPJ}</td>
-                        <td>{item.PARCEIRO_LOJA}</td>
-                        <td>{item.CLASSIFICACAO}</td>
-                        <td>{item.SEGMENTO}</td>
-                        <td>{item.LOGIN_NET}</td>
-                        <td>{item.LOGIN_CLARO}</td>
-                        <td>{item.NOME}</td>
-                        <td>{item.DATA_CADASTRO}</td>
-                        <td>{item.SITUACAO}</td>
-                        <td>{item.EXECUTIVO}</td>
-                        <td>{item.FILIAL_COORDENADOR}</td>
-                      </>
-                    )}
-                    {rota === "Varejo" && (
-                      <>
-                        <td>{item.ANOMES}</td>
-                        <td>{item.CANAL}</td>
-                        <td>{item.IBGE}</td>
-                        <td>{item.COD_PDV}</td>
-                        <td>{item.PARCEIRO_LOJA}</td>
-                        <td>{item.CNPJ}</td>
-                        <td>{item.NOME_COLABORADOR}</td>
-                        <td>{item.CARGO}</td>
-                        <td>{item.CPF_COLABORADOR}</td>
-                        <td>{item.PRODUTO_ATUACAO}</td>
-                        <td>{item.DATA_CADASTRO}</td>
-                        <td>{item.SITUACAO}</td>
-                        <td>{item.FILIAL_COORDENADOR}</td>
-                        <td>{item.GN}</td>
-                      </>
-                    )}
-                    {rota === "PME" && (
-                      <>
-                        <td>{item.ANOMES}</td>
-                        <td>{item.CANAL}</td>
-                        <td>{item.COMTA}</td>
-                        <td>{item.GRUPO}</td>
-                        <td>{item.PARCEIRO_LOJA}</td>
-                        <td>{item.CNPJ}</td>
-                        <td>{item.NOME}</td>
-                        <td>{item.LOGIN_NET}</td>
-                        <td>{item.TERRITORIO}</td>
-                      </>
-                    )}
-
-                    {rota === "agenteautorizado" && (
-                      <>
-                        <td>{item.ANOMES}</td>
-                        <td>{item.CANAL}</td>
-                        <td>{item.IBGE}</td>
-                        <td>{item.CIDADE}</td>
-                        <td>{item.PARCEIRO_LOJA}</td>
-                        <td>{item.CNPJ}</td>
-                        <td>{item.NOME}</td>
-                        <td>{item.CLASSIFICACAO}</td>
-                        <td>{item.SEGMENTO}</td>
-                        <td>{item.PRODUTO_ATUACAO}</td>
-                        <td>{item.DATA_CADASTRO}</td>
-                        <td>{item.SITUACAO}</td>
-                        <td>{item.LOGIN_NET}</td>
-                        <td>{item.TIPO}</td>
-                        <td>{item.LOGIN_CLARO}</td>
-                      </>
-                    )}
+              </thead>
+              <tbody>
+                {!isLoading && !dataBase.length && (
+                  <tr>
+                    <td colSpan={colSpan} style={{ textAlign: "center" }}>
+                      Sem dados...
+                    </td>
                   </tr>
-                ))}
-            </tbody>
-          </table>
+                )}
+                {!isLoading &&
+                  paginatedData.map((item, idx) => (
+                    <tr key={idx}>
+                      {rota === "lojapropria" && (
+                        <>
+                          <td>{item.ANOMES}</td>
+                          <td>{item.CANAL}</td>
+                          <td>{item.COLABORADOR}</td>
+                          <td>{item.LOGIN_CLARO}</td>
+                          <td>{item.COMTA}</td>
+                          <td>{item.CABEAMENTO}</td>
+                          <td>{item.LOGIN_NET}</td>
+                          <td>{item.LOJA}</td>
+                          <td>{item.CIDADE}</td>
+                          <td>{item.COORDENADOR}</td>
+                          <td>{item.STATUS}</td>
+                        </>
+                      )}
+                      {rota === "portaaporta" && (
+                        <>
+                          <td>{item.ANOMES}</td>
+                          <td>{item.CANAL}</td>
+                          <td>{item.ESTRUTURA}</td>
+                          <td>{item.IBGE}</td>
+                          <td>{item.CNPJ}</td>
+                          <td>{item.PARCEIRO_LOJA}</td>
+                          <td>{item.CLASSIFICACAO}</td>
+                          <td>{item.SEGMENTO}</td>
+                          <td>{item.LOGIN_NET}</td>
+                          <td>{item.LOGIN_CLARO}</td>
+                          <td>{item.NOME}</td>
+                          <td>{item.DATA_CADASTRO}</td>
+                          <td>{item.SITUACAO}</td>
+                          <td>{item.EXECUTIVO}</td>
+                          <td>{item.FILIAL_COORDENADOR}</td>
+                        </>
+                      )}
+                      {rota === "Varejo" && (
+                        <>
+                          <td>{item.ANOMES}</td>
+                          <td>{item.CANAL}</td>
+                          <td>{item.IBGE}</td>
+                          <td>{item.COD_PDV}</td>
+                          <td>{item.PARCEIRO_LOJA}</td>
+                          <td>{item.CNPJ}</td>
+                          <td>{item.NOME_COLABORADOR}</td>
+                          <td>{item.CARGO}</td>
+                          <td>{item.CPF_COLABORADOR}</td>
+                          <td>{item.PRODUTO_ATUACAO}</td>
+                          <td>{item.DATA_CADASTRO}</td>
+                          <td>{item.SITUACAO}</td>
+                          <td>{item.FILIAL_COORDENADOR}</td>
+                          <td>{item.GN}</td>
+                        </>
+                      )}
+                      {rota === "PME" && (
+                        <>
+                          <td>{item.ANOMES}</td>
+                          <td>{item.CANAL}</td>
+                          <td>{item.COMTA}</td>
+                          <td>{item.GRUPO}</td>
+                          <td>{item.PARCEIRO_LOJA}</td>
+                          <td>{item.CNPJ}</td>
+                          <td>{item.NOME}</td>
+                          <td>{item.LOGIN_NET}</td>
+                          <td>{item.TERRITORIO}</td>
+                        </>
+                      )}
+
+                      {rota === "agenteautorizado" && (
+                        <>
+                          <td>{item.ANOMES}</td>
+                          <td>{item.CANAL}</td>
+                          <td>{item.IBGE}</td>
+                          <td>{item.CIDADE}</td>
+                          <td>{item.PARCEIRO_LOJA}</td>
+                          <td>{item.CNPJ}</td>
+                          <td>{item.NOME}</td>
+                          <td>{item.CLASSIFICACAO}</td>
+                          <td>{item.SEGMENTO}</td>
+                          <td>{item.PRODUTO_ATUACAO}</td>
+                          <td>{item.DATA_CADASTRO}</td>
+                          <td>{item.SITUACAO}</td>
+                          <td>{item.LOGIN_NET}</td>
+                          <td>{item.TIPO}</td>
+                          <td>{item.LOGIN_CLARO}</td>
+                        </>
+                      )}
+                    </tr>
+                  ))}
+              </tbody>
+            </table>
+          )}
         </section>
         <div className={Style.pagination}>
           <button

@@ -9,6 +9,7 @@ import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
 import FiltrosSelecao from "./../Tools/FiltrosSelecao";
 import { FiDownload } from "react-icons/fi";
+import Loading from "../Item-Layout/Loading";
 
 export default function Table({ canal, login, admin, Url }) {
   const [search, setSearch] = useState("");
@@ -308,11 +309,11 @@ export default function Table({ canal, login, admin, Url }) {
       {/* TABELA */}
 
       <section className={Style.sectionTable}>
-        <table>
-          <thead>
-            {isLoading && dataBase === undefined ? (
-              <tr></tr>
-            ) : (
+        {isLoading && dataBase.length === 0 ? (
+          <Loading text={'carregando....'}/>
+        ) : (
+          <table>
+            <thead>
               <tr>
                 {canal === "LP" && (
                   <>
@@ -416,125 +417,127 @@ export default function Table({ canal, login, admin, Url }) {
                   </>
                 )}
               </tr>
-            )}
-          </thead>
+            </thead>
 
-          <tbody>
-            {isLoading && paginatedData.length === 0 ? (
-              <tr>
-                <td colSpan={12}>
-                  <LoadingSvg text="Carregando..." />
-                </td>
-              </tr>
-            ) : (
-              paginatedData.map((item, idx) => (
-                <tr key={item.ID || idx}>
-                  {canal === "LP" && (
-                    <>
-                      <td>{item.ANOMES}</td>
-                      <td>{item.CANAL}</td>
-                      <td>{item.COLABORADOR}</td>
-                      <td>{item.LOGIN_CLARO}</td>
-                      <td>{item.COMTA}</td>
-                      <td>{item.CABEAMENTO}</td>
-                      <td>{item.LOGIN_NET}</td>
-                      <td>{item.LOJA}</td>
-                      <td>{item.CIDADE}</td>
-                      <td>{item.COORDENADOR}</td>
-                      <td>{item.STATUS}</td>
-                    </>
-                  )}
-                  {canal === "PME" && (
-                    <>
-                      <td>{item.ANOMES}</td>
-                      <td>{item.CPF}</td>
-                      <td>{item.NOME}</td>
-                      <td>{item.INPUT}</td>
-                      <td>{item.LOGIN_NET}</td>
-                      <td>{item.CNPJ_CPF}</td>
-                      <td>{item.RAZAO_SOCIAL}</td>
-                      <td>{item.SITUACAO}</td>
-                      <td>{item.CELULAR}</td>
-                      <td>{item.EMAIL}</td>
-                      <td>{item.EMAIL_GESTOR}</td>
-                      <td>{item.COD}</td>
-                      <td>{item.COMTA}</td>
-                      <td>{item.COORDENADOR}</td>
-                      <td>{item.GERENTE}</td>
-                      <td>{item.TERRITORIO}</td>
-                      <td>{item.CANAL}</td>
-                      <td>{item.REGIONAL}</td>
-                      <td>{item.TIME}</td>
-                    </>
-                  )}
-                  {canal === "PAP" && (
-                    <>
-                      <td>{item.ANOMES || "não utilizado"}</td>
-                      <td>{item.CANAL || "não utilizado"}</td>
-                      <td>{item.ESTRUTURA || "não utilizado"}</td>
-                      <td>{item.IBGE || "não utilizado"}</td>
-                      <td>{item.CNPJ || "não utilizado"}</td>
-                      <td>{item.PARCEIRO_LOJA || "não utilizado"}</td>
-                      <td>{item.CLASSIFICACAO || "não utilizado"}</td>
-                      <td>{item.SEGMENTO || "não utilizado"}</td>
-                      <td>{item.LOGIN_NET || "não utilizado"}</td>
-                      <td>{item.LOGIN_CLARO || "não utilizado"}</td>
-                      <td>{item.NOME || "não utilizado"}</td>
-                      <td>{item.DATA_CADASTRO_VENDEDOR || "não utilizado"}</td>
-                      <td>{item.SITUACAO || "não utilizado"}</td>
-                      <td>{item.EXECUTIVO || "não utilizado"}</td>
-                      <td>{item.FILIAL_COORDENADOR || "não utilizado"}</td>
-                    </>
-                  )}
-                  {canal === "Varejo" && (
-                    <>
-                      <td>{item.ANOMES}</td>
-                      <td>{item.CANAL}</td>
-                      <td>{item.IBGE}</td>
-                      <td>{item.COD_PDV}</td>
-                      <td>{item.PARCEIRO_LOJA}</td>
-                      <td>{item.CNPJ}</td>
-                      <td>{item.NOME_COLABORADOR}</td>
-                      <td>{item.CARGO}</td>
-                      <td>{item.CPF_COLABORADOR}</td>
-                      <td>{item.PRODUTO_ATUACAO}</td>
-                      <td>{item.DATA_CADASTRO}</td>
-                      <td>{item.SITUACAO}</td>
-                      <td>{item.FILIAL_COORDENADOR}</td>
-                      <td>{item.GN}</td>
-                    </>
-                  )}
-                  {canal === "AA" && (
-                    <>
-                      <td>{item.ANOMES}</td>
-                      <td>{item.CANAL}</td>
-                      <td>{item.IBGE}</td>
-                      <td>{item.CIDADE}</td>
-                      <td>{item.RAZAO_SOCIAL}</td>
-                      <td>{item.PARCEIRO_LOJA}</td>
-                      <td>{item.CNPJ}</td>
-                      <td>{item.NOME}</td>
-                      <td>{item.CLASSIFICACAO}</td>
-                      <td>{item.SEGMENTO}</td>
-                      <td>{item.PRODUTO_ATUACAO}</td>
-                      <td>{item.DATA_CADASTRO}</td>
-                      <td>{item.SITUACAO}</td>
-                      <td>{item.LOGIN_NET}</td>
-                      <td>{item.TIPO}</td>
-                      <td>{item.LOGIN_CLARO}</td>
-                      <td>{item.EXECUTIVO}</td>
-                      <td>{item.COMTA}</td>
-                      <td>{item.CABEAMENTO}</td>
-                      <td>{item.FILIAL_COORDENADOR}</td>
-                      <td>{item.GN}</td>
-                      <td>{item.NM_EQUIPE_VENDA}</td>
-                    </>
-                  )}
+            <tbody>
+              {isLoading && paginatedData.length === 0 ? (
+                <tr>
+                  <td colSpan={12}>
+                    <LoadingSvg text="Carregando..." />
+                  </td>
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+              ) : (
+                paginatedData.map((item, idx) => (
+                  <tr key={item.ID || idx}>
+                    {canal === "LP" && (
+                      <>
+                        <td>{item.ANOMES}</td>
+                        <td>{item.CANAL}</td>
+                        <td>{item.COLABORADOR}</td>
+                        <td>{item.LOGIN_CLARO}</td>
+                        <td>{item.COMTA}</td>
+                        <td>{item.CABEAMENTO}</td>
+                        <td>{item.LOGIN_NET}</td>
+                        <td>{item.LOJA}</td>
+                        <td>{item.CIDADE}</td>
+                        <td>{item.COORDENADOR}</td>
+                        <td>{item.STATUS}</td>
+                      </>
+                    )}
+                    {canal === "PME" && (
+                      <>
+                        <td>{item.ANOMES}</td>
+                        <td>{item.CPF}</td>
+                        <td>{item.NOME}</td>
+                        <td>{item.INPUT}</td>
+                        <td>{item.LOGIN_NET}</td>
+                        <td>{item.CNPJ_CPF}</td>
+                        <td>{item.RAZAO_SOCIAL}</td>
+                        <td>{item.SITUACAO}</td>
+                        <td>{item.CELULAR}</td>
+                        <td>{item.EMAIL}</td>
+                        <td>{item.EMAIL_GESTOR}</td>
+                        <td>{item.COD}</td>
+                        <td>{item.COMTA}</td>
+                        <td>{item.COORDENADOR}</td>
+                        <td>{item.GERENTE}</td>
+                        <td>{item.TERRITORIO}</td>
+                        <td>{item.CANAL}</td>
+                        <td>{item.REGIONAL}</td>
+                        <td>{item.TIME}</td>
+                      </>
+                    )}
+                    {canal === "PAP" && (
+                      <>
+                        <td>{item.ANOMES || "não utilizado"}</td>
+                        <td>{item.CANAL || "não utilizado"}</td>
+                        <td>{item.ESTRUTURA || "não utilizado"}</td>
+                        <td>{item.IBGE || "não utilizado"}</td>
+                        <td>{item.CNPJ || "não utilizado"}</td>
+                        <td>{item.PARCEIRO_LOJA || "não utilizado"}</td>
+                        <td>{item.CLASSIFICACAO || "não utilizado"}</td>
+                        <td>{item.SEGMENTO || "não utilizado"}</td>
+                        <td>{item.LOGIN_NET || "não utilizado"}</td>
+                        <td>{item.LOGIN_CLARO || "não utilizado"}</td>
+                        <td>{item.NOME || "não utilizado"}</td>
+                        <td>
+                          {item.DATA_CADASTRO_VENDEDOR || "não utilizado"}
+                        </td>
+                        <td>{item.SITUACAO || "não utilizado"}</td>
+                        <td>{item.EXECUTIVO || "não utilizado"}</td>
+                        <td>{item.FILIAL_COORDENADOR || "não utilizado"}</td>
+                      </>
+                    )}
+                    {canal === "Varejo" && (
+                      <>
+                        <td>{item.ANOMES}</td>
+                        <td>{item.CANAL}</td>
+                        <td>{item.IBGE}</td>
+                        <td>{item.COD_PDV}</td>
+                        <td>{item.PARCEIRO_LOJA}</td>
+                        <td>{item.CNPJ}</td>
+                        <td>{item.NOME_COLABORADOR}</td>
+                        <td>{item.CARGO}</td>
+                        <td>{item.CPF_COLABORADOR}</td>
+                        <td>{item.PRODUTO_ATUACAO}</td>
+                        <td>{item.DATA_CADASTRO}</td>
+                        <td>{item.SITUACAO}</td>
+                        <td>{item.FILIAL_COORDENADOR}</td>
+                        <td>{item.GN}</td>
+                      </>
+                    )}
+                    {canal === "AA" && (
+                      <>
+                        <td>{item.ANOMES}</td>
+                        <td>{item.CANAL}</td>
+                        <td>{item.IBGE}</td>
+                        <td>{item.CIDADE}</td>
+                        <td>{item.RAZAO_SOCIAL}</td>
+                        <td>{item.PARCEIRO_LOJA}</td>
+                        <td>{item.CNPJ}</td>
+                        <td>{item.NOME}</td>
+                        <td>{item.CLASSIFICACAO}</td>
+                        <td>{item.SEGMENTO}</td>
+                        <td>{item.PRODUTO_ATUACAO}</td>
+                        <td>{item.DATA_CADASTRO}</td>
+                        <td>{item.SITUACAO}</td>
+                        <td>{item.LOGIN_NET}</td>
+                        <td>{item.TIPO}</td>
+                        <td>{item.LOGIN_CLARO}</td>
+                        <td>{item.EXECUTIVO}</td>
+                        <td>{item.COMTA}</td>
+                        <td>{item.CABEAMENTO}</td>
+                        <td>{item.FILIAL_COORDENADOR}</td>
+                        <td>{item.GN}</td>
+                        <td>{item.NM_EQUIPE_VENDA}</td>
+                      </>
+                    )}
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        )}
       </section>
       <div className={Style.pagination}>
         <button
