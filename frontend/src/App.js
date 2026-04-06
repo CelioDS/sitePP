@@ -53,7 +53,7 @@ function App() {
         theme="dark"
         autoClose={1000}
         draggable={true}
-        pauseHouver={false}
+        pauseHouver={true}
         closeOnClick={true}
         draggablePercent={1}
         position="bottom-right"

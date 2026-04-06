@@ -24,12 +24,23 @@
   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
 }
 
+.main .PageSize {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex-direction: row;
+}
+
+.main .PageSize select {
+  width: 80px;
+}
+
 .main section {
   display: flex;
   flex-direction: column;
   width: 100%;
 }
-.main section .asideBTN{
+.main section .asideBTN {
   display: flex;
   flex-direction: row;
   justify-content: space-around;

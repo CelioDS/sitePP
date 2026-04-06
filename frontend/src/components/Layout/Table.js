@@ -21,7 +21,7 @@ export default function Table({ canal, login, admin, Url }) {
 
   //paginacao
   const [page, setPage] = useState(1);
-  const pageSize = 10;
+  const [pageSize, setPageSize] = useState(10);
   const totalPages = Math.ceil(dataBase.length / pageSize) || 1;
 
   const paginatedData = useMemo(() => {
@@ -82,7 +82,7 @@ export default function Table({ canal, login, admin, Url }) {
         start: start || undefined,
         end: end || undefined,
         latest: latest,
-        limit: 2000,
+        limit: 200000,
       };
 
       const resp = await axios.get(endpoint, { params });
@@ -197,6 +197,12 @@ export default function Table({ canal, login, admin, Url }) {
       }
     } catch (error) {
       console.error(error);
+      if (error.response?.status === 400) {
+        toast.warning(
+          error.response.data.error + error.response.data.missingColumns ||
+            error.response.data.extraColumns,
+        );
+      }
       toast.error(error.response?.data?.sql || "Erro ao enviar o arquivo");
     }
 
@@ -257,6 +263,22 @@ export default function Table({ canal, login, admin, Url }) {
           {!admin && (
             <>
               <input type="file" accept=".xlsx,.xls" onChange={handleUpload} />
+              <div className={Style.PageSize}>
+                <select
+                  name="pageSize"
+                  id="pageSize"
+                  value={pageSize}
+                  onChange={(e) => setPageSize(Number(e.target.value))}
+                >
+                  <option value={10}>10</option>
+                  <option value={25}>25</option>
+                  <option value={50}>50</option>
+                  <option value={100}>100</option>
+                  <option value={250}>250</option>
+                  <option value={500}>500</option>
+                  <option value={1000}>1000</option>
+                </select>
+              </div>
               <button
                 onClick={handleDownload}
                 style={{
@@ -346,7 +368,6 @@ export default function Table({ canal, login, admin, Url }) {
                     <th>Territorio</th>
                     <th>CANAL</th>
                     <th>REGIONAL</th>
-                    <th>AACE</th>
                     <th>TIME</th>
                   </>
                 )}
@@ -429,7 +450,7 @@ export default function Table({ canal, login, admin, Url }) {
                       <td>{item.CPF}</td>
                       <td>{item.NOME}</td>
                       <td>{item.INPUT}</td>
-                      <td>{item.LoginNET}</td>
+                      <td>{item.LOGIN_NET}</td>
                       <td>{item.CNPJ_CPF}</td>
                       <td>{item.RAZAO_SOCIAL}</td>
                       <td>{item.SITUACAO}</td>
@@ -443,7 +464,6 @@ export default function Table({ canal, login, admin, Url }) {
                       <td>{item.TERRITORIO}</td>
                       <td>{item.CANAL}</td>
                       <td>{item.REGIONAL}</td>
-                      <td>{item.AACE}</td>
                       <td>{item.TIME}</td>
                     </>
                   )}

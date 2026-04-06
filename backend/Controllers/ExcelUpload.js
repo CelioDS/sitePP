@@ -102,6 +102,7 @@ export const setExcelPME = async (req, res) => {
     }
 
     const values = rows.map((row) => [
+      row.ANOMES,
       row.CPF,
       row.NOME,
       row.INPUT,
@@ -119,12 +120,13 @@ export const setExcelPME = async (req, res) => {
       row.TERRITORIO,
       row.CANAL,
       row.REGIONAL,
-      row.NOME_AACE,
       row.TIME,  
       TODAY,
       login,
     ]);
 
+
+    
     if (rows.length < values.length) {
       return res.status(400).json({ error: "Planilha com colunas faltando" });
     }
@@ -134,7 +136,7 @@ export const setExcelPME = async (req, res) => {
 
     const sql = `
       INSERT INTO PME
-      (CPF,	NOME,	INPUT,	LOGIN_NET,	CNPJ_CPF,	RAZAO_SOCIAL,	SITUACAO,	CELULAR,	EMAIL,	EMAIL_GESTOR,	COD,	COMTA,	COORDENADOR,	GERENTE,	TERRITORIO, CANAL,	REGIONAL, NOME_AACE,	TIME, DATA_ATUALIZACAO, LOGIN_ATUALIZACAO)
+      (ANOMES, CPF,	NOME,	INPUT,	LOGIN_NET,	CNPJ_CPF,	RAZAO_SOCIAL,	SITUACAO,	CELULAR,	EMAIL,	EMAIL_GESTOR,	COD,	COMTA,	COORDENADOR,	GERENTE,	TERRITORIO, CANAL,	REGIONAL, 	TIME, DATA_ATUALIZACAO, LOGIN_ATUALIZACAO)
       VALUES ?
     `;
 

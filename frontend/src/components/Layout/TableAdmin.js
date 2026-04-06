@@ -19,7 +19,7 @@ export default function TableAdmin({ Url }) {
 
   //paginação
   const [page, setPage] = useState(1);
-  const pageSize = 10;
+  const [pageSize, setPageSize] = useState(10);
 
   const totalPages = useMemo(() => {
     return Math.ceil(dataBase.length / pageSize) || 1;
@@ -272,10 +272,27 @@ export default function TableAdmin({ Url }) {
           </button>
         </section>
 
-        <p className={Style.DisplayAtualizacao}>
-          <strong>Última atualização:</strong>
-          {DATA_ATUALIZACAO_info || "—"} {LOGIN_ATUALIZACAO_info || "—"}
-        </p>
+        <div className={Style.PageSize}>
+          <p className={Style.DisplayAtualizacao}>
+            <strong>Última atualização:</strong>
+            {DATA_ATUALIZACAO_info || "—"} {LOGIN_ATUALIZACAO_info || "—"}
+          </p>
+
+          <select
+            name="pageSize"
+            id="pageSize"
+            value={pageSize}
+            onChange={(e) => setPageSize(Number(e.target.value))}
+          >
+            <option value={10}>10</option>
+            <option value={25}>25</option>
+            <option value={50}>50</option>
+            <option value={100}>100</option>
+            <option value={250}>250</option>
+            <option value={500}>500</option>
+            <option value={1000}>1000</option>
+          </select>
+        </div>
 
         <section className={Style.sectionTable}>
           <table>
@@ -307,24 +324,18 @@ export default function TableAdmin({ Url }) {
                   <>
                     <th>ANOMES</th>
                     <th>CANAL</th>
+                    <th>ESTRUTURA</th>
                     <th>IBGE</th>
-                    <th>CIDADE</th>
-                    <th>PARCEIRO LOJA</th>
                     <th>CNPJ</th>
-                    <th>NOME</th>
+                    <th>PARCEIRO LOJA</th>
                     <th>CLASSIFICAÇÃO</th>
                     <th>SEGMENTO</th>
-                    <th>PRODUTO_ATUACAO</th>
-                    <th>DATA_CADASTRO</th>
-                    <th>SITUACAO</th>
-                    <th>TIPO</th>
-                    <th>RAZAO_SOCIAL</th>
                     <th>LOGIN NET</th>
                     <th>LOGIN CLARO</th>
+                    <th>NOME</th>
+                    <th>DATA_CADASTRO</th>
+                    <th>SITUACAO</th>
                     <th>EXECUTIVO</th>
-                    <th>GRUPO</th>
-                    <th>COMTA</th>
-                    <th>CABEAMENTO</th>
                     <th>FILIAL COORDENADOR</th>
                   </>
                 )}
@@ -411,24 +422,18 @@ export default function TableAdmin({ Url }) {
                       <>
                         <td>{item.ANOMES}</td>
                         <td>{item.CANAL}</td>
+                        <td>{item.ESTRUTURA}</td>
                         <td>{item.IBGE}</td>
-                        <td>{item.CIDADE}</td>
-                        <td>{item.PARCEIRO_LOJA}</td>
                         <td>{item.CNPJ}</td>
-                        <td>{item.NOME}</td>
+                        <td>{item.PARCEIRO_LOJA}</td>
                         <td>{item.CLASSIFICACAO}</td>
                         <td>{item.SEGMENTO}</td>
-                        <td>{item.PRODUTO_ATUACAO}</td>
-                        <td>{item.DATA_CADASTRO}</td>
-                        <td>{item.SITUACAO}</td>
-                        <td>{item.TIPO}</td>
-                        <td>{item.RAZAO_SOCIAL}</td>
                         <td>{item.LOGIN_NET}</td>
                         <td>{item.LOGIN_CLARO}</td>
+                        <td>{item.NOME}</td>
+                        <td>{item.DATA_CADASTRO}</td>
+                        <td>{item.SITUACAO}</td>
                         <td>{item.EXECUTIVO}</td>
-                        <td>{item.GRUPO}</td>
-                        <td>{item.COMTA}</td>
-                        <td>{item.CABEAMENTO}</td>
                         <td>{item.FILIAL_COORDENADOR}</td>
                       </>
                     )}

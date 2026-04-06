@@ -24,6 +24,17 @@
   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
 }
 
+.main .PageSize{
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex-direction: column;
+}
+
+.main .PageSize select{
+  width: 80px;
+}
+
 .main section {
   display: flex;
   flex-direction: column;

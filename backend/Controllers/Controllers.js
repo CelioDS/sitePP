@@ -178,10 +178,41 @@ export const getPAP = async (req, res) => {
     if (q) {
       const like = `%${q}%`;
       where.push(`
-        (PAP.CANAL LIKE ? OR PAP.IBGE LIKE ? OR PAP.ESTRUTURA LIKE ? OR PAP.CNPJ LIKE ? OR PAP.NOME LIKE ? OR
-         PAP.CLASSIFICACAO LIKE ? OR PAP.SEGMENTO LIKE ? OR PAP.PRODUTO_ATUACAO LIKE ?)
-      `);
-      params.push(like, like, like, like, like, like, like, like, like);
+  (
+    PAP.ANOMES LIKE ?
+    OR PAP.CANAL LIKE ?
+    OR PAP.ESTRUTURA LIKE ?
+    OR PAP.IBGE LIKE ?
+    OR PAP.CNPJ LIKE ?
+    OR PAP.PARCEIRO_LOJA LIKE ?
+    OR PAP.CLASSIFICACAO LIKE ?
+    OR PAP.SEGMENTO LIKE ?
+    OR PAP.LOGIN_NET LIKE ?
+    OR PAP.LOGIN_CLARO LIKE ?
+    OR PAP.NOME LIKE ?
+    OR PAP.DATA_CADASTRO_VENDEDOR LIKE ?
+    OR PAP.SITUACAO LIKE ?
+    OR PAP.EXECUTIVO LIKE ?
+    OR PAP.FILIAL_COORDENADOR LIKE ?
+  )
+`);
+      params.push(
+        like,
+        like,
+        like,
+        like,
+        like,
+        like,
+        like,
+        like,
+        like,
+        like,
+        like,
+        like,
+        like,
+        like,
+        like
+      );
     }
 
     const sql = `
