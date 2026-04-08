@@ -275,7 +275,8 @@ export default function TableAdmin({ Url }) {
         <div className={Style.PageSize}>
           <p className={Style.DisplayAtualizacao}>
             <strong>Última atualização:</strong>
-            {DATA_ATUALIZACAO_info || "—"} {LOGIN_ATUALIZACAO_info || "—"}
+            {DATA_ATUALIZACAO_info || "—"}{" "}
+            {LOGIN_ATUALIZACAO_info?.toUpperCase() || "—"}
           </p>
 
           <select
@@ -320,21 +321,44 @@ export default function TableAdmin({ Url }) {
                   )}
                   {rota === "portaaporta" && (
                     <>
+                      <th>ANOMES </th>
+                      <th>CANAL </th>
+                      <th>ESTRUTURA </th>
+                      <th>IBGE </th>
+                      <th>CNPJ </th>
+                      <th>PARCEIRO_LOJA </th>
+                      <th>CLASSIFICACAO </th>
+                      <th>SEGMENTO </th>
+                      <th>LOGIN_NET </th>
+                      <th>LOGIN_CLARO </th>
+                      <th>NOME </th>
+                      <th>DATA_CADASTRO_VENDEDOR </th>
+                      <th>SITUACAO </th>
+                      <th>EXECUTIVO </th>
+                      <th>FILIAL_COORDENADOR </th>
+                    </>
+                  )}
+                  {rota === "PME" && (
+                    <>
                       <th>ANOMES</th>
+                      <th>CPF</th>
+                      <th>Nome</th>
+                      <th>Input</th>
+                      <th>LoginNET</th>
+                      <th>CNPJ_CPF</th>
+                      <th>Razao_social</th>
+                      <th>Situacao</th>
+                      <th>Celular</th>
+                      <th>Email</th>
+                      <th>Email_Gestor</th>
+                      <th>COD</th>
+                      <th>COMTA</th>
+                      <th>Coordenador</th>
+                      <th>GERENTE</th>
+                      <th>Territorio</th>
                       <th>CANAL</th>
-                      <th>ESTRUTURA</th>
-                      <th>IBGE</th>
-                      <th>CNPJ</th>
-                      <th>PARCEIRO LOJA</th>
-                      <th>CLASSIFICAÇÃO</th>
-                      <th>SEGMENTO</th>
-                      <th>LOGIN NET</th>
-                      <th>LOGIN CLARO</th>
-                      <th>NOME</th>
-                      <th>DATA_CADASTRO</th>
-                      <th>SITUACAO</th>
-                      <th>EXECUTIVO</th>
-                      <th>FILIAL COORDENADOR</th>
+                      <th>REGIONAL</th>
+                      <th>TIME</th>
                     </>
                   )}
                   {rota === "Varejo" && (
@@ -342,30 +366,18 @@ export default function TableAdmin({ Url }) {
                       <th>ANOMES</th>
                       <th>CANAL</th>
                       <th>IBGE</th>
-                      <th>COD_PDV</th>
                       <th>PARCEIRO_LOJA</th>
                       <th>CNPJ</th>
-                      <th>NM_VEND</th>
+                      <th>NOME_COLABORADOR</th>
                       <th>CARGO</th>
-                      <th>CPF_VEND</th>
+                      <th>CPF_COLABORADOR</th>
                       <th>PRODUTO_ATUACAO</th>
                       <th>DATA_CADASTRO</th>
                       <th>SITUACAO</th>
-                      <th>FILIAL</th>
+                      <th>LOGIN_NET</th>
                       <th>GN</th>
-                    </>
-                  )}
-                  {rota === "PME" && (
-                    <>
-                      <th>ANOMES</th>
-                      <th>CANAL</th>
-                      <th>COMTA</th>
-                      <th>GRUPO</th>
-                      <th>PARCEIRO LOJA</th>
-                      <th>CNPJ</th>
-                      <th>NOME</th>
-                      <th>LOGIN NET</th>
-                      <th>TERRITORIO</th>
+                      <th>COD_PDV</th>
+                      <th>FILIAL_COORDENADOR</th>
                     </>
                   )}
                   {rota === "agenteautorizado" && (
@@ -374,6 +386,7 @@ export default function TableAdmin({ Url }) {
                       <th>CANAL</th>
                       <th>IBGE</th>
                       <th>CIDADE</th>
+                      <th>RAZAO_SOCIAL</th>
                       <th>PARCEIRO_LOJA</th>
                       <th>CNPJ</th>
                       <th>NOME</th>
@@ -385,6 +398,12 @@ export default function TableAdmin({ Url }) {
                       <th>LOGIN_NET</th>
                       <th>TIPO</th>
                       <th>LOGIN_CLARO</th>
+                      <th>EXECUTIVO</th>
+                      <th>COMTA</th>
+                      <th>CABEAMENTO</th>
+                      <th>FILIAL_COORDENADOR</th>
+                      <th>NM EQUIPE VENDA</th>
+                      <th>GN</th>
                     </>
                   )}
                 </tr>
@@ -415,6 +434,29 @@ export default function TableAdmin({ Url }) {
                           <td>{item.STATUS}</td>
                         </>
                       )}
+                      {rota === "PME" && (
+                        <>
+                          <td>{item.ANOMES}</td>
+                          <td>{item.CPF}</td>
+                          <td>{item.NOME}</td>
+                          <td>{item.INPUT}</td>
+                          <td>{item.LOGIN_NET}</td>
+                          <td>{item.CNPJ_CPF}</td>
+                          <td>{item.RAZAO_SOCIAL}</td>
+                          <td>{item.SITUACAO}</td>
+                          <td>{item.CELULAR}</td>
+                          <td>{item.EMAIL}</td>
+                          <td>{item.EMAIL_GESTOR}</td>
+                          <td>{item.COD}</td>
+                          <td>{item.COMTA}</td>
+                          <td>{item.COORDENADOR}</td>
+                          <td>{item.GERENTE}</td>
+                          <td>{item.TERRITORIO}</td>
+                          <td>{item.CANAL}</td>
+                          <td>{item.REGIONAL}</td>
+                          <td>{item.TIME}</td>
+                        </>
+                      )}
                       {rota === "portaaporta" && (
                         <>
                           <td>{item.ANOMES}</td>
@@ -428,7 +470,7 @@ export default function TableAdmin({ Url }) {
                           <td>{item.LOGIN_NET}</td>
                           <td>{item.LOGIN_CLARO}</td>
                           <td>{item.NOME}</td>
-                          <td>{item.DATA_CADASTRO}</td>
+                          <td>{item.DATA_CADASTRO_VENDEDOR}</td>
                           <td>{item.SITUACAO}</td>
                           <td>{item.EXECUTIVO}</td>
                           <td>{item.FILIAL_COORDENADOR}</td>
@@ -439,7 +481,6 @@ export default function TableAdmin({ Url }) {
                           <td>{item.ANOMES}</td>
                           <td>{item.CANAL}</td>
                           <td>{item.IBGE}</td>
-                          <td>{item.COD_PDV}</td>
                           <td>{item.PARCEIRO_LOJA}</td>
                           <td>{item.CNPJ}</td>
                           <td>{item.NOME_COLABORADOR}</td>
@@ -448,21 +489,10 @@ export default function TableAdmin({ Url }) {
                           <td>{item.PRODUTO_ATUACAO}</td>
                           <td>{item.DATA_CADASTRO}</td>
                           <td>{item.SITUACAO}</td>
-                          <td>{item.FILIAL_COORDENADOR}</td>
-                          <td>{item.GN}</td>
-                        </>
-                      )}
-                      {rota === "PME" && (
-                        <>
-                          <td>{item.ANOMES}</td>
-                          <td>{item.CANAL}</td>
-                          <td>{item.COMTA}</td>
-                          <td>{item.GRUPO}</td>
-                          <td>{item.PARCEIRO_LOJA}</td>
-                          <td>{item.CNPJ}</td>
-                          <td>{item.NOME}</td>
                           <td>{item.LOGIN_NET}</td>
-                          <td>{item.TERRITORIO}</td>
+                          <td>{item.GN}</td>
+                          <td>{item.COD_PDV}</td>
+                          <td>{item.FILIAL_COORDENADOR}</td>
                         </>
                       )}
 
@@ -472,6 +502,7 @@ export default function TableAdmin({ Url }) {
                           <td>{item.CANAL}</td>
                           <td>{item.IBGE}</td>
                           <td>{item.CIDADE}</td>
+                          <td>{item.RAZAO_SOCIAL}</td>
                           <td>{item.PARCEIRO_LOJA}</td>
                           <td>{item.CNPJ}</td>
                           <td>{item.NOME}</td>
@@ -483,6 +514,12 @@ export default function TableAdmin({ Url }) {
                           <td>{item.LOGIN_NET}</td>
                           <td>{item.TIPO}</td>
                           <td>{item.LOGIN_CLARO}</td>
+                          <td>{item.EXECUTIVO}</td>
+                          <td>{item.COMTA}</td>
+                          <td>{item.CABEAMENTO}</td>
+                          <td>{item.FILIAL_COORDENADOR}</td>
+                          <td>{item.NM_EQUIPE_VENDA}</td>
+                          <td>{item.GN}</td>
                         </>
                       )}
                     </tr>
@@ -500,7 +537,7 @@ export default function TableAdmin({ Url }) {
               cursor: page === 1 && "not-allowed",
             }}
           >
-            ◀ anterior
+            ◀ Anterior
           </button>
 
           <span>
@@ -515,7 +552,7 @@ export default function TableAdmin({ Url }) {
               cursor: page === totalPages && "not-allowed",
             }}
           >
-            proximo ▶
+            Proximo ▶
           </button>
         </div>
       </section>

@@ -16,6 +16,7 @@ const MAPA_TABELAS = {
   PME: "PME",
   PAP: "PAP",
   VAREJO: "VAREJO",
+  EXCLUSIVOS: "EXCLUSIVOS",
 };
 
 const buildDateFilter = (tableAlias, start, end, latest) => {
@@ -73,11 +74,33 @@ export const getLP = async (req, res) => {
     if (q) {
       const like = `%${q}%`;
       where.push(`
-        (LP.CANAL LIKE ? OR LP.COLABORADOR LIKE ? OR LP.LOGIN_CLARO LIKE ? OR
-         LP.COMTA LIKE ? OR LP.CABEAMENTO LIKE ? OR LP.LOGIN_NET LIKE ? OR
-         LP.LOJA LIKE ? OR LP.CIDADE LIKE ? OR LP.COORDENADOR LIKE ? OR LP.STATUS LIKE ?)
+        (
+        LP.ANOMES LIKE ?
+        OR LP.CANAL LIKE ? 
+        OR LP.COLABORADOR LIKE ? 
+        OR LP.LOGIN_CLARO LIKE ? 
+        OR LP.COMTA LIKE ? 
+        OR LP.CABEAMENTO LIKE ? 
+        OR LP.LOGIN_NET LIKE ? 
+        OR LP.LOJA LIKE ? 
+        OR LP.CIDADE LIKE ? 
+        OR LP.COORDENADOR LIKE ? 
+        OR LP.STATUS LIKE ?
+        )
       `);
-      params.push(like, like, like, like, like, like, like, like, like, like);
+      params.push(
+        like,
+        like,
+        like,
+        like,
+        like,
+        like,
+        like,
+        like,
+        like,
+        like,
+        like,
+      );
     }
 
     const sql = `
@@ -126,11 +149,45 @@ export const getPME = async (req, res) => {
     if (q) {
       const like = `%${q}%`;
       where.push(`
-        (PME.CANAL LIKE ? OR PME.COMTA LIKE ? OR PME.GRUPO LIKE ? OR
-         PME.PARCEIRO_LOJA LIKE ? OR PME.CNPJ LIKE ? OR PME.LOGIN_NET LIKE ? OR
-         PME.PARCEIRO_LOJA LIKE ? OR PME.TERRITORIO LIKE ? OR PME.COMTA LIKE ? OR PME.NOME LIKE ?)
+        (
+        PME.ANOMES LIKE ?
+        OR PME.CPF LIKE ? 
+        OR PME.NOME LIKE ? 
+        OR PME.INPUT LIKE ? 
+        OR PME.LOGIN_NET LIKE ? 
+        OR PME.RAZAO_SOCIAL LIKE ? 
+        OR PME.SITUACAO LIKE ? 
+        OR PME.CELULAR LIKE ? 
+        OR PME.EMAIL LIKE ? 
+        OR PME.EMAIL_GESTOR LIKE ? 
+        OR PME.COD LIKE ? 
+        OR PME.COMTA LIKE ?
+        OR PME.COORDENADOR LIKE ?
+        OR PME.GERENTE LIKE ?
+        OR PME.TERRITORIO LIKE ?
+        OR PME.REGIONAL LIKE ?
+        OR PME.TIME LIKE ?
+        )
       `);
-      params.push(like, like, like, like, like, like, like, like, like, like);
+      params.push(
+        like,
+        like,
+        like,
+        like,
+        like,
+        like,
+        like,
+        like,
+        like,
+        like,
+        like,
+        like,
+        like,
+        like,
+        like,
+        like,
+        like,
+      );
     }
 
     const sql = `
@@ -211,7 +268,7 @@ export const getPAP = async (req, res) => {
         like,
         like,
         like,
-        like
+        like,
       );
     }
 
@@ -230,6 +287,94 @@ export const getPAP = async (req, res) => {
   } catch (err) {
     console.error(err);
     return res.status(500).json({ error: "Erro ao buscar PAP" });
+  }
+};
+
+export const getExclusivos = async (req, res) => {
+  try {
+    let {
+      q,
+      start,
+      end,
+      latest,
+      limit = 200000,
+      offset = 0,
+      orderBy = "ID",
+      orderDir = "DESC",
+    } = req.query;
+
+    limit = Math.min(Number(limit) || 2000, 200000);
+    offset = Number(offset) || 0;
+
+    const validOrder = ["ID", "REGIONAL", "FUNCIONARIO", "CARGO", "CIDADE"];
+    orderBy = validOrder.includes(orderBy) ? orderBy : "ID";
+    orderDir = orderDir.toUpperCase() === "ASC" ? "ASC" : "DESC";
+
+    const mainFilters = buildDateFilter("EXCLUSIVOS", start, end, latest);
+    const where = mainFilters.where;
+    const params = mainFilters.params;
+
+    if (q) {
+      const like = `%${q}%`;
+      where.push(`
+  (
+    EXCLUSIVOS.ANOMES LIKE ?
+    OR EXCLUSIVOS.REGIONAL LIKE ?
+    OR EXCLUSIVOS.MAT_BCC LIKE ?
+    OR EXCLUSIVOS.MAT_REVOLUTION LIKE ?
+    OR EXCLUSIVOS.FUNCIONARIO LIKE ?
+    OR EXCLUSIVOS.CARGO LIKE ?
+    OR EXCLUSIVOS.GESTOR_1 LIKE ?
+    OR EXCLUSIVOS.GESTOR_2 LIKE ?
+    OR EXCLUSIVOS.GESTOR_3 LIKE ?
+    OR EXCLUSIVOS.CIDADE LIKE ?
+    OR EXCLUSIVOS.STATUS LIKE ?
+    OR EXCLUSIVOS.ADMISSAO LIKE ?
+    OR EXCLUSIVOS.LOGIN_NET LIKE ?
+    OR EXCLUSIVOS.CANAL LIKE ?
+    OR EXCLUSIVOS.CHAVE LIKE ?
+    OR EXCLUSIVOS.MATRICULA_EXECUTIVO LIKE ?
+    OR EXCLUSIVOS.EXECUTIVO LIKE ?
+    OR EXCLUSIVOS.FILIAL_COORDENADOR LIKE ?
+  )
+`);
+      params.push(
+        like,
+        like,
+        like,
+        like,
+        like,
+        like,
+        like,
+        like,
+        like,
+        like,
+        like,
+        like,
+        like,
+        like,
+        like,
+        like,
+        like,
+        like,
+      );
+    }
+
+    const sql = `
+      SELECT EXCLUSIVOS.*
+      FROM EXCLUSIVOS
+      ${where.length ? `WHERE ${where.join(" AND ")}` : ""}
+      ORDER BY EXCLUSIVOS.${orderBy} ${orderDir}
+      LIMIT ? OFFSET ?
+    `;
+
+    params.push(limit, offset);
+
+    const [rows] = await dataBase.query(sql, params);
+    return res.status(200).json(rows);
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ error: "Erro ao buscar EXCLUSIVOS" });
   }
 };
 
@@ -260,11 +405,49 @@ export const getAA = async (req, res) => {
     if (q) {
       const like = `%${q}%`;
       where.push(`
-        (AA.CANAL LIKE ? OR AA.IBGE LIKE ? OR AA.CIDADE LIKE ? OR 
-         AA.RAZAO_SOCIAL LIKE ? OR AA.CNPJ LIKE ? OR AA.NOME LIKE ? OR
-         AA.CLASSIFICACAO LIKE ? OR AA.SEGMENTO LIKE ? OR AA.PRODUTO_ATUACAO LIKE ?)
+        (
+        AA.ANOMES LIKE ?
+        OR AA.CANAL LIKE ? 
+        OR AA.IBGE LIKE ? 
+        OR AA.CIDADE LIKE ? 
+        OR AA.RAZAO_SOCIAL LIKE ? 
+        OR AA.PARCEIRO_LOJA LIKE ? 
+        OR AA.CNPJ LIKE ? 
+        OR AA.NOME LIKE ? 
+        OR AA.CLASSIFICACAO LIKE ? 
+        OR AA.SEGMENTO LIKE ? 
+        OR AA.PRODUTO_ATUACAO LIKE ?
+        OR AA.DATA_CADASTRO LIKE ? 
+        OR AA.SITUACAO LIKE ? 
+        OR AA.LOGIN_NET LIKE ? 
+        OR AA.COMTA LIKE ? 
+        OR AA.CABEAMENTO LIKE ? 
+        OR AA.FILIAL_COORDENADOR LIKE ? 
+        OR AA.NM_EQUIPE_VENDA LIKE ? 
+        OR AA.GN LIKE ? 
+        )
       `);
-      params.push(like, like, like, like, like, like, like, like, like);
+      params.push(
+        like,
+        like,
+        like,
+        like,
+        like,
+        like,
+        like,
+        like,
+        like,
+        like,
+        like,
+        like,
+        like,
+        like,
+        like,
+        like,
+        like,
+        like,
+        like,
+      );
     }
 
     const sql = `
@@ -312,11 +495,41 @@ export const getVAREJO = async (req, res) => {
     if (q) {
       const like = `%${q}%`;
       where.push(`
-        (VAREJO.CANAL LIKE ? OR VAREJO.IBGE LIKE ? OR VAREJO.CIDADE LIKE ? OR 
-         VAREJO.RAZAO_SOCIAL LIKE ? OR VAREJO.CNPJ LIKE ? OR VAREJO.NOME LIKE ? OR
-         VAREJO.CLASSIFICACAO LIKE ? OR VAREJO.SEGMENTO LIKE ? OR VAREJO.PRODUTO_ATUACAO LIKE ?)
+        (
+        VAREJO.ANOMES LIKE ?
+        OR VAREJO.CANAL LIKE ? 
+        OR VAREJO.IBGE LIKE ? 
+        OR VAREJO.PARCEIRO_LOJA LIKE ? 
+        OR VAREJO.CNPJ LIKE ? 
+        OR VAREJO.NOME_COLABORADOR LIKE ? 
+        OR VAREJO.CARGO LIKE ? 
+        OR VAREJO.CPF_COLABORADOR LIKE ? 
+        OR VAREJO.PRODUTO_ATUACAO LIKE ?
+        OR VAREJO.DATA_CADASTRO LIKE ? 
+        OR VAREJO.SITUACAO LIKE ? 
+        OR VAREJO.LOGIN_NET LIKE ? 
+        OR VAREJO.GN LIKE ? 
+        OR VAREJO.COD_PDV LIKE ? 
+        OR VAREJO.FILIAL_COORDENADOR LIKE ? 
+        )
       `);
-      params.push(like, like, like, like, like, like, like, like, like);
+      params.push(
+        like,
+        like,
+        like,
+        like,
+        like,
+        like,
+        like,
+        like,
+        like,
+        like,
+        like,
+        like,
+        like,
+        like,
+        like,
+      );
     }
 
     const sql = `
@@ -1236,19 +1449,19 @@ export const getStatusAtualizacao = async (req, res) => {
     COUNT(*) / COUNT(DISTINCT DATE(data_atualizacao)) AS media_registros_dia,
     SUM(CASE 
             WHEN DATE(data_atualizacao) = (
-                SELECT MAX(DATE(data_atualizacao)) FROM db_projetos.aa
+                SELECT MAX(DATE(data_atualizacao)) FROM aa
             ) THEN 1 ELSE 0 
         END) AS registros_ultimo_dia,
     (
         SUM(CASE 
                 WHEN DATE(data_atualizacao) = (
-                    SELECT MAX(DATE(data_atualizacao)) FROM db_projetos.aa
+                    SELECT MAX(DATE(data_atualizacao)) FROM aa
                 ) THEN 1 ELSE 0 
             END)
         -
         (COUNT(*) / COUNT(DISTINCT DATE(data_atualizacao)))
     ) AS variacao_registros
-FROM db_projetos.aa
+FROM aa
 
 UNION ALL
 
@@ -1259,42 +1472,65 @@ SELECT
     COUNT(*) / COUNT(DISTINCT DATE(data_atualizacao)),
     SUM(CASE 
             WHEN DATE(data_atualizacao) = (
-                SELECT MAX(DATE(data_atualizacao)) FROM db_projetos.lp
+                SELECT MAX(DATE(data_atualizacao)) FROM lp
             ) THEN 1 ELSE 0 
         END),
     (
         SUM(CASE 
                 WHEN DATE(data_atualizacao) = (
-                    SELECT MAX(DATE(data_atualizacao)) FROM db_projetos.lp
+                    SELECT MAX(DATE(data_atualizacao)) FROM lp
                 ) THEN 1 ELSE 0 
             END)
         -
         (COUNT(*) / COUNT(DISTINCT DATE(data_atualizacao)))
     )
-FROM db_projetos.lp
+FROM lp
 
 UNION ALL
 
 SELECT
-    'pap',
+    'pap - INDIRETO',
     MAX(data_atualizacao),
     COUNT(*),
     COUNT(*) / COUNT(DISTINCT DATE(data_atualizacao)),
     SUM(CASE 
             WHEN DATE(data_atualizacao) = (
-                SELECT MAX(DATE(data_atualizacao)) FROM db_projetos.pap
+                SELECT MAX(DATE(data_atualizacao)) FROM pap
             ) THEN 1 ELSE 0 
         END),
     (
         SUM(CASE 
                 WHEN DATE(data_atualizacao) = (
-                    SELECT MAX(DATE(data_atualizacao)) FROM db_projetos.pap
+                    SELECT MAX(DATE(data_atualizacao)) FROM pap
                 ) THEN 1 ELSE 0 
             END)
         -
         (COUNT(*) / COUNT(DISTINCT DATE(data_atualizacao)))
     )
-FROM db_projetos.pap
+FROM pap
+
+UNION ALL
+
+SELECT
+    'pap - EXCLUSIVOS',
+    MAX(data_atualizacao),
+    COUNT(*),
+    COUNT(*) / COUNT(DISTINCT DATE(data_atualizacao)),
+    SUM(CASE 
+            WHEN DATE(data_atualizacao) = (
+                SELECT MAX(DATE(data_atualizacao)) FROM EXCLUSIVOS
+            ) THEN 1 ELSE 0 
+        END),
+    (
+        SUM(CASE 
+                WHEN DATE(data_atualizacao) = (
+                    SELECT MAX(DATE(data_atualizacao)) FROM EXCLUSIVOS
+                ) THEN 1 ELSE 0 
+            END)
+        -
+        (COUNT(*) / COUNT(DISTINCT DATE(data_atualizacao)))
+    )
+FROM EXCLUSIVOS
 
 UNION ALL
 
@@ -1305,19 +1541,19 @@ SELECT
     COUNT(*) / COUNT(DISTINCT DATE(data_atualizacao)),
     SUM(CASE 
             WHEN DATE(data_atualizacao) = (
-                SELECT MAX(DATE(data_atualizacao)) FROM db_projetos.varejo
+                SELECT MAX(DATE(data_atualizacao)) FROM varejo
             ) THEN 1 ELSE 0 
         END),
     (
         SUM(CASE 
                 WHEN DATE(data_atualizacao) = (
-                    SELECT MAX(DATE(data_atualizacao)) FROM db_projetos.varejo
+                    SELECT MAX(DATE(data_atualizacao)) FROM varejo
                 ) THEN 1 ELSE 0 
             END)
         -
         (COUNT(*) / COUNT(DISTINCT DATE(data_atualizacao)))
     )
-FROM db_projetos.varejo
+FROM varejo
 
 UNION ALL
 
@@ -1328,19 +1564,19 @@ SELECT
     COUNT(*) / COUNT(DISTINCT DATE(data_atualizacao)),
     SUM(CASE 
             WHEN DATE(data_atualizacao) = (
-                SELECT MAX(DATE(data_atualizacao)) FROM db_projetos.pme
+                SELECT MAX(DATE(data_atualizacao)) FROM pme
             ) THEN 1 ELSE 0 
         END),
     (
         SUM(CASE 
                 WHEN DATE(data_atualizacao) = (
-                    SELECT MAX(DATE(data_atualizacao)) FROM db_projetos.pme
+                    SELECT MAX(DATE(data_atualizacao)) FROM pme
                 ) THEN 1 ELSE 0 
             END)
         -
         (COUNT(*) / COUNT(DISTINCT DATE(data_atualizacao)))
     )
-FROM db_projetos.pme;
+FROM pme;
 
     `;
     const [rows] = await dataBase.query(query);
@@ -1733,6 +1969,145 @@ SELECT * FROM cte_union;
     console.error(err);
     return res.status(500).json({
       error: "Erro ao gerar Excel – Carteiras completas",
+      sql: err.sqlMessage || err.message,
+    });
+  }
+};
+export const getFullPAP = async (req, res) => {
+  try {
+    const TODAY = format(
+      fromZonedTime(new Date(), "America/Sao_Paulo"),
+      "yyyyMMdd_HHmmss",
+    );
+
+    const query = `WITH
+CTEmaxPAP AS (
+    SELECT MAX(DATA_ATUALIZACAO) AS MAX_DATA
+    FROM pap
+),
+CTEmaxEXCLUSIVOS AS (
+    SELECT MAX(DATA_ATUALIZACAO) AS MAX_DATA
+    FROM exclusivos
+)
+
+SELECT
+    P.ANOMES,
+    P.CANAL,
+    P.ESTRUTURA,
+    P.IBGE,
+    P.CNPJ,
+    P.PARCEIRO_LOJA,
+    P.CLASSIFICACAO,
+    P.SEGMENTO,
+    P.LOGIN_NET,
+    P.LOGIN_CLARO,
+    P.NOME,
+    P.DATA_CADASTRO_VENDEDOR,
+    P.SITUACAO,
+    P.EXECUTIVO,
+
+    NULL AS REGIONAL,
+    NULL AS MAT_BCC,
+    NULL AS MAT_REVOLUTION,
+    NULL AS FUNCIONARIO,
+    NULL AS CARGO,
+    NULL AS GESTOR_1,
+    NULL AS GESTOR_2,
+    NULL AS GESTOR_3,
+    NULL AS CIDADE,
+    NULL AS STATUS,
+    NULL AS ADMISSAO,
+    NULL AS LOGIN_NET_EXCLUSIVOS,
+    NULL AS CHAVE,
+    NULL AS MATRICULA_EXECUTIVO,
+    NULL AS EXECUTIVO_EXCLUSIVOS,
+
+    P.FILIAL_COORDENADOR,
+    'PAP' AS ORIGEM
+FROM pap P
+INNER JOIN CTEmaxPAP MP
+    ON P.DATA_ATUALIZACAO = MP.MAX_DATA
+
+UNION ALL
+
+SELECT
+    E.ANOMES,
+    E.CANAL,
+    NULL AS ESTRUTURA,
+    NULL AS IBGE,
+    NULL AS CNPJ,
+    NULL AS PARCEIRO_LOJA,
+    NULL AS CLASSIFICACAO,
+    NULL AS SEGMENTO,
+    E.LOGIN_NET,
+    NULL AS LOGIN_CLARO,
+    E.FUNCIONARIO AS NOME,
+    NULL AS DATA_CADASTRO_VENDEDOR,
+    E.STATUS AS SITUACAO,
+    E.EXECUTIVO,
+
+    E.REGIONAL,
+    E.MAT_BCC,
+    E.MAT_REVOLUTION,
+    E.FUNCIONARIO,
+    E.CARGO,
+    E.GESTOR_1,
+    E.GESTOR_2,
+    E.GESTOR_3,
+    E.CIDADE,
+    E.STATUS,
+    E.ADMISSAO,
+    E.LOGIN_NET AS LOGIN_NET_EXCLUSIVOS,
+    E.CHAVE,
+    E.MATRICULA_EXECUTIVO,
+    E.EXECUTIVO AS EXECUTIVO_EXCLUSIVOS,
+
+    E.FILIAL_COORDENADOR,
+    'EXCLUSIVOS' AS ORIGEM
+FROM exclusivos E
+INNER JOIN CTEmaxEXCLUSIVOS ME
+    ON E.DATA_ATUALIZACAO = ME.MAX_DATA;
+    `;
+
+    // Detecta abort do cliente (não é erro)
+    req.on("aborted", () => {
+      console.warn("⚠️ Cliente abortou o download.");
+    });
+
+    const [rows] = await dataBase.query(query);
+
+    if (!rows.length) {
+      return res.status(204).json({ message: "Nenhum dado para exportar" });
+    }
+
+    // Excel
+    const worksheet = XLSX.utils.json_to_sheet(rows);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Carteiras");
+
+    const tmpDir = path.join(process.cwd(), "tmp");
+    fs.mkdirSync(tmpDir, { recursive: true });
+
+    const fileName = `PAP_completas_${TODAY}.xlsx`;
+    const filePath = path.join(tmpDir, fileName);
+    XLSX.writeFile(workbook, filePath);
+
+    res.setHeader(
+      "Content-Type",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    );
+    res.setHeader("Content-Disposition", `attachment; filename="${fileName}"`);
+
+    res.download(filePath, fileName, (err) => {
+      if (err && err.code !== "ECONNABORTED") {
+        console.error("Erro no download:", err);
+      }
+      fs.unlink(filePath, () => {});
+    });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({
+      error: "Erro ao gerar Excel – PAP completas",
       sql: err.sqlMessage || err.message,
     });
   }

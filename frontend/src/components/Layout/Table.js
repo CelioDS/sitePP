@@ -19,6 +19,9 @@ export default function Table({ canal, login, admin, Url }) {
   const lastReqId = useRef(0);
   const [isLoading, setIsLoading] = useState(false);
   const [dataBase, setDatabase] = useState([]);
+  const [changeCarteira, setChangeCarteira] = useState(false);
+
+  const apiCache = useRef(new Map()); // Cache para armazenar os dados por rota
 
   //paginacao
   const [page, setPage] = useState(1);
@@ -38,10 +41,11 @@ export default function Table({ canal, login, admin, Url }) {
     PME: "pme",
     Varejo: "varejo",
     LP: "lojapropria",
-    PAP: "portaaporta",
+    PAP: changeCarteira ? "portaaporta" : "exclusivos",
     AA: "agenteautorizado",
-    PAP_PREMIUM: "pap_premium",
   };
+  const [rota, setRota] = useState(rotas[canal]);
+
   const [debouncedSearch, setDebouncedSearch] = useState(search);
 
   useEffect(() => {
@@ -52,13 +56,11 @@ export default function Table({ canal, login, admin, Url }) {
     return () => clearTimeout(timer);
   }, [search]);
 
-  const [rota, setRota] = useState(rotas[canal]);
-
   // Mantém 'rota' em sincronia quando 'canal' mudar
   useEffect(() => {
     setRota(rotas[canal]);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [canal]);
+  }, [canal, changeCarteira]);
 
   // Normalizador: transforma qualquer resposta em array
   const toArray = (payload) => {
@@ -69,6 +71,19 @@ export default function Table({ canal, login, admin, Url }) {
 
   const fetchData = async () => {
     if (!Url || !rota) return;
+    const cacheKey = JSON.stringify({
+      rota,
+      q: debouncedSearch,
+      start,
+      end,
+      latest,
+    });
+
+    if (apiCache.current.has(cacheKey)) {
+      setDatabase(apiCache.current.get(cacheKey));
+      setIsLoading(false);
+      return;
+    }
 
     const base = Url.endsWith("/") ? Url.slice(0, -1) : Url;
     const endpoint = `${base}/${rota}`;
@@ -89,6 +104,9 @@ export default function Table({ canal, login, admin, Url }) {
       const resp = await axios.get(endpoint, { params });
 
       if (reqId !== lastReqId.current) return;
+
+      apiCache.current.set(cacheKey, toArray(resp.data));
+
       setDatabase(toArray(resp.data));
     } catch (err) {
       if (reqId !== lastReqId.current) return;
@@ -152,10 +170,25 @@ export default function Table({ canal, login, admin, Url }) {
     formData.append("file", file);
 
     try {
-      if (canal === "PAP") {
+      if (canal === "PAP" && !changeCarteira) {
+        const response = await axios.post(
+          `${Url}/upload-excel-EXCLUSIVOS`,
+          formData,
+          {
+            headers: { "Content-Type": "multipart/form-data", login: login },
+          },
+        );
+
+        toast.success("Arquivo enviado com sucesso!");
+        const normalized = toArray(response.data);
+        setDatabase(normalized);
+      }
+
+      if (canal === "PAP" && changeCarteira) {
         const response = await axios.post(`${Url}/upload-excel-PAP`, formData, {
           headers: { "Content-Type": "multipart/form-data", login: login },
         });
+
         toast.success("Arquivo enviado com sucesso!");
         const normalized = toArray(response.data);
         setDatabase(normalized);
@@ -207,6 +240,7 @@ export default function Table({ canal, login, admin, Url }) {
       toast.error(error.response?.data?.sql || "Erro ao enviar o arquivo");
     }
 
+    apiCache.current.clear();
     fetchData();
     e.target.value = "";
   };
@@ -280,6 +314,26 @@ export default function Table({ canal, login, admin, Url }) {
                   <option value={1000}>1000</option>
                 </select>
               </div>
+              {canal === "PAP" && (
+                <button
+                  style={{ width: "200px", textAlign: "center" }}
+                  onClick={() => setChangeCarteira((prev) => !prev)}
+                  aria-label={
+                    !changeCarteira
+                      ? "Trocar para carteira indireta"
+                      : "Trocar para carteira exclusivos"
+                  }
+                  title={
+                    !changeCarteira
+                      ? "Trocar para carteira indireta"
+                      : "Trocar para carteira exclusivos"
+                  }
+                >
+                  {!changeCarteira
+                    ? "Trocar para INDIRETO"
+                    : "Trocar para EXCLUSIVOS"}
+                </button>
+              )}
               <button
                 onClick={handleDownload}
                 style={{
@@ -305,13 +359,15 @@ export default function Table({ canal, login, admin, Url }) {
           </p>
         </div>
       </section>
+      {canal === "PAP" && (
+        <p>Carteira {changeCarteira ? "INDIRETO" : "EXCLUSIVOS"}</p>
+      )}
 
       {/* TABELA */}
-
-      <section className={Style.sectionTable}>
-        {isLoading && dataBase.length === 0 ? (
-          <Loading text={'carregando....'}/>
-        ) : (
+      {isLoading && dataBase.length === 0 ? (
+        <Loading text={"carregando...."} />
+      ) : (
+        <section className={Style.sectionTable}>
           <table>
             <thead>
               <tr>
@@ -330,7 +386,7 @@ export default function Table({ canal, login, admin, Url }) {
                     <th>STATUS</th>
                   </>
                 )}
-                {canal === "PAP" && (
+                {canal === "PAP" && !!changeCarteira ? (
                   <>
                     <th>ANOMES </th>
                     <th>CANAL </th>
@@ -348,25 +404,46 @@ export default function Table({ canal, login, admin, Url }) {
                     <th>EXECUTIVO </th>
                     <th>FILIAL_COORDENADOR </th>
                   </>
+                ) : (
+                  <>
+                    <th>ANOMES</th>
+                    <th>REGIONAL</th>
+                    <th>MAT BCC</th>
+                    <th>MAT REVOLUTION</th>
+                    <th>FUNCIONÁRIO</th>
+                    <th>CARGO</th>
+                    <th>GESTOR 1</th>
+                    <th>GESTOR 2</th>
+                    <th>GESTOR 3</th>
+                    <th>CIDADE</th>
+                    <th>STATUS</th>
+                    <th>ADMISSÃO</th>
+                    <th>LOGIN NET</th>
+                    <th>CANAL</th>
+                    <th>CHAVE</th>
+                    <th>MATRICULA EXECUTIVO</th>
+                    <th>EXECUTIVO</th>
+                    <th>FILIAL_COORDENADOR</th>
+                  </>
                 )}
                 {canal === "PME" && (
                   <>
                     <th>ANOMES</th>
                     <th>CPF</th>
-                    <th>Nome</th>
-                    <th>Input</th>
-                    <th>LoginNET</th>
+                    <th>NOME</th>
+                    <th>INPUT</th>
+                    <th>LOGIN_NET</th>
                     <th>CNPJ_CPF</th>
-                    <th>Razao_social</th>
-                    <th>Situacao</th>
-                    <th>Celular</th>
-                    <th>Email</th>
-                    <th>Email_Gestor</th>
+                    <th>RAZAO_SOCIAL</th>
+                    <th>SITUACAO</th>
+                    <th>CELULAR</th>
+                    <th>EMAIL</th>
+                    <th>EMAIL_GESTOR</th>
                     <th>COD</th>
                     <th>COMTA</th>
-                    <th>Coordenador</th>
+                    <th>COORDENADOR</th>
                     <th>GERENTE</th>
-                    <th>Territorio</th>
+                    <th>TERRITORIO</th>
                     <th>CANAL</th>
                     <th>REGIONAL</th>
                     <th>TIME</th>
@@ -377,17 +454,18 @@ export default function Table({ canal, login, admin, Url }) {
                     <th>ANOMES</th>
                     <th>CANAL</th>
                     <th>IBGE</th>
-                    <th>COD_PDV</th>
                     <th>PARCEIRO_LOJA</th>
                     <th>CNPJ</th>
-                    <th>NM_VEND</th>
+                    <th>NOME_COLABORADOR</th>
                     <th>CARGO</th>
-                    <th>CPF_VEND</th>
+                    <th>CPF_COLABORADOR</th>
                     <th>PRODUTO_ATUACAO</th>
                     <th>DATA_CADASTRO</th>
                     <th>SITUACAO</th>
-                    <th>FILIAL</th>
+                    <th>LOGIN_NET</th>
                     <th>GN</th>
+                    <th>COD_PDV</th>
+                    <th>FILIAL_COORDENADOR</th>
                   </>
                 )}
                 {canal === "AA" && (
@@ -412,8 +490,8 @@ export default function Table({ canal, login, admin, Url }) {
                     <th>COMTA</th>
                     <th>CABEAMENTO</th>
                     <th>FILIAL_COORDENADOR</th>
-                    <th>GN</th>
                     <th>NM EQUIPE VENDA</th>
+                    <th>GN</th>
                   </>
                 )}
               </tr>
@@ -467,25 +545,44 @@ export default function Table({ canal, login, admin, Url }) {
                         <td>{item.TIME}</td>
                       </>
                     )}
-                    {canal === "PAP" && (
+                    {canal === "PAP" && !!changeCarteira ? (
                       <>
-                        <td>{item.ANOMES || "não utilizado"}</td>
-                        <td>{item.CANAL || "não utilizado"}</td>
-                        <td>{item.ESTRUTURA || "não utilizado"}</td>
-                        <td>{item.IBGE || "não utilizado"}</td>
-                        <td>{item.CNPJ || "não utilizado"}</td>
-                        <td>{item.PARCEIRO_LOJA || "não utilizado"}</td>
-                        <td>{item.CLASSIFICACAO || "não utilizado"}</td>
-                        <td>{item.SEGMENTO || "não utilizado"}</td>
-                        <td>{item.LOGIN_NET || "não utilizado"}</td>
-                        <td>{item.LOGIN_CLARO || "não utilizado"}</td>
-                        <td>{item.NOME || "não utilizado"}</td>
-                        <td>
-                          {item.DATA_CADASTRO_VENDEDOR || "não utilizado"}
-                        </td>
-                        <td>{item.SITUACAO || "não utilizado"}</td>
-                        <td>{item.EXECUTIVO || "não utilizado"}</td>
-                        <td>{item.FILIAL_COORDENADOR || "não utilizado"}</td>
+                        <td>{item.ANOMES}</td>
+                        <td>{item.CANAL}</td>
+                        <td>{item.ESTRUTURA}</td>
+                        <td>{item.IBGE}</td>
+                        <td>{item.CNPJ}</td>
+                        <td>{item.PARCEIRO_LOJA}</td>
+                        <td>{item.CLASSIFICACAO}</td>
+                        <td>{item.SEGMENTO}</td>
+                        <td>{item.LOGIN_NET}</td>
+                        <td>{item.LOGIN_CLARO}</td>
+                        <td>{item.NOME}</td>
+                        <td>{item.DATA_CADASTRO_VENDEDOR}</td>
+                        <td>{item.SITUACAO}</td>
+                        <td>{item.EXECUTIVO}</td>
+                        <td>{item.FILIAL_COORDENADOR}</td>
+                      </>
+                    ) : (
+                      <>
+                        <td>{item.ANOMES}</td>
+                        <td>{item.REGIONAL}</td>
+                        <td>{item.MAT_BCC}</td>
+                        <td>{item.MAT_REVOLUTION}</td>
+                        <td>{item.FUNCIONARIO}</td>
+                        <td>{item.CARGO}</td>
+                        <td>{item.GESTOR_1}</td>
+                        <td>{item.GESTOR_2}</td>
+                        <td>{item.GESTOR_3}</td>
+                        <td>{item.CIDADE}</td>
+                        <td>{item.STATUS}</td>
+                        <td>{item.ADMISSAO}</td>
+                        <td>{item.LOGIN_NET}</td>
+                        <td>{item.CANAL}</td>
+                        <td>{item.CHAVE}</td>
+                        <td>{item.MATRICULA_EXECUTIVO}</td>
+                        <td>{item.EXECUTIVO}</td>
+                        <td>{item.FILIAL_COORDENADOR}</td>
                       </>
                     )}
                     {canal === "Varejo" && (
@@ -493,7 +590,6 @@ export default function Table({ canal, login, admin, Url }) {
                         <td>{item.ANOMES}</td>
                         <td>{item.CANAL}</td>
                         <td>{item.IBGE}</td>
-                        <td>{item.COD_PDV}</td>
                         <td>{item.PARCEIRO_LOJA}</td>
                         <td>{item.CNPJ}</td>
                         <td>{item.NOME_COLABORADOR}</td>
@@ -502,8 +598,10 @@ export default function Table({ canal, login, admin, Url }) {
                         <td>{item.PRODUTO_ATUACAO}</td>
                         <td>{item.DATA_CADASTRO}</td>
                         <td>{item.SITUACAO}</td>
-                        <td>{item.FILIAL_COORDENADOR}</td>
+                        <td>{item.LOGIN_NET}</td>
                         <td>{item.GN}</td>
+                        <td>{item.COD_PDV}</td>
+                        <td>{item.FILIAL_COORDENADOR}</td>
                       </>
                     )}
                     {canal === "AA" && (
@@ -528,8 +626,8 @@ export default function Table({ canal, login, admin, Url }) {
                         <td>{item.COMTA}</td>
                         <td>{item.CABEAMENTO}</td>
                         <td>{item.FILIAL_COORDENADOR}</td>
-                        <td>{item.GN}</td>
                         <td>{item.NM_EQUIPE_VENDA}</td>
+                        <td>{item.GN}</td>
                       </>
                     )}
                   </tr>
@@ -537,8 +635,8 @@ export default function Table({ canal, login, admin, Url }) {
               )}
             </tbody>
           </table>
-        )}
-      </section>
+        </section>
+      )}
       <div className={Style.pagination}>
         <button
           onClick={() => setPage((p) => Math.max(p - 1, 1))}
@@ -548,7 +646,7 @@ export default function Table({ canal, login, admin, Url }) {
             cursor: page === 1 && "not-allowed",
           }}
         >
-          ◀ anterior
+          ◀ Anterior
         </button>
 
         <span>
@@ -563,7 +661,7 @@ export default function Table({ canal, login, admin, Url }) {
             cursor: page === totalPages && "not-allowed",
           }}
         >
-          proximo ▶
+          Proximo ▶
         </button>
       </div>
     </main>

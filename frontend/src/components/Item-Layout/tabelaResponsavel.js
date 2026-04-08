@@ -31,7 +31,7 @@ export default function TabelaResponsavel({ Url }) {
             <th>Status</th>
             <th>media</th>
             <th>ultimo registro </th>
-            <th>difereça</th>
+            <th>diferença</th>
           </tr>
         </thead>
         <tbody>

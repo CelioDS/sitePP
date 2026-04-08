@@ -120,13 +120,11 @@ export const setExcelPME = async (req, res) => {
       row.TERRITORIO,
       row.CANAL,
       row.REGIONAL,
-      row.TIME,  
+      row.TIME,
       TODAY,
       login,
     ]);
 
-
-    
     if (rows.length < values.length) {
       return res.status(400).json({ error: "Planilha com colunas faltando" });
     }
@@ -158,6 +156,24 @@ export const setExcelPME = async (req, res) => {
 
 export const setExcelPAP = async (req, res) => {
   try {
+    const REQUIRED_COLUMNS = [
+      "ANOMES",
+      "CANAL",
+      "ESTRUTURA",
+      "IBGE",
+      "CNPJ",
+      "PARCEIRO_LOJA",
+      "CLASSIFICACAO",
+      "SEGMENTO",
+      "LOGIN_NET",
+      "LOGIN_CLARO",
+      "NOME",
+      "DATA_CADASTRO_VENDEDOR",
+      "SITUACAO",
+      "EXECUTIVO",
+      "FILIAL_COORDENADOR",
+    ];
+
     const login = req.headers.login;
     const TODAY = format(
       fromZonedTime(new Date(), "America/Sao_Paulo"),
@@ -175,6 +191,28 @@ export const setExcelPAP = async (req, res) => {
 
     if (rows.length === 0) {
       return res.status(400).json({ error: "Planilha vazia" });
+    }
+
+    const excelColumns = Object.keys(rows[0]);
+
+    const missingColumns = REQUIRED_COLUMNS.filter(
+      (col) => !excelColumns.includes(col),
+    );
+
+    const extraColumns = excelColumns.filter(
+      (col) => !REQUIRED_COLUMNS.includes(col),
+    );
+
+    if (missingColumns.length > 0) {
+      return res
+        .status(400)
+        .json({ error: "colunas obrigatorios faltando", missingColumns });
+    }
+
+    if (extraColumns.length > 0) {
+      return res
+        .status(400)
+        .json({ error: "colunas extras encontradas", extraColumns });
     }
 
     const values = rows.map((row) => [
@@ -222,6 +260,143 @@ export const setExcelPAP = async (req, res) => {
       EXECUTIVO,
       FILIAL_COORDENADOR,
  DATA_ATUALIZACAO, LOGIN_ATUALIZACAO)
+      VALUES ?
+    `;
+
+    await dataBase.query(sql, [values]);
+
+    return res.json({
+      message: "Arquivo importado com sucesso",
+      inserted: values.length,
+    });
+  } catch (error) {
+    console.error(error);
+
+    return res.status(500).json({
+      error: "Erro ao importar Excel",
+      sql: error.sqlMessage || error.message || "Erro desconhecido",
+    });
+  }
+};
+
+export const setExcelExclusivos = async (req, res) => {
+  try {
+    const REQUIRED_COLUMNS = [
+      "ANOMES",
+      "REGIONAL",
+      "MAT_BCC",
+      "MAT_REVOLUTION",
+      "FUNCIONARIO",
+      "CARGO",
+      "GESTOR_1",
+      "GESTOR_2",
+      "GESTOR_3",
+      "CIDADE",
+      "STATUS",
+      "ADMISSAO",
+      "LOGIN_NET",
+      "CANAL",
+      "CHAVE",
+      "MATRICULA_EXECUTIVO",
+      "EXECUTIVO",
+      "FILIAL_COORDENADOR",
+    ];
+
+    const login = req.headers.login;
+    const TODAY = format(
+      fromZonedTime(new Date(), "America/Sao_Paulo"),
+      "yyyy-MM-dd-HH-mm",
+    );
+    if (!req.file) {
+      return res.status(400).json({ error: "Arquivo não enviado" });
+    }
+
+    const workbook = XLSX.read(req.file.buffer, { type: "buffer" });
+    const sheetName = workbook.SheetNames[0];
+    const sheet = workbook.Sheets[sheetName];
+
+    const rows = XLSX.utils.sheet_to_json(sheet);
+
+    if (rows.length === 0) {
+      return res.status(400).json({ error: "Planilha vazia" });
+    }
+
+    const excelColumns = Object.keys(rows[0]);
+
+    const missingColumns = REQUIRED_COLUMNS.filter(
+      (col) => !excelColumns.includes(col),
+    );
+
+    const extraColumns = excelColumns.filter(
+      (col) => !REQUIRED_COLUMNS.includes(col),
+    );
+
+    if (missingColumns.length > 0) {
+      return res
+        .status(400)
+        .json({ error: "Planilha com colunas faltando", missingColumns });
+    }
+
+    if (extraColumns.length > 0) {
+      return res
+        .status(400)
+        .json({ error: "Planilha com colunas a mais", extraColumns });
+    }
+
+    const values = rows.map((row) => [
+      row.ANOMES,
+      row.REGIONAL,
+      row.MAT_BCC,
+      row.MAT_REVOLUTION,
+      row.FUNCIONARIO,
+      row.CARGO,
+      row.GESTOR_1,
+      row.GESTOR_2,
+      row.GESTOR_3,
+      row.CIDADE,
+      row.STATUS,
+      row.ADMISSAO,
+      row.LOGIN_NET,
+      row.CANAL,
+      row.CHAVE,
+      row.MATRICULA_EXECUTIVO,
+      row.EXECUTIVO,
+      row.FILIAL_COORDENADOR,
+      TODAY,
+      login,
+    ]);
+
+    if (rows.length < values.length) {
+      return res.status(400).json({ error: "Planilha com colunas faltando" });
+    }
+    if (rows.length > values.length) {
+      return res.status(400).json({ error: "Planilha com colunas a mais" });
+    }
+
+    const sql = `
+      INSERT INTO EXCLUSIVOS
+      (
+      ANOMES,
+      REGIONAL,
+      MAT_BCC,
+      MAT_REVOLUTION,
+      FUNCIONARIO,
+      CARGO,
+      GESTOR_1,
+      GESTOR_2,
+      GESTOR_3,
+      CIDADE,
+      STATUS,
+      ADMISSAO,
+      LOGIN_NET,
+      CANAL,
+      CHAVE,
+      MATRICULA_EXECUTIVO,
+      EXECUTIVO,
+      FILIAL_COORDENADOR,
+      DATA_ATUALIZACAO,
+      LOGIN_ATUALIZACAO
+      )
       VALUES ?
     `;
 
