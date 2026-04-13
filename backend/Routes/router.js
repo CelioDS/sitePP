@@ -1,5 +1,7 @@
 import express from "express";
 
+import { importarCotasCop, getCotasCop } from "../Controllers/Cotas.js";
+
 import {
   getDBLogin,
   setDBLogin,
@@ -60,6 +62,11 @@ import {
 } from "../Controllers/ExcelUpload.js";
 
 const router = express.Router();
+
+/** */
+
+router.get("/importar-cotas-cop", importarCotasCop);
+router.get("/cotas-cop", getCotasCop);
 
 /*------------------ ROTAS RAIZ------------------*/
 

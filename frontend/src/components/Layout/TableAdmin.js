@@ -50,6 +50,7 @@ export default function TableAdmin({ Url }) {
     if (rota === "VAREJO") return 14;
     if (rota === "PME") return 14;
     if (rota === "agenteautorizado") return 14;
+    if (rota === "exclusivos") return 14;
   }, [rota]);
 
   const toArray = (payload) => {
@@ -208,7 +209,18 @@ export default function TableAdmin({ Url }) {
             disabled={rota === "portaaporta" || isLoading}
             onClick={() => setRota("portaaporta")}
           >
-            Porta a Porta
+            Porta a Porta Indireto
+          </button>
+          <button
+            style={{
+              background: rota === "exclusivos" ? "#cc8686" : undefined,
+              color: rota === "exclusivos" ? "#6b5757" : undefined,
+              cursor: rota === "exclusivos" ? "not-allowed" : null,
+            }}
+            disabled={rota === "exclusivos" || isLoading}
+            onClick={() => setRota("exclusivos")}
+          >
+            Porta a Porta Exclusivos
           </button>
           <button
             style={{
@@ -257,6 +269,7 @@ export default function TableAdmin({ Url }) {
             <FiDownload color="#ffffff" size={18} />
           </button>
 
+
           <button
             onClick={handleDownloadAll}
             disabled={isLoading || dataBase.length === 0}
@@ -267,7 +280,7 @@ export default function TableAdmin({ Url }) {
               cursor: dataBase.length === 0 ? "not-allowed" : null,
             }}
           >
-            Consolidado
+            Consolidado teste
             <FiDownload color="#ffffff" size={18} />
           </button>
         </section>
@@ -336,6 +349,28 @@ export default function TableAdmin({ Url }) {
                       <th>SITUACAO </th>
                       <th>EXECUTIVO </th>
                       <th>FILIAL_COORDENADOR </th>
+                    </>
+                  )}
+                  {rota === "exclusivos" && (
+                    <>
+                      <th>ANOMES</th>
+                      <th>REGIONAL</th>
+                      <th>MAT BCC</th>
+                      <th>MAT REVOLUTION</th>
+                      <th>FUNCIONÁRIO</th>
+                      <th>CARGO</th>
+                      <th>GESTOR 1</th>
+                      <th>GESTOR 2</th>
+                      <th>GESTOR 3</th>
+                      <th>CIDADE</th>
+                      <th>STATUS</th>
+                      <th>ADMISSÃO</th>
+                      <th>LOGIN NET</th>
+                      <th>CANAL</th>
+                      <th>CHAVE</th>
+                      <th>MATRICULA EXECUTIVO</th>
+                      <th>EXECUTIVO</th>
+                      <th>FILIAL_COORDENADOR</th>
                     </>
                   )}
                   {rota === "PME" && (
@@ -472,6 +507,28 @@ export default function TableAdmin({ Url }) {
                           <td>{item.NOME}</td>
                           <td>{item.DATA_CADASTRO_VENDEDOR}</td>
                           <td>{item.SITUACAO}</td>
+                          <td>{item.EXECUTIVO}</td>
+                          <td>{item.FILIAL_COORDENADOR}</td>
+                        </>
+                      )}
+                      {rota === "exclusivos" && (
+                        <>
+                          <td>{item.ANOMES}</td>
+                          <td>{item.REGIONAL}</td>
+                          <td>{item.MAT_BCC}</td>
+                          <td>{item.MAT_REVOLUTION}</td>
+                          <td>{item.FUNCIONARIO}</td>
+                          <td>{item.CARGO}</td>
+                          <td>{item.GESTOR_1}</td>
+                          <td>{item.GESTOR_2}</td>
+                          <td>{item.GESTOR_3}</td>
+                          <td>{item.CIDADE}</td>
+                          <td>{item.STATUS}</td>
+                          <td>{item.ADMISSAO}</td>
+                          <td>{item.LOGIN_NET}</td>
+                          <td>{item.CANAL}</td>
+                          <td>{item.CHAVE}</td>
+                          <td>{item.MATRICULA_EXECUTIVO}</td>
                           <td>{item.EXECUTIVO}</td>
                           <td>{item.FILIAL_COORDENADOR}</td>
                         </>

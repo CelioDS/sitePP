@@ -17,6 +17,7 @@ const MAPA_TABELAS = {
   PAP: "PAP",
   VAREJO: "VAREJO",
   EXCLUSIVOS: "EXCLUSIVOS",
+  Cotas: "Cotas",
 };
 
 const buildDateFilter = (tableAlias, start, end, latest) => {

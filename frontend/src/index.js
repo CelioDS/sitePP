@@ -9,6 +9,7 @@ import Home from "./components/Routers/Home";
 import Error from "./components/Routers/Error";
 import Perfil from "./components/Routers/Perfil";
 import TodoList from "./components/Routers/TodoList";
+import Cotas from "./components/Layout/Cotas";
 import Carteira from "./components/Routers/Carteira";
 import Relatorio from "./components/Routers/Relatorio";
 import Visualizar from "./components/Routers/Visualizar";
@@ -42,6 +43,10 @@ const router = createBrowserRouter([
       {
         path: "/Perfil",
         element: <Perfil />,
+      },
+      {
+        path: "/Cotas",
+        element: <Cotas />,
       },
       {
         path: "/TodoList/:login",

@@ -10,8 +10,8 @@ import styles from "./MIS.module.css";
 export default function MIS() {
   const [userData, setUserData] = useState(null);
   const login = userData?.login || "usuario";
-  const mis = userData?.mis 
-  const canal = userData?.canal 
+  const mis = userData?.mis;
+  const canal = userData?.canal;
 
   useEffect(() => {
     let active = true;
@@ -129,7 +129,10 @@ export default function MIS() {
             <LinkButton to={`/TodoList/${login}`} text="Abrir Todo List" />
           </div>
         )}
-        
+        <div className={styles.buttonArea}>
+          <LinkButton to={`/Cotas`} text="Abrir Cotas" />
+        </div>
+
         <section className={styles.tableSection}>
           <h2>Relatórios Operacionais</h2>
 
@@ -143,9 +146,7 @@ export default function MIS() {
                   <th>Responsável</th>
                   <th>Descrição</th>
 
-                  {!!mis &&
-                  <th>Origem</th>
-                  }
+                  {!!mis && <th>Origem</th>}
                 </tr>
               </thead>
 
@@ -169,8 +170,9 @@ export default function MIS() {
                     <td>{relatorio.responsavel}</td>
 
                     <td>{relatorio.descricao}</td>
-    {!!mis &&
-                    <td className={styles.origin}>{relatorio.origem}</td> }
+                    {!!mis && (
+                      <td className={styles.origin}>{relatorio.origem}</td>
+                    )}
                   </tr>
                 ))}
               </tbody>

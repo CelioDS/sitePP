@@ -1,56 +1,115 @@
-.tabela-wrapper {
-  display: flex;
-  gap: 20px;
+/* =========================
+   LAYOUT GERAL
+========================= */
+.main {
+  padding: 16px;
+  font-family: Arial, Helvetica, sans-serif;
+  background-color: #f5f6fa;
 }
 
-.tabela {
-  font-size: 12px;
+/* =========================
+   CONTAINER COM SCROLL
+========================= */
+.table-container {
+  max-height: 70vh;
+  overflow: auto;
+  border: 1px solid #d1d5db;
+}
+
+/* =========================
+   TABELA
+========================= */
+.main table {
+  width: max-content; /* IMPORTANTE */
+  min-width: 100%;
   border-collapse: collapse;
-  min-width: 600px;
+  background-color: #ffffff;
+  font-size: 13px;
 }
 
-.tabela th {
-  background: #e5e5e5;
-  padding: 6px;
-  border: 1px solid #999;
+/* =========================
+   CABEÇALHO FIXO
+========================= */
+.main thead th {
+  position: sticky;
+  top: 0;
+  background-color: #1f2937;
+  color: #ffffff;
+  padding: 8px;
+  border: 1px solid #374151;
   text-align: center;
+
+  z-index: 5;
 }
 
-.tabela td {
-  padding: 4px;
+/* Segunda linha do cabeçalho */
+.main thead tr:nth-child(2) th {
+  background-color: #374151;
+  font-size: 12px;
+}
+
+/* CANTO SUPERIOR ESQUERDO */
+.main thead th:first-child {
+  position: sticky;
+  top: 0;
+  left: 0;
+  z-index: 7;
+}
+
+/* Primeira coluna fixa */
+.city {
+  position: sticky;
+  left: 0;
+  background-color: #f1f5f9;
+  font-weight: bold;
+  z-index: 4;
+  white-space: normal;
+  word-break: break-all;
+  overflow-wrap: break-word;
   border: 1px solid #ccc;
+  filter: drop-shadow(3px 3px 2px rgba(0, 0, 0, 0.5));
+
+  /* ✅ QUEBRA DE TEXTO */
 }
 
-.grupo-header {
-  background: #b30000;
-  color: white;
-  font-weight: bold;
+/* Segunda coluna fixa */
+.segmento {
+  position: sticky;
+  left: 140px;
+  background-color: #f9fafb;
+  z-index: 3;
 }
 
-.tt {
-  background: #f2f2f2;
-  font-weight: bold;
-}
-
-.backlog {
-  background: #ffcccc;
-}
-
-.futura {
-  background: #ccffcc;
-}
-
-.cotas th {
-  background: #444;
-  color: white;
-}
-
-.cotas td {
+/* =========================
+   CORPO
+========================= */
+.main tbody td {
+  padding: 6px 8px;
+  border: 1px solid #e5e7eb;
   text-align: center;
 }
 
-/* Alarme cores */
-.al24 { background: #6fcf97; }
-.al48 { background: #f2c94c; }
-.al72 { background: #f2994a; }
-.al96 { background: #eb5757; }
+/* Linhas alternadas */
+.main tbody tr:nth-child(even) {
+  background-color: #f3f4f6;
+}
+
+/* Hover */
+.main tbody tr:hover {
+  background-color: #e5e7eb;
+}
+
+/* =========================
+   STATUS (%)
+========================= */
+.percent-normal {
+  background-color: #d9f2d9;
+}
+
+.percent-warning {
+  background-color: #ffe699;
+}
+
+.percent-danger {
+  background-color: #ffb3b3;
+}

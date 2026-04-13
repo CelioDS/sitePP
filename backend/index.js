@@ -9,6 +9,12 @@ dotenv.config();
 
 const app = express();
 
+//cotas
+
+// ✅ ESSENCIAL
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
 // ----------------------
 // 🔐 Segurança
 // ----------------------
