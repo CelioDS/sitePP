@@ -28,6 +28,7 @@
 }
 .main .filtros div {
   display: flex;
+  border-radius: 10px 10px 0 0;
   justify-content: center;
   flex-direction: column;
   align-items: center;
@@ -40,12 +41,26 @@
   color: #ffffff;
 }
 .main .filtros div input,
-.main .filtros div select {
+.main .filtros div select,
+.main .filtros div label {
   padding: 4px 8px;
-  border: 1px solid #ccc;
   border-radius: 4px;
+  align-items: center;
+  text-align: center;
+  outline: none;
+  border: none;
 }
 
+.main .btnClear {
+  padding: 8px 6px;
+  color: #ffffff;
+  cursor: pointer;
+  border: none;
+  background-color: var(--color-brand-primary-darkest)
+}
+.main .btnClear:hover {
+  opacity: 0.9;
+}
 /* =========================
    TABELA
 ========================= */
@@ -53,10 +68,10 @@
   width: max-content; /* IMPORTANTE */
   min-width: 100%;
   border-collapse: collapse;
+  border: none !important;
   background-color: #ffffff;
   font-size: 13px;
 }
-
 /* =========================
    CABEÇALHO FIXO
 ========================= */
@@ -66,16 +81,23 @@
   background-color: #1f2937;
   color: #ffffff;
   padding: 8px;
-  border: 1px solid #374151;
   text-align: center;
-
   z-index: 5;
+  border: none;
 }
 
 /* Segunda linha do cabeçalho */
 .main thead tr:nth-child(2) th {
   background-color: #374151;
   font-size: 12px;
+}
+
+.main tbody td:nth-child(5),
+.main thead th:nth-child(5) {
+  background-color: #c0b8b8 !important;
+  font-size: 12px;
+  font-weight: bolder;
+  color: #000000;
 }
 
 /* CANTO SUPERIOR ESQUERDO */
@@ -93,18 +115,13 @@
   background-color: #f1f5f9;
   font-weight: bold;
   z-index: 4;
-
   /* Largura travada em 240px */
   width: 200px;
-
   /* Permite quebrar nos espaços que criamos após a vírgula */
   white-space: normal;
-
   /* Mantém a palavra inteira, quebrando apenas após a vírgula+espaço */
   word-break: keep-all;
   overflow-wrap: break-word;
-
-  border: 1px solid #ccc;
   padding: 8px;
   text-align: left;
 }
@@ -129,7 +146,6 @@
 ========================= */
 .main tbody td {
   padding: 6px 8px;
-  border: 1px solid #e5e7eb;
   text-align: center;
   cursor: pointer;
 }

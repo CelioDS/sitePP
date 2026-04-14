@@ -183,52 +183,53 @@ export const importarCotasCop = async (req, res) => {
     return res.status(500).json({ error: err.message });
   }
 };
-
 export const getCotasCop = async (req, res) => {
   try {
     let {
       q,
-      start,
-      end,
-      latest,
       limit = 200000,
       offset = 0,
-      orderBy = "ID",
+      orderBy = "id",
       orderDir = "DESC",
     } = req.query;
 
     limit = Math.min(Number(limit) || 1000, 200000);
     offset = Number(offset) || 0;
 
-    const validOrder = ["ID", "cluster", "cidade", "mercado"];
-    orderBy = validOrder.includes(orderBy) ? orderBy : "ID";
+    const validOrder = ["id", "cluster", "cidade", "mercado"];
+    orderBy = validOrder.includes(orderBy) ? orderBy : "id";
     orderDir = orderDir.toUpperCase() === "ASC" ? "ASC" : "DESC";
 
-    const mainFilters = buildDateFilter("Cotas", start, end, latest);
-    const where = mainFilters.where;
-    const params = mainFilters.params;
+    const where = [];
+    const params = [];
 
-    // --- Search ---
+    // 🔍 Busca textual
     if (q) {
       const like = `%${q}%`;
       where.push(`
         (
-          cop_ocupacao.cluster LIKE ?
-          OR cop_ocupacao.cidade LIKE ?
-          OR cop_ocupacao.mercado LIKE ?
-          OR cop_ocupacao.classe LIKE ?
+          c.cluster LIKE ?
+          OR c.cidade LIKE ?
+          OR c.mercado LIKE ?
+          OR c.classe LIKE ?
         )
       `);
       params.push(like, like, like, like);
     }
 
     const sql = `
-  SELECT cop_ocupacao.*
-  FROM cop_ocupacao
-  ${where.length ? `WHERE ${where.join(" AND ")}` : ""}
-  ORDER BY cop_ocupacao.${orderBy} ${orderDir}
-  LIMIT ?, ?
-`;
+      WITH data_max AS (
+        SELECT MAX(data_coleta) AS data_coleta_max
+        FROM cop_ocupacao
+      )
+      SELECT c.*
+      FROM cop_ocupacao c
+      JOIN data_max d
+        ON c.data_coleta = d.data_coleta_max
+      ${where.length  ? `WHERE ${where.join(" AND ")}` : ""}
+      ORDER BY c.${orderBy} ${orderDir}
+      LIMIT ?, ?
+    `;
 
     params.push(offset, limit);
 
@@ -239,45 +240,52 @@ export const getCotasCop = async (req, res) => {
     // ===============================
     const resultado = {};
 
-    rows.forEach((r) => {
-      const cidade = r.cidade;
-      const dia = r.dia;
 
-      if (!resultado[cidade]) {
-        resultado[cidade] = {
+    console.log(rows)
+
+    rows.forEach((r) => {
+      if (!resultado[r.cidade]) {
+        resultado[r.cidade] = {
           regional: r.regional,
           cluster: r.cluster,
           cidade: r.cidade,
           mercado: r.mercado,
           classe: r.classe,
+          subcluster: r.subcluster,
+          escala_tecnica: r.escala_tecnica,
+          classe: r.classe,
+          territorio: r.territorio,
+          ddd: r.ddd,
+          qtd: r.qtd,
           dias: {},
         };
       }
 
-      resultado[cidade].dias[dia] = {
+      resultado[r.cidade].dias[r.dia] = {
         cota_agenda: r.cota_agenda,
         cota_disp_est: r.cota_disp_est,
         qtd_os: r.qtd_os,
         saldo: r.saldo,
         taxa_ocupacao: r.taxa_ocupacao,
       };
+    });
 
-      // ✅ ORDENA OS DIAS (D1 → D2 → D3)
-      // ===============================
-      Object.values(resultado).forEach((cidadeObj) => {
-        cidadeObj.dias = Object.fromEntries(
-          Object.entries(cidadeObj.dias).sort(([diaA], [diaB]) => {
-            const nA = Number(diaA.replace("D", ""));
-            const nB = Number(diaB.replace("D", ""));
-            return nA - nB;
-          }),
-        );
-      });
+    // ✅ Ordena D1 → D2 → D3
+    Object.values(resultado).forEach((cidadeObj) => {
+      cidadeObj.dias = Object.fromEntries(
+        Object.entries(cidadeObj.dias).sort(([a], [b]) => {
+          const nA = Number(a.replace("D", ""));
+          const nB = Number(b.replace("D", ""));
+          return nA - nB;
+        })
+      );
     });
 
     return res.status(200).json(resultado);
   } catch (err) {
     console.error(err);
-    return res.status(500).json({ error: "Erro ao buscar cop_ocupacao" });
+    return res.status(500).json({
+      error: "Erro ao buscar cop_ocupacao",
+    });
   }
 };
