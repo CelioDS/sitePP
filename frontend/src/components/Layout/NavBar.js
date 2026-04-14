@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { BsList, BsXLg } from "react-icons/bs";
+import { BsList, BsXLg, BsCalendar3 } from "react-icons/bs";
 import { useEffect, useState, useCallback } from "react";
 
 import styleExt from "./NavBar.module.css";
@@ -116,6 +116,7 @@ export default function NavBar({ setPermission, permission }) {
     if (linkAtivo === "Perfil") return <CgProfile size={54} />;
     if (linkAtivo === "MIS") return <FaMicroscope size={50} />;
     if (linkAtivo === "TodoList") return <FaMicroscope size={50} />;
+    if (linkAtivo === "Cotas") return <BsCalendar3 size={50} />;
     return <ClaroLogo />;
   }
 
@@ -186,37 +187,43 @@ export default function NavBar({ setPermission, permission }) {
             </Link>
           </li>
 
-          { (
-            <li className={styleExt.submenu}>
-              <Link
-                onClick={() => openMenu("MIS")}
-                style={
-                  linkAtivo === "MIS" || linkAtivo === "TodoList"
-                    ? { color: colorLink }
-                    : {}
-                }
-                to="/MIS"
-              >
-                MIS
-              </Link>
+          <li className={styleExt.submenu}>
+            {/* O link principal que sempre fica visível */}
+            <Link
+              onClick={() => openMenu("MIS")}
+              style={
+                linkAtivo === "MIS" ||
+                linkAtivo === "TodoList" ||
+                linkAtivo === "Cotas"
+                  ? { color: colorLink }
+                  : {}
+              }
+              to="/MIS"
+            >
+              MIS
+            </Link>
 
-              {mis === 1 && canal === "admin" ? (
+            {/* O container que "surge" ao passar o mouse */}
+            <div className={styleExt.submenuItem}>
+              {mis === 1 && canal === "admin" && (
                 <Link
-                  className={styleExt.submenuItem}
                   style={linkAtivo === "TodoList" ? { color: colorLink } : {}}
-                  role="menuitem"
                   to={`/TodoList/${login}`}
-                  onClick={() => {
-                    openMenu("TodoList");
-                  }}
+                  onClick={() => openMenu("TodoList")}
                 >
                   TodoList
                 </Link>
-              ) : (
-                <></>
               )}
-            </li>
-          )}
+
+              <Link
+                style={linkAtivo === "Cotas" ? { color: colorLink } : {}}
+                to="/Cotas"
+                onClick={() => openMenu("Cotas")}
+              >
+                Cotas
+              </Link>
+            </div>
+          </li>
 
           {permission && (
             <li>

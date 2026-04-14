@@ -70,55 +70,60 @@
   display: flex;
   flex-direction: column;
 }
-.main nav ul .submenu {
+/* Container do Submenu */
+.submenu {
+  position: relative;
   display: flex;
-  width: 100%;
-  height: 60px;
-  top: 40px;
-  transition: all 1s;
-  padding: 5px;
-}
-
-.main nav ul .submenu a:not(:first-child) {
-  display: none;
-  transition: all 1s;
-}
-
-.main nav ul .submenu:hover a:not(:first-child),
-.main nav ul .submenu:active a:not(:first-child),
-.main nav ul .submenu:focus a:not(:first-child) {
-  filter: drop-shadow(1px 1px 1px #000000);
-  display: flex;
-  justify-content: start;
   flex-direction: column;
-  position: absolute;
-  width: 100px;
-  height: 100px;
-  top: 60px;
-  background-image: linear-gradient(
-    60deg,
-    var(--color-brand-primary-medium),
-    var(--color-brand-primary-dark),
-    var(--color-brand-primary-darkest)
-  );
-  z-index: 100;
-  transition: all 1s;
+  align-items: center;
+  cursor: pointer;
 }
 
-.main nav ul .submenuItem:hover a,
-.main nav ul .submenuItem:active a,
-.main nav ul .submenuItem:focus a {
-  display: flex;
-  justify-content: start;
-  flex-direction: column;
+/* Esconde os itens extras (TodoList, Cotas) por padrão */
+.submenu .submenuItem {
   position: absolute;
-  width: 100%;
-  height: 100px;
-  top: 55px;
-  background-color: red;
-  z-index: 100;
-  transition: all 1s;
-  filter: drop-shadow(1px 1px 1px #000000);
+  top: 40px; /* Aparece logo abaixo do item "MIS" */
+  left: 50%;
+  transform: translateX(-50%) translateY(10px);
+  width: 180px;
+  background-color: var(--color-brand-primary-dark);
+  padding: 10px 0;
+  border-radius: 4px;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.3);
+
+  /* Escondendo com suavidade */
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s ease-in-out;
+  z-index: 1000;
+
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* Quando passar o mouse ou focar no container do submenu */
+.submenu:hover .submenuItem,
+.submenu:focus-within .submenuItem {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* Estilização dos links internos do submenu */
+.submenuItem a {
+  padding: 8px 15px;
+  width: 100% !important;
+  text-align: center;
+  color: #ffffff;
+  text-decoration: none;
+  font-size: 14px;
+  transition: background 0.2s;
+}
+
+.submenuItem a:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: var(--cor-destaque, #fff);
 }
 
 /**/

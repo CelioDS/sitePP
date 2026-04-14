@@ -204,7 +204,7 @@ export const getCotasCop = async (req, res) => {
     orderBy = validOrder.includes(orderBy) ? orderBy : "ID";
     orderDir = orderDir.toUpperCase() === "ASC" ? "ASC" : "DESC";
 
-    const mainFilters = buildDateFilter("LP", start, end, latest);
+    const mainFilters = buildDateFilter("Cotas", start, end, latest);
     const where = mainFilters.where;
     const params = mainFilters.params;
 

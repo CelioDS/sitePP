@@ -16,6 +16,36 @@
   border: 1px solid #d1d5db;
 }
 
+.main .filtros {
+  display: flex;
+  justify-content: center;
+  flex-direction: row;
+  align-items: center;
+  text-align: center;
+  gap: 12px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+.main .filtros div {
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 12px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+  border: 1px solid #b8b0b0;
+  background-color: #696565;
+  color: #ffffff;
+}
+.main .filtros div input,
+.main .filtros div select {
+  padding: 4px 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
 /* =========================
    TABELA
 ========================= */
@@ -63,13 +93,27 @@
   background-color: #f1f5f9;
   font-weight: bold;
   z-index: 4;
-  white-space: normal;
-  word-break: break-all;
-  overflow-wrap: break-word;
-  border: 1px solid #ccc;
-  filter: drop-shadow(3px 3px 2px rgba(0, 0, 0, 0.5));
 
-  /* ✅ QUEBRA DE TEXTO */
+  /* Largura travada em 240px */
+  width: 200px;
+
+  /* Permite quebrar nos espaços que criamos após a vírgula */
+  white-space: normal;
+
+  /* Mantém a palavra inteira, quebrando apenas após a vírgula+espaço */
+  word-break: keep-all;
+  overflow-wrap: break-word;
+
+  border: 1px solid #ccc;
+  padding: 8px;
+  text-align: left;
+}
+
+/* LEMBRETE: Ajuste a segunda coluna fixa também! */
+.segmento {
+  position: sticky;
+  left: 240px; /* Deve ser IGUAL ao width da .city */
+  z-index: 3;
 }
 
 /* Segunda coluna fixa */
@@ -87,6 +131,7 @@
   padding: 6px 8px;
   border: 1px solid #e5e7eb;
   text-align: center;
+  cursor: pointer;
 }
 
 /* Linhas alternadas */
@@ -96,7 +141,8 @@
 
 /* Hover */
 .main tbody tr:hover {
-  background-color: #e5e7eb;
+  background-color: #e6e4e4 !important;
+  color: #000000;
 }
 
 /* =========================
