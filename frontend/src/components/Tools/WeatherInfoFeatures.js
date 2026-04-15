@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { fetchWeatherApi } from "openmeteo";
 
-export default function WeatherInfo({ cidade }) {
+export default function WeatherInfoFeatures({ cidade, dia }) {
   const [clima, setClima] = useState(null);
 
   function weatherCodeToText(code) {
@@ -25,8 +25,10 @@ export default function WeatherInfo({ cidade }) {
   function weatherCodeToIcon(code) {
     if (code >= 61 && code <= 65)
       return "https://img.icons8.com/color/48/rain.png";
-    if (code >= 80) return "https://img.icons8.com/color/48/storm.png";
-    if (code === 0) return "https://img.icons8.com/color/48/sun--v1.png";
+    if (code >= 80)
+      return "https://img.icons8.com/color/48/storm.png";
+    if (code === 0)
+      return "https://img.icons8.com/color/48/sun--v1.png";
     if (code >= 1 && code <= 3)
       return "https://img.icons8.com/color/48/partly-cloudy-day--v1.png";
     return "https://img.icons8.com/color/48/cloud.png";
@@ -36,27 +38,31 @@ export default function WeatherInfo({ cidade }) {
     const cityClean = cidade?.split(/[|,/]/)[0].trim();
     if (!cityClean) return;
 
+    // ✅ Limita o dia: somente D+1 ou D+2
+    const diaSeguro = Math.min(Math.max(dia, 1), 2);
+
     const loadWeather = async () => {
       try {
-        /* 1️⃣ Geocoding (continua REST, pois SDK não cobre isso) */
+        /* 1️⃣ Geocoding */
         const geoRes = await fetch(
           `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(
-            cityClean,
-          )}&count=1&language=pt&format=json`,
+            cityClean
+          )}&count=1&language=pt&format=json`
         ).then((r) => r.json());
 
         if (!geoRes.results?.length) return;
 
         const { latitude, longitude } = geoRes.results[0];
 
-        /* 2️⃣ Chamada via SDK oficial */
+        /* 2️⃣ Forecast */
         const params = {
           latitude,
           longitude,
-          current: [
-            "temperature_2m",
-            "relative_humidity_2m",
-            "precipitation",
+          current: ["temperature_2m", "relative_humidity_2m"],
+          daily: [
+            "temperature_2m_max",
+            "temperature_2m_min",
+            "precipitation_sum",
             "weather_code",
           ],
           timezone: "America/Sao_Paulo",
@@ -67,29 +73,35 @@ export default function WeatherInfo({ cidade }) {
         const response = responses[0];
 
         const current = response.current();
+        const daily = response.daily();
+        if (!current || !daily) return;
 
-        console.log(response);
+        /* Atual */
+        const tempAtual = current.variables(0).value();
+        const umidadeAtual = current.variables(1).value();
 
-        if (!current) return;
-
-        const temperature = current.variables(0).value();
-        const humidity = current.variables(1).value();
-        const precipitation = current.variables(2).value();
-        const weatherCode = current.variables(3).value();
+        /* Previsão com dia limitado */
+        const tempMax = daily.variables(0).valuesArray()[diaSeguro];
+        const tempMin = daily.variables(1).valuesArray()[diaSeguro];
+        const chuva = daily.variables(2).valuesArray()[diaSeguro];
+        const weatherCode = daily.variables(3).valuesArray()[diaSeguro];
 
         setClima({
-          temp: Math.round(temperature),
-          umidade: Math.round(humidity),
-          chuva: precipitation ?? 0,
-          desc: weatherCodeToText(weatherCode),
+          temp: Math.round(tempAtual),
+          umidade: Math.round(umidadeAtual),
+          chuva,
+          desc: `${diaSeguro === 1 ? "Amanhã" : "Depois de amanhã"}: ${Math.round(
+            tempMin
+          )}° / ${Math.round(tempMax)}° - ${weatherCodeToText(weatherCode)}`,
           icon: weatherCodeToIcon(weatherCode),
         });
       } catch (e) {
         console.error("Erro ao buscar clima:", e);
       }
     };
+
     loadWeather();
-  }, [cidade]);
+  }, [cidade, dia]);
 
   if (!clima)
     return <small style={{ color: "#999", fontSize: "10px" }}>...</small>;
@@ -97,45 +109,20 @@ export default function WeatherInfo({ cidade }) {
   return (
     <div style={{ display: "flex", flexDirection: "column", marginTop: "4px" }}>
       <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          fontSize: "11px",
-          gap: "2px",
-        }}
+        style={{ display: "flex", alignItems: "center", fontSize: "11px", gap: "2px" }}
       >
-        <img
-          src={clima.icon}
-          alt="ícone"
-          style={{ width: "32px", height: "32px" }}
-        />
-        <span style={{ fontWeight: "bold", color: "#d32f2f" }}>
-          {clima.temp}°C
-        </span>
-        <span
-          style={{
-            color: "#666",
-            fontSize: "9px",
-            textTransform: "capitalize",
-          }}
-        >
+        <img src={clima.icon} alt="ícone" width={32} />
+        <b style={{ color: "#d32f2f" }}>{clima.temp}°C</b>
+        <span style={{ fontSize: "9px", color: "#666" }}>
           ({clima.desc})
         </span>
       </div>
 
-      <div
-        style={{
-          fontSize: "9px",
-          color: "#444",
-          paddingLeft: "2px",
-          display: "flex",
-          gap: "5px",
-        }}
-      >
+      <div style={{ fontSize: "9px", display: "flex", gap: "6px" }}>
         <span>💧 {clima.umidade}%</span>
         {clima.chuva > 10 && (
           <span style={{ color: "#0056b3", fontWeight: "bold" }}>
-            BT: {clima.chuva}mm
+            🌧 {clima.chuva}mm
           </span>
         )}
       </div>

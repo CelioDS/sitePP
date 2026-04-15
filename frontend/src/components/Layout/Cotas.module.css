@@ -33,7 +33,6 @@
   flex-direction: column;
   align-items: center;
   text-align: center;
-  gap: 12px;
   margin-bottom: 12px;
   flex-wrap: wrap;
   border: 1px solid #b8b0b0;
@@ -49,6 +48,7 @@
   text-align: center;
   outline: none;
   border: none;
+  width: 200px;
 }
 
 .main .btnClear {
@@ -56,7 +56,7 @@
   color: #ffffff;
   cursor: pointer;
   border: none;
-  background-color: var(--color-brand-primary-darkest)
+  background-color: var(--color-brand-primary-darkest);
 }
 .main .btnClear:hover {
   opacity: 0.9;
@@ -77,13 +77,22 @@
 ========================= */
 .main thead th {
   position: sticky;
-  top: 0;
   background-color: #1f2937;
   color: #ffffff;
   padding: 8px;
   text-align: center;
   z-index: 5;
-  border: none;
+}
+.main thead tr:nth-child(1) th {
+  top: 0;
+  z-index: 6;
+  background-color: #1f2937;
+}
+
+.main thead tr:nth-child(2) th {
+  top: 30px; /* altura da linha 1 */
+  z-index: 5;
+  background-color: #374151;
 }
 
 /* Segunda linha do cabeçalho */

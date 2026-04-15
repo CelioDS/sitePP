@@ -64,6 +64,8 @@ export const importarCotasCop = async (req, res) => {
     // 2️⃣ HTML → OBJETOS LIMPOS
     // ===============================
     const $ = cheerio.load(`<table>${payload.tableBody}</table>`);
+
+    
     const registros = [];
 
     $("tr").each((_, tr) => {
@@ -80,6 +82,7 @@ export const importarCotasCop = async (req, res) => {
       const mercado = cols[3];
       const classe = cols[4];
 
+
       // ===============================
       // ✅ FILTRO DE NEGÓCIO
       // ===============================
@@ -92,7 +95,6 @@ export const importarCotasCop = async (req, res) => {
 
       let index = 5;
       let diaSeq = 0;
-
       // Cada DIA = 5 colunas
       while (index + 4 < cols.length) {
         const cotaAgenda = Number(cols[index]) || 0;
@@ -104,7 +106,7 @@ export const importarCotasCop = async (req, res) => {
         // ignora dias vazios
         if (cotaAgenda > 0 || qtdOs > 0) {
           registros.push({
-            data_ref: data_ref || new Date(),
+            data_ref: payload.dtExport,
             regional,
             cluster,
             cidade,
@@ -226,7 +228,7 @@ export const getCotasCop = async (req, res) => {
       FROM cop_ocupacao c
       JOIN data_max d
         ON c.data_coleta = d.data_coleta_max
-      ${where.length  ? `WHERE ${where.join(" AND ")}` : ""}
+      ${where.length ? `WHERE ${where.join(" AND ")}` : ""}
       ORDER BY c.${orderBy} ${orderDir}
       LIMIT ?, ?
     `;
@@ -240,12 +242,12 @@ export const getCotasCop = async (req, res) => {
     // ===============================
     const resultado = {};
 
-
-    console.log(rows)
+    console.log(rows);
 
     rows.forEach((r) => {
       if (!resultado[r.cidade]) {
         resultado[r.cidade] = {
+          data_ref: r.data_ref,
           regional: r.regional,
           cluster: r.cluster,
           cidade: r.cidade,
@@ -277,7 +279,7 @@ export const getCotasCop = async (req, res) => {
           const nA = Number(a.replace("D", ""));
           const nB = Number(b.replace("D", ""));
           return nA - nB;
-        })
+        }),
       );
     });
 

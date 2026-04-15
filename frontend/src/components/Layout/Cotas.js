@@ -5,14 +5,18 @@ import MiniSparkline from "../Tools/MiniSparkline";
 import { BsCircleFill } from "react-icons/bs";
 import ClaroLogo from "../Item-Layout/ClaroLogo";
 import logo from "../IMG/claroLogo.webp";
+import { useRef } from "react";
 
 // Lazy Load do Clima para performance
 const WeatherInfo = React.lazy(() => import("../Tools/WeatherInfo"));
+const WeatherInfoFeatures = React.lazy(
+  () => import("../Tools/WeatherInfoFeatures"),
+);
 
 export default function PainelBucketsPivot() {
   const [dados, setDados] = useState([]);
   const [dias, setDias] = useState([]);
-
+  const tableRef = useRef(null);
   const [loading, setLoading] = useState(true);
 
   const [cidadeFiltro, setCidadeFiltro] = useState("TODAS");
@@ -22,7 +26,6 @@ export default function PainelBucketsPivot() {
   const [search, setSearch] = useState("");
 
   const Url = process.env.REACT_APP_API_URL || "http://localhost:8000";
-  const apiKey = process.env.REACT_APP_APITEMPO;
 
   const CACHE_KEY = "cotas_painel_cache";
   const CACHE_TIME = 5 * 60 * 1000; // 5 Minutos
@@ -41,6 +44,34 @@ export default function PainelBucketsPivot() {
     },
     [setDias, setDados],
   );
+
+  const ultimaAtualizacao = React.useMemo(() => {
+    if (!dados || dados.length === 0) return null;
+
+    return dados
+      .map((item) => item.data_ref)
+      .filter(Boolean)
+      .sort((a, b) => new Date(b) - new Date(a))[0];
+  }, [dados]);
+  const addDaysAndFormat = (baseDate, daysToAdd) => {
+    if (!baseDate) return "--";
+    const parseBRDate = (dateStr) => {
+      if (!dateStr) return null;
+
+      const [day, month, year] = dateStr.split("/");
+      return new Date(year, month - 1, day);
+    };
+
+    // Remove a hora → "15/04/2026"
+    const dateOnly = baseDate.split(",")[0];
+
+    const d = parseBRDate(dateOnly);
+    if (!d || isNaN(d)) return "--";
+
+    d.setDate(d.getDate() + daysToAdd);
+
+    return d.toLocaleDateString("pt-BR"); // MM/DD/YYYY
+  };
 
   // Função de Carregamento com Lógica de Cache
   const fetchDados = useCallback(
@@ -117,19 +148,19 @@ export default function PainelBucketsPivot() {
   const cidadesFiltradas = React.useMemo(() => {
     return Array.from(
       new Set(dadosFiltrados.map((i) => i.cidade).filter(Boolean)),
-    ).sort((a, b) => a.localeCompare(b, "pt-BR"));
+    ).sort((a, b) => String(a).localeCompare(String(b), "pt-BR"));
   }, [dadosFiltrados]);
 
   const territoriosFiltrados = React.useMemo(() => {
     return Array.from(
       new Set(dadosFiltrados.map((i) => i.territorio).filter(Boolean)),
-    ).sort((a, b) => a.localeCompare(b, "pt-BR"));
+    ).sort((a, b) => String(a).localeCompare(String(b), "pt-BR"));
   }, [dadosFiltrados]);
 
   const segmentosFiltrados = React.useMemo(() => {
     return Array.from(
       new Set(dadosFiltrados.map((i) => i.mercado).filter(Boolean)),
-    ).sort((a, b) => a.localeCompare(b, "pt-BR"));
+    ).sort((a, b) => String(a).localeCompare(String(b), "pt-BR"));
   }, [dadosFiltrados]);
 
   const dddFiltrados = React.useMemo(() => {
@@ -146,36 +177,27 @@ export default function PainelBucketsPivot() {
     setSearch("");
   }
 
-  return (
-    <main className={Style.main}>
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          flexDirection: "column",
-          alignItems: "start",
-          marginBottom: "5px",
-        }}
-      >
-        <div
-          style={{
-            display: "inline-flex",
-            textAlign: "center",
-            alignItems: "center",
-            justifyContent: "space-between",
-            width: "100%",
-            gap: "5px",
-          }}
-        >
-          <h2>Cotas por Cidade</h2>
-          <ClaroLogo logo={logo} />
-        </div>
-        <p style={{ color: "#4e4d4d" }}>CLASSE 1 (Novos Domicílios)</p>
-      </div>
+  const handleDownloadHTML = () => {
+    const htmlCompleto = document.documentElement.outerHTML;
 
+    const blob = new Blob([htmlCompleto], { type: "text/html;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `P&P-cotas-${new Date().toISOString().slice(0, 10)}.html`;
+
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  return (
+    <main className={Style.main} ref={tableRef}>
       <div className={Style.filtros}>
         <div>
-          <label>Cidade: </label>
+          <label>Cidade</label>
           <select
             value={cidadeFiltro}
             onChange={(e) => setCidadeFiltro(e.target.value)}
@@ -189,7 +211,7 @@ export default function PainelBucketsPivot() {
           </select>
         </div>
         <div>
-          <label>Pesquisar: </label>
+          <label>Pesquisar</label>
           <input
             type="text"
             placeholder="Buscar..."
@@ -198,7 +220,7 @@ export default function PainelBucketsPivot() {
           />
         </div>
         <div>
-          <label>Territorio: </label>
+          <label>Territorio</label>
           <select
             value={territorioFiltro}
             onChange={(e) => setTerritorioFiltro(e.target.value)}
@@ -212,7 +234,7 @@ export default function PainelBucketsPivot() {
           </select>
         </div>
         <div>
-          <label>Segmento: </label>
+          <label>Segmento</label>
           <select
             value={segmentoFiltro}
             onChange={(e) => setSegmentoFiltro(e.target.value)}
@@ -226,7 +248,7 @@ export default function PainelBucketsPivot() {
           </select>
         </div>
         <div>
-          <label>DDD: </label>
+          <label>DDD</label>
           <select
             value={dddFiltro}
             onChange={(e) => setdddFiltro(e.target.value)}
@@ -243,27 +265,69 @@ export default function PainelBucketsPivot() {
         <button className={Style.btnClear} onClick={handleResetFilters}>
           Limpar Filtros
         </button>
+        <button className={Style.btnClear} onClick={handleDownloadHTML}>
+          Download HTML
+        </button>
       </div>
 
       <div
         style={{
           display: "flex",
-          justifyContent: "space_around",
-          gap: "20px",
-          marginBottom: "10px",
+          flexDirection: "row",
+          width: "100%",
+          justifyContent: "space-around",
+          textAlign: "center",
+          alignItems: "center",
+          fontSize: "11px",
         }}
       >
-        <p style={{ color: "#4e4d4d" }}>Legenda</p>
+        <aside>
+          <p style={{ color: "#4e4d4d", gap: "5px" }}>Legenda</p>
 
-        <span>
-          <BsCircleFill color="#5cb85c" /> Cotas
-        </span>
-        <span>
-          <BsCircleFill color="#d9534f" /> Agendamento
-        </span>
+          <span style={{ color: "#4e4d4d", gap: "5px" }}>
+            <BsCircleFill color="#5cb85c" /> Cotas
+          </span>
+          <span style={{ color: "#4e4d4d", gap: "5px" }}>
+            <BsCircleFill color="#d9534f" /> Agendamento
+          </span>
+          <span
+            style={{
+              display: "flex",
+              justifyContent: "space_around",
+              flexDirection: "row",
+              gap: "20px",
+              marginBottom: "10px",
+              fontSize: "11px",
+              textAlign: "end",
+              alignItems: "end",
+            }}
+          >
+            Ultima atualização {ultimaAtualizacao}
+          </span>
+        </aside>
+        <aside
+          style={{
+            display: "flex",
+            justifyContent: "space_around",
+            flexDirection: "row",
+            gap: "20px",
+            marginBottom: "10px",
+            fontSize: "10px",
+          }}
+        >
+          <div>
+            <h2>Cotas por Cidade</h2>
+            <span style={{ color: "#4e4d4d", fontSize: "12px" }}>
+              CLASSE 1 (Novos Domicílios)
+            </span>
+          </div>
+          <div>
+            <ClaroLogo size={50} logo={logo} />
+          </div>
+        </aside>
       </div>
 
-      {loading ? (
+      {loading || dadosFiltrados?.length === 0 ? (
         <p>Carregando painel...</p>
       ) : (
         <div className={Style["table-container"]}>
@@ -274,10 +338,10 @@ export default function PainelBucketsPivot() {
                 <th>TERRITORIO</th>
                 <th>Alarme Agenda</th>
                 <th>Escala</th>
-                <th>backlog</th>
-                {dias.map((dia) => (
+                <th></th>
+                {dias.map((dia, index) => (
                   <th key={dia} colSpan={3}>
-                    {dia}
+                    {addDaysAndFormat(ultimaAtualizacao, index)}
                   </th>
                 ))}
               </tr>
@@ -286,7 +350,7 @@ export default function PainelBucketsPivot() {
                 <th></th>
                 <th></th>
                 <th></th>
-                <th></th>
+                <th>Backlog</th>
                 {dias.map((dia) => (
                   <React.Fragment key={dia}>
                     <th>Cotas</th>
@@ -306,7 +370,7 @@ export default function PainelBucketsPivot() {
                         {item.cidade.replace(/[|/-]/g, ", ")}
                       </div>
                       <Suspense fallback={<small>...</small>}>
-                        <WeatherInfo cidade={item.cidade} apiKey={apiKey} />
+                        <WeatherInfo cidade={item.cidade} />
                       </Suspense>
                       <MiniSparkline dias={item.dias} />
                     </td>
@@ -339,7 +403,10 @@ export default function PainelBucketsPivot() {
                         <React.Fragment key={dia}>
                           <td>{d?.saldo ?? 0}</td>
                           <td>{d?.qtd_os ?? 0}</td>
-                          <td className={pClass}>{d?.taxa_ocupacao ?? 0}%</td>
+                          <td className={pClass}>
+                            {d?.taxa_ocupacao ?? 0}%{" "}
+                           
+                          </td>
                         </React.Fragment>
                       );
                     })}
