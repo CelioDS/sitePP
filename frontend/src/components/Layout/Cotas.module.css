@@ -5,6 +5,7 @@
   padding: 16px;
   font-family: Arial, Helvetica, sans-serif;
   background-color: #f5f6fa;
+  min-height: 80vh;
 }
 
 /* =========================
@@ -49,6 +50,7 @@
   text-align: center;
   outline: none;
   border: none;
+  width: 350px;
 }
 
 .main .btnClear {

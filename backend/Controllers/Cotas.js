@@ -241,7 +241,6 @@ export const getCotasCop = async (req, res) => {
     const resultado = {};
 
 
-    console.log(rows)
 
     rows.forEach((r) => {
       if (!resultado[r.cidade]) {
