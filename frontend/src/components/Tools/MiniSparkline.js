@@ -4,12 +4,11 @@ export default function MiniSparkline({ dias, width = 90, height = 28 }) {
   if (!dias || Object.keys(dias).length === 0) return null;
 
   const entries = Object.entries(dias).sort(
-    ([a], [b]) => Number(a.replace("D", "")) - Number(b.replace("D", ""))
+    ([a], [b]) => Number(a.replace("D", "")) - Number(b.replace("D", "")),
   );
 
   const cotas = entries.map(([, d]) => Number(d.saldo) || 0);
   const os = entries.map(([, d]) => Number(d.qtd_os) || 0);
-
   const max = Math.max(...cotas, ...os, 1);
 
   const scaleY = (v) => height - (v / max) * height;
@@ -27,6 +26,12 @@ export default function MiniSparkline({ dias, width = 90, height = 28 }) {
         stroke="#d9534f"
         strokeWidth="2"
       />
+      {os.map((v, i) => (
+        <circle key={i} cx={i * stepX} cy={scaleY(v)} r="2" fill="#c70700" />
+      ))}
+      {cotas.map((v, i) => (
+        <circle key={i} cx={i * stepX} cy={scaleY(v)} r="2" fill="#081b01" />
+      ))}
 
       {/* Cotas – Verde */}
       <polyline

@@ -64,6 +64,8 @@ export default function PainelBucketsPivot() {
       return new Date(year, month - 1, day);
     };
 
+    // Dia da semana (segunda-feira, terça-feira, etc.)
+
     // Remove a hora → "15/04/2026"
     const dateOnly = baseDate.split(",")[0];
 
@@ -74,10 +76,13 @@ export default function PainelBucketsPivot() {
 
     if (daysToAdd >= 2) {
       const texto = daysToAdd * 24;
-      return d.toLocaleDateString("pt-BR") + ` ${texto}H`; // MM/DD/YYYY
+      const diaSemana = d.toLocaleDateString("pt-BR", { weekday: "long" });
+      return d.toLocaleDateString("pt-BR") + ` ${texto}H  ${diaSemana.replace("-feira",'')}`; // MM/DD/YYYY
     } else {
       const texto = "24H";
-      return d.toLocaleDateString("pt-BR") + ` ${texto}`; // MM/DD/YYYY
+      const diaSemana = d.toLocaleDateString("pt-BR", { weekday: "long" });
+
+      return d.toLocaleDateString("pt-BR") + ` ${texto} ${diaSemana.replace("-feira",'')}`; // MM/DD/YYYY
     }
   };
 
@@ -334,8 +339,7 @@ export default function PainelBucketsPivot() {
       </div>
 
       <div
-
-      className={Style.cards}
+        className={Style.cards}
         style={{
           display: "flex",
           width: "100%",
