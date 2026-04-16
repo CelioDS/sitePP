@@ -48,7 +48,7 @@
   text-align: center;
   outline: none;
   border: none;
-  width: 200px;
+  width: 140px;
 }
 
 .main .btnClear {
@@ -60,6 +60,65 @@
 }
 .main .btnClear:hover {
   opacity: 0.9;
+}
+
+.main .cards {
+  display: flex;
+  flex-direction: row;
+  display: flex;
+  width: 100%;
+  justify-content: space-around;
+  text-align: center;
+  align-items: center;
+  font-size: 11px;
+}
+
+.main .card div {
+  display: flex;
+  width: 100px;
+  align-items: start;
+  justify-content: space-between;
+  color: #494141;
+}
+.main .cardAlarme {
+  display: flex;
+  width: 100px;
+  align-items: start;
+  flex-direction: column;
+  justify-content: space-between;
+  color: #ffffff;
+  width: 300px;
+  border-radius: 6px 6px 0 0;
+  text-align: center;
+  align-items: center;
+  background-color: #4d0808;
+  border: 1px solid #ccc;
+}
+
+.main .cardAlarme aside {
+  display: flex;
+  width: 100px;
+  align-items: start;
+  flex-direction: row;
+  justify-content: space-between;
+  background-color: rgb(226, 217, 217);
+  width: 100%;
+  text-align: center;
+  align-items: center;
+}
+
+.main .cardAlarme div {
+  display: flex;
+  width: 100px;
+  align-items: start;
+  flex-direction: column;
+  justify-content: space-between;
+  text-align: center;
+  align-items: center;
+}
+.main .cardAlarme span,
+.main .cardAlarme Strong {
+  color: #030303;
 }
 /* =========================
    TABELA
@@ -183,4 +242,73 @@
 
 .percent-danger {
   background-color: #ffb3b3;
+}
+
+/* =====================================================================
+   ========================= MOBILE (RESPONSIVO) =========================
+   ===================================================================== */
+@media (max-width: 768px) {
+  /* Layout */
+  .main {
+    padding: 8px;
+  }
+
+  /* Filtros em coluna */
+  .main .filtros {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .main .filtros div,
+  .main .filtros div input,
+  .main .filtros div select {
+    width: 100%;
+  }
+
+  .main .btnClear {
+    width: 100%;
+  }
+
+  /* Cards empilhados */
+  .main aside {
+    width: 100%;
+  }
+
+  .main .card,
+  .main .cardAlarme {
+    width: 100%;
+    margin-bottom: 10px;
+  }
+  .main .cards {
+    display: flex;
+    flex-direction: column;
+    display: flex;
+    width: 100%;
+    justify-content: space-around;
+    text-align: center;
+    align-items: center;
+    font-size: 11px;
+  }
+
+  /* Tabela: scroll horizontal */
+  .table-container {
+    overflow-x: auto;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .main table {
+    font-size: 11px;
+  }
+
+  .main thead th,
+  .main tbody td {
+    padding: 6px;
+  }
+
+  /* Cidade menor no mobile */
+  .city {
+    width: 160px;
+    font-size: 11px;
+  }
 }

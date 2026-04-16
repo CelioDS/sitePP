@@ -21,6 +21,7 @@ export default function PainelBucketsPivot() {
 
   const [cidadeFiltro, setCidadeFiltro] = useState("TODAS");
   const [territorioFiltro, setTerritorioFiltro] = useState("TODAS");
+  const [alarmeFiltro, setAlarmeFiltro] = useState("TODOS");
   const [segmentoFiltro, setSegmentoFiltro] = useState("TODOS");
   const [dddFiltro, setdddFiltro] = useState("TODOS");
   const [search, setSearch] = useState("");
@@ -53,6 +54,7 @@ export default function PainelBucketsPivot() {
       .filter(Boolean)
       .sort((a, b) => new Date(b) - new Date(a))[0];
   }, [dados]);
+
   const addDaysAndFormat = (baseDate, daysToAdd) => {
     if (!baseDate) return "--";
     const parseBRDate = (dateStr) => {
@@ -70,7 +72,13 @@ export default function PainelBucketsPivot() {
 
     d.setDate(d.getDate() + daysToAdd);
 
-    return d.toLocaleDateString("pt-BR"); // MM/DD/YYYY
+    if (daysToAdd >= 2) {
+      const texto = daysToAdd * 24;
+      return d.toLocaleDateString("pt-BR") + ` ${texto}H`; // MM/DD/YYYY
+    } else {
+      const texto = "24H";
+      return d.toLocaleDateString("pt-BR") + ` ${texto}`; // MM/DD/YYYY
+    }
   };
 
   // Função de Carregamento com Lógica de Cache
@@ -112,19 +120,33 @@ export default function PainelBucketsPivot() {
   }, [fetchDados]);
 
   const SearchCotas = (diasData, listaDiasOrdenados) => {
-    if (!diasData) return "Sem dados";
-    const alarme = {
-      D1: "24H",
-      D2: "24H",
-      D3: "48H",
-      D4: "72H",
-      D5: "96H",
-      D6: ">96H",
-    };
-    for (const dia of listaDiasOrdenados) {
-      if (diasData[dia]?.saldo > 1) return alarme[dia] || ">96H";
+    if (!diasData) {
+      return {
+        status: "Sem dados",
+        alarme: null,
+      };
     }
-    return "Esgotado";
+
+    const alarme = {
+      D1: { label: "24H", qtd: 0 },
+      D2: { label: "24H", qtd: 0 },
+      D3: { label: "48H", qtd: 0 },
+      D4: { label: "72H", qtd: 0 },
+      D5: { label: "96H", qtd: 0 },
+      D6: { label: ">96H", qtd: 0 },
+    };
+
+    let status = ">96H";
+
+    for (const dia of listaDiasOrdenados) {
+      if (diasData[dia]?.saldo > 1 && alarme[dia]) {
+        alarme[dia].qtd += 1;
+        status = alarme[dia].label;
+        break;
+      }
+    }
+
+    return { status, alarme };
   };
 
   const dadosFiltrados = dados
@@ -143,7 +165,33 @@ export default function PainelBucketsPivot() {
         item.cidade.toUpperCase().includes(termo) ||
         item.mercado.toUpperCase().includes(termo)
       );
+    })
+    .filter((item) => {
+      if (alarmeFiltro === "TODOS") return true;
+
+      const resultado = SearchCotas(item.dias, dias);
+      return resultado.status === alarmeFiltro;
     });
+
+  const resumoAlarmes = React.useMemo(() => {
+    const total = {
+      "24H": 0,
+      "48H": 0,
+      "72H": 0,
+      "96H": 0,
+      ">96H": 0,
+    };
+
+    dadosFiltrados.forEach((item) => {
+      const resultado = SearchCotas(item.dias, dias);
+
+      if (resultado?.status && total[resultado.status] !== undefined) {
+        total[resultado.status] += 1;
+      }
+    });
+
+    return total;
+  }, [dadosFiltrados, dias]);
 
   const cidadesFiltradas = React.useMemo(() => {
     return Array.from(
@@ -262,6 +310,21 @@ export default function PainelBucketsPivot() {
           </select>
         </div>
 
+        <div>
+          <label>Alarme</label>
+          <select
+            value={alarmeFiltro}
+            onChange={(e) => setAlarmeFiltro(e.target.value)}
+          >
+            <option value="TODOS">Todos</option>
+            <option value="24H">24H</option>
+            <option value="48H">48H</option>
+            <option value="72H">72H</option>
+            <option value="96H">96H</option>
+            <option value=">96H">&gt;96H</option>
+          </select>
+        </div>
+
         <button className={Style.btnClear} onClick={handleResetFilters}>
           Limpar Filtros
         </button>
@@ -271,9 +334,10 @@ export default function PainelBucketsPivot() {
       </div>
 
       <div
+
+      className={Style.cards}
         style={{
           display: "flex",
-          flexDirection: "row",
           width: "100%",
           justifyContent: "space-around",
           textAlign: "center",
@@ -305,6 +369,53 @@ export default function PainelBucketsPivot() {
             Ultima atualização {ultimaAtualizacao}
           </span>
         </aside>
+
+        {/*
+
+        <aside className={Style.card}>
+          <label htmlFor="Check">Check Admin</label>
+          <div>
+            <label htmlFor="ddd">ddd</label>
+            <span>{dddFiltrados.length}</span>
+          </div>
+          <div>
+            <label htmlFor="cidade">Cidade</label>
+            <span>{cidadesFiltradas.length}</span>
+          </div>
+          <div>
+            <label htmlFor="territorio">Territorio</label>
+            <span>{territoriosFiltrados.length}</span>
+          </div>
+          <div>
+            <label htmlFor="segmento">Segmento</label>
+            <span>{segmentosFiltrados.length}</span>
+          </div>
+        </aside>*/}
+
+        <aside className={Style.cardAlarme}>
+          <h4>Alarmes Cidades</h4>
+          <aside>
+            {Object.entries(resumoAlarmes).map(([label, qtd]) => (
+              <div
+                key={label}
+                style={{
+                  backgroundColor:
+                    label === "24H"
+                      ? "#40960f83"
+                      : label === "48H"
+                        ? "#d1dd2562"
+                        : "#e92f2f79",
+                  fontWeight: "bold",
+                  color: "#333",
+                }}
+              >
+                <span>{label}</span>
+                <strong>{qtd}</strong>
+              </div>
+            ))}
+          </aside>
+        </aside>
+
         <aside
           style={{
             display: "flex",
@@ -335,9 +446,9 @@ export default function PainelBucketsPivot() {
             <thead>
               <tr>
                 <th>Cidade</th>
-                <th>TERRITORIO</th>
+                <th>Territorio</th>
                 <th>Alarme Agenda</th>
-                <th>Escala</th>
+                <th>Escala Tecnica</th>
                 <th></th>
                 {dias.map((dia, index) => (
                   <th key={dia} colSpan={3}>
@@ -362,7 +473,8 @@ export default function PainelBucketsPivot() {
             </thead>
             <tbody>
               {dadosFiltrados.map((item, idx) => {
-                const status = SearchCotas(item.dias, dias);
+                const status = SearchCotas(item.dias, dias).status;
+
                 return (
                   <tr key={idx}>
                     <td className={Style.city}>
@@ -403,10 +515,7 @@ export default function PainelBucketsPivot() {
                         <React.Fragment key={dia}>
                           <td>{d?.saldo ?? 0}</td>
                           <td>{d?.qtd_os ?? 0}</td>
-                          <td className={pClass}>
-                            {d?.taxa_ocupacao ?? 0}%{" "}
-                           
-                          </td>
+                          <td className={pClass}>{d?.taxa_ocupacao ?? 0}% </td>
                         </React.Fragment>
                       );
                     })}

@@ -185,6 +185,7 @@ export const importarCotasCop = async (req, res) => {
     return res.status(500).json({ error: err.message });
   }
 };
+
 export const getCotasCop = async (req, res) => {
   try {
     let {
@@ -242,7 +243,6 @@ export const getCotasCop = async (req, res) => {
     // ===============================
     const resultado = {};
 
-    console.log(rows);
 
     rows.forEach((r) => {
       if (!resultado[r.cidade]) {

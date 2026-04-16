@@ -68,18 +68,15 @@ export default function WeatherInfo({ cidade }) {
 
         const current = response.current();
 
-        console.log(response);
 
         if (!current) return;
 
         const temperature = current.variables(0).value();
-        const humidity = current.variables(1).value();
         const precipitation = current.variables(2).value();
         const weatherCode = current.variables(3).value();
 
         setClima({
           temp: Math.round(temperature),
-          umidade: Math.round(humidity),
           chuva: precipitation ?? 0,
           desc: weatherCodeToText(weatherCode),
           icon: weatherCodeToIcon(weatherCode),
@@ -132,7 +129,6 @@ export default function WeatherInfo({ cidade }) {
           gap: "5px",
         }}
       >
-        <span>💧 {clima.umidade}%</span>
         {clima.chuva > 10 && (
           <span style={{ color: "#0056b3", fontWeight: "bold" }}>
             BT: {clima.chuva}mm

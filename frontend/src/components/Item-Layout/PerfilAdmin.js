@@ -3,8 +3,9 @@ import { useState, useEffect, useRef, useLayoutEffect } from "react";
 import { toast } from "react-toastify";
 import Style from "./tabelaUsuarios.module.css";
 import Loading from "./Loading";
+import { formatSaoPaulo, compararData } from "../Tools/formatSaoPaulo";
 
-export default function RelatorioAdmin({ login, DataBase }) {
+export default function PerfilAdmin({ login, DataBase }) {
   const ref = useRef();
   const [isMis, setIsMis] = useState("");
   const [editUser, setEditUser] = useState();
@@ -154,14 +155,14 @@ export default function RelatorioAdmin({ login, DataBase }) {
       }
       await axios
         .post(`${Url}/users/add`, {
-          nome : 'n',
+          nome: "n",
           login: dadosForm.login?.value?.toLowerCase(),
           senha: dadosForm.senha.value,
           canal: dadosForm.canal?.value || "MIS",
           mis: Number(dadosForm.mis.value),
           admin: Number(dadosForm.admin.value),
           mis_admin: 0,
-          ultimo_acesso: '00/00/0000 00:00' ,
+          ultimo_acesso: null,
           ocultar: 0,
         })
         .then(({ data }) => {
@@ -292,49 +293,59 @@ export default function RelatorioAdmin({ login, DataBase }) {
               </tr>
             </thead>
             <tbody>
-              {dataBaseLogin.map((info, index) =>
-                info?.login !== "admin" && !info?.ocultar ? (
-                  <tr key={index || info?.id}>
-                    <td>{info?.nome}</td>
-                    <td>{info?.login}</td>
-                    <td>{"*".repeat(10)}</td>
-                    <td>{info?.canal}</td>
-                    <td>{info?.mis ? "Sim" : "Não"}</td>
-                    <td>{info?.admin === 1 ? "Sim" : "Não"}</td>
-                    <td>
-                      {info?.ultimo_acesso
-                        ? new Date(info.ultimo_acesso).toLocaleDateString(
-                            "pt-BR",
-                            { timeZone: "UTC" },
-                          )
-                        : "SEM ACESSO!!!"}
-                    </td>
-                    <td>
-                      <button
-                        onClick={() => {
-                          handleEdit(info);
-                        }}
-                      >
-                        {editUser?.id === info?.id && info?.id
-                          ? "Editando..."
-                          : "Editar"}
-                      </button>
-                    </td>
+              {dataBaseLogin
 
-                    <td>
-                      <button
-                        type="button"
-                        disabled={editUser || isSubmit ? true : false}
-                        onClick={() => {
-                          handleExcluir(info.id);
+                .sort(
+                  (a, b) =>
+                    new Date(b.ultimo_acesso) - new Date(a.ultimo_acesso),
+                )
+
+                .map((info, index) =>
+                  info?.login !== "admin" && !info?.ocultar ? (
+                    <tr key={index || info?.id}>
+                      <td>{info?.nome}</td>
+                      <td>{info?.login}</td>
+                      <td>{"*".repeat(10)}</td>
+                      <td>{info?.canal}</td>
+                      <td>{info?.mis ? "Sim" : "Não"}</td>
+                      <td>{info?.admin === 1 ? "Sim" : "Não"}</td>
+                      <td
+                        style={{
+                          background: compararData(
+                            String(info?.ultimo_acesso).split("T")[0],
+                          )
+                            ? "#aaff79"
+                            : "#f59191cc",
                         }}
                       >
-                        Excluir
-                      </button>
-                    </td>
-                  </tr>
-                ) : null,
-              )}
+                        {formatSaoPaulo(info?.ultimo_acesso)}
+                      </td>
+                      <td>
+                        <button
+                          onClick={() => {
+                            handleEdit(info);
+                          }}
+                        >
+                          {editUser?.id === info?.id && info?.id
+                            ? "Editando..."
+                            : "Editar"}
+                        </button>
+                      </td>
+
+                      <td>
+                        <button
+                          type="button"
+                          disabled={editUser || isSubmit ? true : false}
+                          onClick={() => {
+                            handleExcluir(info.id);
+                          }}
+                        >
+                          Excluir
+                        </button>
+                      </td>
+                    </tr>
+                  ) : null,
+                )}
             </tbody>
           </table>
         ) : (

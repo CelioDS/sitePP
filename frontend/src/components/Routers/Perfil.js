@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
 import ValidarToken from "../Tools/ValidarToken";
-import TabelaUsuarios from "../Item-Layout/tabelaUsuarios";
+import PerfilAdmin from "../Item-Layout/PerfilAdmin";
 import RenameTitle from "../Tools/RenameTitle";
 import PerfilUsuario from "../Layout/PerfilUsuarios";
 
@@ -57,7 +57,7 @@ export default function Perfil() {
       <RenameTitle initialTitle={"P&P - Perfil"} />
       <main className={Style.perfil}>
         {admin && mis ? (
-          <TabelaUsuarios Url={Url} login={login}/>
+          <PerfilAdmin Url={Url} login={login}/>
         ) : (
           <PerfilUsuario Url={Url} />
         )}

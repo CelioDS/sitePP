@@ -2,9 +2,10 @@ import Style from "./Login.module.css";
 import Input from "../Item-Layout/Input";
 import Logoclaro from "../Item-Layout/ClaroLogoColor";
 import Button from "../Item-Layout/Button";
-import {  useState } from "react";
+import { useState } from "react";
 import { toast } from "react-toastify";
 import axios from "axios";
+
 
 export default function Login({ setPermission, setLoginBD }) {
   const [Text, setText] = useState("Entrar");
@@ -13,6 +14,20 @@ export default function Login({ setPermission, setLoginBD }) {
   //const [admin, setAdmin] = useState();
 
   const Url = process.env.REACT_APP_API_URL || "http://localhost:8000";
+
+  function getDateTimeSaoPaulo() {
+    const formatter = new Intl.DateTimeFormat("sv-SE", {
+      timeZone: "America/Sao_Paulo",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+    });
+
+    return formatter.format(new Date()).replace(" ", " ");
+  }
 
   async function handleLogin() {
     if (!login || !senha) {
@@ -30,10 +45,9 @@ export default function Login({ setPermission, setLoginBD }) {
         localStorage.setItem("login", user.login);
         localStorage.setItem("permission", true);
         setLoginBD(user.login);
-        const today = new Date().toLocaleDateString("pt-BR").split('/').reverse().join('-');;
-        console.log("a", today);
+
         await axios.patch(`${Url}/users/${user.id}`, {
-          ultimo_acesso: today,
+          ultimo_acesso: getDateTimeSaoPaulo(),
         });
 
         toast.success("Login realizado com sucesso!");
