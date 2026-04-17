@@ -4,6 +4,8 @@ import { fetchWeatherApi } from "openmeteo";
 export default function WeatherInfo({ cidade }) {
   const [clima, setClima] = useState(null);
 
+  const CACHE_TIME = 10 * 60 * 1000; // 10 minutos
+
   function weatherCodeToText(code) {
     const map = {
       0: "céu limpo",
@@ -22,13 +24,25 @@ export default function WeatherInfo({ cidade }) {
     return map[code] || "condição desconhecida";
   }
 
-  function weatherCodeToIcon(code) {
+  function weatherCodeToIcon(code, isDay) {
     if (code >= 61 && code <= 65)
       return "https://img.icons8.com/color/48/rain.png";
-    if (code >= 80) return "https://img.icons8.com/color/48/storm.png";
-    if (code === 0) return "https://img.icons8.com/color/48/sun--v1.png";
-    if (code >= 1 && code <= 3)
-      return "https://img.icons8.com/color/48/partly-cloudy-day--v1.png";
+
+    if (code >= 80)
+      return "https://img.icons8.com/color/48/storm.png";
+
+    if (code === 0) {
+      return isDay
+        ? "https://img.icons8.com/color/48/sun--v1.png"
+        : "https://img.icons8.com/color/48/moon-symbol.png";
+    }
+
+    if (code >= 1 && code <= 3) {
+      return isDay
+        ? "https://img.icons8.com/color/48/partly-cloudy-day--v1.png"
+        : "https://img.icons8.com/color/48/partly-cloudy-night.png";
+    }
+
     return "https://img.icons8.com/color/48/cloud.png";
   }
 
@@ -36,20 +50,36 @@ export default function WeatherInfo({ cidade }) {
     const cityClean = cidade?.split(/[|,/]/)[0].trim();
     if (!cityClean) return;
 
+    const cacheKey = `weather_${cityClean.toLowerCase()}`;
+
     const loadWeather = async () => {
       try {
-        /* 1️⃣ Geocoding (continua REST, pois SDK não cobre isso) */
+        // 🔍 1. Verifica cache
+        const cached = localStorage.getItem(cacheKey);
+
+        if (cached) {
+          const parsed = JSON.parse(cached);
+
+          const isValid = Date.now() - parsed.timestamp < CACHE_TIME;
+
+          if (isValid) {
+            setClima(parsed.data);
+            return; // usa cache e NÃO chama API
+          }
+        }
+
+        // 🌐 2. Geocoding
         const geoRes = await fetch(
           `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(
-            cityClean,
-          )}&count=1&language=pt&format=json`,
+            cityClean
+          )}&count=1&language=pt&format=json`
         ).then((r) => r.json());
 
         if (!geoRes.results?.length) return;
 
         const { latitude, longitude } = geoRes.results[0];
 
-        /* 2️⃣ Chamada via SDK oficial */
+        // 🌦️ 3. Clima
         const params = {
           latitude,
           longitude,
@@ -58,6 +88,7 @@ export default function WeatherInfo({ cidade }) {
             "relative_humidity_2m",
             "precipitation",
             "weather_code",
+            "is_day",
           ],
           timezone: "America/Sao_Paulo",
         };
@@ -67,25 +98,37 @@ export default function WeatherInfo({ cidade }) {
         const response = responses[0];
 
         const current = response.current();
-
-
         if (!current) return;
 
         const temperature = current.variables(0).value();
         const precipitation = current.variables(2).value();
         const weatherCode = current.variables(3).value();
+        const isDay = current.variables(4).value();
 
-        setClima({
+        const data = {
           temp: Math.round(temperature),
           chuva: precipitation ?? 0,
           desc: weatherCodeToText(weatherCode),
-          icon: weatherCodeToIcon(weatherCode),
-        });
+          icon: weatherCodeToIcon(weatherCode, isDay),
+        };
+
+        // 💾 4. Salva no cache
+        localStorage.setItem(
+          cacheKey,
+          JSON.stringify({
+            data,
+            timestamp: Date.now(),
+          })
+        );
+
+        setClima(data);
       } catch (e) {
         console.error("Erro ao buscar clima:", e);
       }
     };
+
     loadWeather();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cidade]);
 
   if (!clima)
@@ -98,7 +141,7 @@ export default function WeatherInfo({ cidade }) {
           display: "flex",
           alignItems: "center",
           fontSize: "11px",
-          gap: "2px",
+          gap: "4px",
         }}
       >
         <img
@@ -106,9 +149,11 @@ export default function WeatherInfo({ cidade }) {
           alt="ícone"
           style={{ width: "32px", height: "32px" }}
         />
+
         <span style={{ fontWeight: "bold", color: "#d32f2f" }}>
           {clima.temp}°C
         </span>
+
         <span
           style={{
             color: "#666",

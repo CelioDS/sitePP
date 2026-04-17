@@ -24,13 +24,13 @@ export default function MiniSparkline({ dias, width = 90, height = 28 }) {
         points={buildLine(os)}
         fill="none"
         stroke="#d9534f"
-        strokeWidth="2"
+        strokeWidth="1"
       />
       {os.map((v, i) => (
-        <circle key={i} cx={i * stepX} cy={scaleY(v)} r="2" fill="#c70700" />
+        <circle key={i} cx={i * stepX} cy={scaleY(v)} r="2" fill="#d9534f" />
       ))}
       {cotas.map((v, i) => (
-        <circle key={i} cx={i * stepX} cy={scaleY(v)} r="2" fill="#081b01" />
+        <circle key={i} cx={i * stepX} cy={scaleY(v)} r="2" fill="#5cb85c" />
       ))}
 
       {/* Cotas – Verde */}
@@ -38,7 +38,7 @@ export default function MiniSparkline({ dias, width = 90, height = 28 }) {
         points={buildLine(cotas)}
         fill="none"
         stroke="#5cb85c"
-        strokeWidth="2"
+        strokeWidth="1"
       />
     </svg>
   );

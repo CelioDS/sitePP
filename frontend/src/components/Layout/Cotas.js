@@ -6,6 +6,7 @@ import { BsCircleFill } from "react-icons/bs";
 import ClaroLogo from "../Item-Layout/ClaroLogo";
 import logo from "../IMG/claroLogo.webp";
 import { useRef } from "react";
+import DashboardAnalytics from "./DashCotas";
 
 // Lazy Load do Clima para performance
 const WeatherInfo = React.lazy(() => import("../Tools/WeatherInfo"));
@@ -25,6 +26,7 @@ export default function PainelBucketsPivot() {
   const [segmentoFiltro, setSegmentoFiltro] = useState("TODOS");
   const [dddFiltro, setdddFiltro] = useState("TODOS");
   const [search, setSearch] = useState("");
+  const [handleCotas, setHandleCotas] = useState(false);
 
   const Url = process.env.REACT_APP_API_URL || "http://localhost:8000";
 
@@ -77,12 +79,18 @@ export default function PainelBucketsPivot() {
     if (daysToAdd >= 2) {
       const texto = daysToAdd * 24;
       const diaSemana = d.toLocaleDateString("pt-BR", { weekday: "long" });
-      return d.toLocaleDateString("pt-BR") + ` ${texto}H  ${diaSemana.replace("-feira",'')}`; // MM/DD/YYYY
+      return (
+        d.toLocaleDateString("pt-BR") +
+        ` ${texto}H  ${diaSemana.replace("-feira", "")}`
+      ); // MM/DD/YYYY
     } else {
       const texto = "24H";
       const diaSemana = d.toLocaleDateString("pt-BR", { weekday: "long" });
 
-      return d.toLocaleDateString("pt-BR") + ` ${texto} ${diaSemana.replace("-feira",'')}`; // MM/DD/YYYY
+      return (
+        d.toLocaleDateString("pt-BR") +
+        ` ${texto} ${diaSemana.replace("-feira", "")}`
+      ); // MM/DD/YYYY
     }
   };
 
@@ -222,12 +230,20 @@ export default function PainelBucketsPivot() {
     ).sort();
   }, [dadosFiltrados]);
 
-  function handleResetFilters() {
+  const backlogTotal = React.useMemo(
+    () => dadosFiltrados.reduce((total, item) => total + Number(item.qtd), 0),
+    [dadosFiltrados],
+  );
+
+  function handleResetFilters(search) {
     setCidadeFiltro("TODAS");
     setTerritorioFiltro("TODAS");
     setSegmentoFiltro("TODOS");
+    if (!search) {
+      setSearch("");
+    }
     setdddFiltro("TODOS");
-    setSearch("");
+    setAlarmeFiltro("TODOS");
   }
 
   const handleDownloadHTML = () => {
@@ -246,289 +262,307 @@ export default function PainelBucketsPivot() {
     URL.revokeObjectURL(url);
   };
 
+  const totaisPorDia = React.useMemo(() => {
+    const totais = {};
+
+    dias.forEach((dia) => {
+      totais[dia] = {
+        cotas: 0,
+        agendado: 0,
+      };
+    });
+
+    dadosFiltrados.forEach((item) => {
+      dias.forEach((dia) => {
+        const d = item.dias?.[dia];
+
+        if (d) {
+          totais[dia].cotas += Number(d.saldo || 0);
+          totais[dia].agendado += Number(d.qtd_os || 0);
+        }
+      });
+    });
+
+    return totais;
+  }, [dadosFiltrados, dias]);
+
   return (
     <main className={Style.main} ref={tableRef}>
-      <div className={Style.filtros}>
-        <div>
-          <label>Cidade</label>
-          <select
-            value={cidadeFiltro}
-            onChange={(e) => setCidadeFiltro(e.target.value)}
-          >
-            <option value="TODAS">Todas</option>
-            {cidadesFiltradas.map((c) => (
-              <option key={c} value={c}>
-                {c}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div>
-          <label>Pesquisar</label>
-          <input
-            type="text"
-            placeholder="Buscar..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-        </div>
-        <div>
-          <label>Territorio</label>
-          <select
-            value={territorioFiltro}
-            onChange={(e) => setTerritorioFiltro(e.target.value)}
-          >
-            <option value="TODAS">Todas</option>
-            {territoriosFiltrados.map((c) => (
-              <option key={c} value={c}>
-                {c}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div>
-          <label>Segmento</label>
-          <select
-            value={segmentoFiltro}
-            onChange={(e) => setSegmentoFiltro(e.target.value)}
-          >
-            <option value="TODOS">Todos</option>
-            {segmentosFiltrados.map((c) => (
-              <option key={c} value={c}>
-                {c}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div>
-          <label>DDD</label>
-          <select
-            value={dddFiltro}
-            onChange={(e) => setdddFiltro(e.target.value)}
-          >
-            <option value="TODOS">Todos</option>
-            {dddFiltrados.map((s) => (
-              <option key={s} value={s}>
-                {s}
-              </option>
-            ))}
-          </select>
-        </div>
+      <button onClick={() => setHandleCotas((prev) => !prev)}>
+        {handleCotas ? "relatorio" : "tabela"}
+      </button>
+      {!!handleCotas ? (
+        <DashboardAnalytics dados={dadosFiltrados} dias={dias} />
+      ) : (
+        <>
+          <div className={Style.filtros}>
+            <div>
+              <label>Cidade {cidadesFiltradas.length}</label>
+              <select
+                value={cidadeFiltro}
+                onChange={(e) => setCidadeFiltro(e.target.value)}
+              >
+                <option value="TODAS">Todas</option>
+                {cidadesFiltradas.map((c) => (
+                  <option key={c} value={c}>
+                    {c}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label>Pesquisar</label>
+              <input
+                type="text"
+                placeholder="Buscar..."
+                value={search}
+                onChange={(e) => {
+                  setSearch(e.target.value);
+                  handleResetFilters(true);
+                }}
+              />
+            </div>
+            <div>
+              <label>Territorio {territoriosFiltrados.length}</label>
+              <select
+                value={territorioFiltro}
+                onChange={(e) => setTerritorioFiltro(e.target.value)}
+              >
+                <option value="TODAS">Todas</option>
+                {territoriosFiltrados.map((c) => (
+                  <option key={c} value={c}>
+                    {c}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label>Segmento {segmentosFiltrados.length}</label>
+              <select
+                value={segmentoFiltro}
+                onChange={(e) => setSegmentoFiltro(e.target.value)}
+              >
+                <option value="TODOS">Todos</option>
+                {segmentosFiltrados.map((c) => (
+                  <option key={c} value={c}>
+                    {c}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label>DDD {dddFiltrados.length}</label>
+              <select
+                value={dddFiltro}
+                onChange={(e) => setdddFiltro(e.target.value)}
+              >
+                <option value="TODOS">Todos</option>
+                {dddFiltrados.map((s) => (
+                  <option key={s} value={s}>
+                    {s}
+                  </option>
+                ))}
+              </select>
+            </div>
 
-        <div>
-          <label>Alarme</label>
-          <select
-            value={alarmeFiltro}
-            onChange={(e) => setAlarmeFiltro(e.target.value)}
-          >
-            <option value="TODOS">Todos</option>
-            <option value="24H">24H</option>
-            <option value="48H">48H</option>
-            <option value="72H">72H</option>
-            <option value="96H">96H</option>
-            <option value=">96H">&gt;96H</option>
-          </select>
-        </div>
+            <div>
+              <label>Alarme</label>
+              <select
+                value={alarmeFiltro}
+                onChange={(e) => setAlarmeFiltro(e.target.value)}
+              >
+                <option value="TODOS">Todos</option>
+                <option value="24H">24H</option>
+                <option value="48H">48H</option>
+                <option value="72H">72H</option>
+                <option value="96H">96H</option>
+                <option value=">96H">&gt;96H</option>
+              </select>
+            </div>
 
-        <button className={Style.btnClear} onClick={handleResetFilters}>
-          Limpar Filtros
-        </button>
-        <button className={Style.btnClear} onClick={handleDownloadHTML}>
-          Download HTML
-        </button>
-      </div>
-
-      <div
-        className={Style.cards}
-        style={{
-          display: "flex",
-          width: "100%",
-          justifyContent: "space-around",
-          textAlign: "center",
-          alignItems: "center",
-          fontSize: "11px",
-        }}
-      >
-        <aside>
-          <p style={{ color: "#4e4d4d", gap: "5px" }}>Legenda</p>
-
-          <span style={{ color: "#4e4d4d", gap: "5px" }}>
-            <BsCircleFill color="#5cb85c" /> Cotas
-          </span>
-          <span style={{ color: "#4e4d4d", gap: "5px" }}>
-            <BsCircleFill color="#d9534f" /> Agendamento
-          </span>
-          <span
+            <button
+              className={Style.btnClear}
+              onClick={() => handleResetFilters(false)}
+            >
+              Limpar Filtros
+            </button>
+            <button className={Style.btnClear} onClick={handleDownloadHTML}>
+              Download HTML
+            </button>
+          </div>
+          <div
+            className={Style.cards}
             style={{
               display: "flex",
-              justifyContent: "space_around",
-              flexDirection: "row",
-              gap: "20px",
-              marginBottom: "10px",
+              width: "100%",
+              justifyContent: "space-around",
+              textAlign: "center",
+              alignItems: "center",
               fontSize: "11px",
-              textAlign: "end",
-              alignItems: "end",
             }}
           >
-            Ultima atualização {ultimaAtualizacao}
-          </span>
-        </aside>
+            <aside>
+              <p style={{ color: "#4e4d4d", gap: "5px" }}>Legenda</p>
 
-        {/*
-
-        <aside className={Style.card}>
-          <label htmlFor="Check">Check Admin</label>
-          <div>
-            <label htmlFor="ddd">ddd</label>
-            <span>{dddFiltrados.length}</span>
-          </div>
-          <div>
-            <label htmlFor="cidade">Cidade</label>
-            <span>{cidadesFiltradas.length}</span>
-          </div>
-          <div>
-            <label htmlFor="territorio">Territorio</label>
-            <span>{territoriosFiltrados.length}</span>
-          </div>
-          <div>
-            <label htmlFor="segmento">Segmento</label>
-            <span>{segmentosFiltrados.length}</span>
-          </div>
-        </aside>*/}
-
-        <aside className={Style.cardAlarme}>
-          <h4>Alarmes Cidades</h4>
-          <aside>
-            {Object.entries(resumoAlarmes).map(([label, qtd]) => (
-              <div
-                key={label}
+              <span style={{ color: "#4e4d4d", gap: "5px" }}>
+                <BsCircleFill color="#5cb85c" /> Cotas
+              </span>
+              <span style={{ color: "#4e4d4d", gap: "5px" }}>
+                <BsCircleFill color="#d9534f" /> Agendamento
+              </span>
+              <span
                 style={{
-                  backgroundColor:
-                    label === "24H"
-                      ? "#40960f83"
-                      : label === "48H"
-                        ? "#d1dd2562"
-                        : "#e92f2f79",
-                  fontWeight: "bold",
-                  color: "#333",
+                  display: "flex",
+                  justifyContent: "space_around",
+                  flexDirection: "row",
+                  gap: "20px",
+                  marginBottom: "10px",
+                  fontSize: "11px",
+                  textAlign: "end",
+                  alignItems: "end",
                 }}
               >
-                <span>{label}</span>
-                <strong>{qtd}</strong>
+                Ultima atualização {ultimaAtualizacao}
+              </span>
+            </aside>
+
+            <aside className={Style.cardAlarme}>
+              <h4>Alarmes Cidades</h4>
+              <aside>
+                {Object.entries(resumoAlarmes).map(([label, qtd]) => (
+                  <div
+                    key={label}
+                    style={{
+                      backgroundColor:
+                        label === "24H"
+                          ? "#40960f83"
+                          : label === "48H"
+                            ? "#d1dd2562"
+                            : "#e92f2f79",
+                      fontWeight: "bold",
+                      color: "#333",
+                    }}
+                  >
+                    <span>{label}</span>
+                    <strong>{qtd}</strong>
+                  </div>
+                ))}
+              </aside>
+            </aside>
+
+            <aside
+              style={{
+                display: "flex",
+                justifyContent: "space_around",
+                flexDirection: "row",
+                gap: "20px",
+                marginBottom: "10px",
+                fontSize: "10px",
+              }}
+            >
+              <div>
+                <h2>Cotas por Cidade</h2>
+                <span style={{ color: "#4e4d4d", fontSize: "12px" }}>
+                  CLASSE 1 (Novos Domicílios)
+                </span>
               </div>
-            ))}
-          </aside>
-        </aside>
-
-        <aside
-          style={{
-            display: "flex",
-            justifyContent: "space_around",
-            flexDirection: "row",
-            gap: "20px",
-            marginBottom: "10px",
-            fontSize: "10px",
-          }}
-        >
-          <div>
-            <h2>Cotas por Cidade</h2>
-            <span style={{ color: "#4e4d4d", fontSize: "12px" }}>
-              CLASSE 1 (Novos Domicílios)
-            </span>
+              <div>
+                <ClaroLogo size={50} logo={logo} />
+              </div>
+            </aside>
           </div>
-          <div>
-            <ClaroLogo size={50} logo={logo} />
-          </div>
-        </aside>
-      </div>
-
-      {loading || dadosFiltrados?.length === 0 ? (
-        <p>Carregando painel...</p>
-      ) : (
-        <div className={Style["table-container"]}>
-          <table>
-            <thead>
-              <tr>
-                <th>Cidade</th>
-                <th>Territorio</th>
-                <th>Alarme Agenda</th>
-                <th>Escala Tecnica</th>
-                <th></th>
-                {dias.map((dia, index) => (
-                  <th key={dia} colSpan={3}>
-                    {addDaysAndFormat(ultimaAtualizacao, index)}
-                  </th>
-                ))}
-              </tr>
-              <tr>
-                <th></th>
-                <th></th>
-                <th></th>
-                <th></th>
-                <th>Backlog</th>
-                {dias.map((dia) => (
-                  <React.Fragment key={dia}>
-                    <th>Cotas</th>
-                    <th>Vol Agendado</th>
-                    <th>% Ocupação</th>
-                  </React.Fragment>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {dadosFiltrados.map((item, idx) => {
-                const status = SearchCotas(item.dias, dias).status;
-
-                return (
-                  <tr key={idx}>
-                    <td className={Style.city}>
-                      <div style={{ fontWeight: "bold" }}>
-                        {item.cidade.replace(/[|/-]/g, ", ")}
-                      </div>
-                      <Suspense fallback={<small>...</small>}>
-                        <WeatherInfo cidade={item.cidade} />
-                      </Suspense>
-                      <MiniSparkline dias={item.dias} />
-                    </td>
-                    <td>{item.territorio}</td>
-                    <td
-                      style={{
-                        backgroundColor:
-                          status === "24H"
-                            ? "#40960f83"
-                            : status === "48H"
-                              ? "#d1dd2562"
-                              : "#e92f2f79",
-                        fontWeight: "bold",
-                        color: "#333",
-                      }}
-                    >
-                      {status}
-                    </td>
-                    <td>{item.escala_tecnica}</td>
-                    <td>{item.qtd}</td>
-                    {dias.map((dia) => {
-                      const d = item.dias[dia];
-                      const pClass =
-                        d?.taxa_ocupacao > 100
-                          ? Style["percent-danger"]
-                          : d?.taxa_ocupacao > 80
-                            ? Style["percent-warning"]
-                            : Style["percent-normal"];
-                      return (
-                        <React.Fragment key={dia}>
-                          <td>{d?.saldo ?? 0}</td>
-                          <td>{d?.qtd_os ?? 0}</td>
-                          <td className={pClass}>{d?.taxa_ocupacao ?? 0}% </td>
-                        </React.Fragment>
-                      );
-                    })}
+          {loading || dadosFiltrados?.length === 0 ? (
+            <p>Carregando painel...</p>
+          ) : (
+            <div className={Style["table-container"]}>
+              <table>
+                <thead>
+                  <tr>
+                    <th>Cidade</th>
+                    <th>Territorio</th>
+                    <th>Alarme Agenda</th>
+                    <th>Escala Tecnica</th>
+                    <th>Backlog </th>
+                    {dias.map((dia, index) => (
+                      <th key={dia} colSpan={3}>
+                        {addDaysAndFormat(ultimaAtualizacao, index)}
+                      </th>
+                    ))}
                   </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
+
+                  <tr>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th>Total {backlogTotal}</th>
+                    {dias.map((dia) => (
+                      <React.Fragment key={dia}>
+                        <th>Cotas {totaisPorDia[dia]?.cotas}</th>
+                        <th>Vol Agendado {totaisPorDia[dia]?.agendado}</th>
+                        <th>% Ocupação</th>
+                      </React.Fragment>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {dadosFiltrados.map((item, idx) => {
+                    const status = SearchCotas(item.dias, dias).status;
+
+                    return (
+                      <tr key={idx}>
+                        <td className={Style.city}>
+                          <div style={{ fontWeight: "bold" }}>
+                            {item.cidade.replace(/[|/-]/g, ", ")}
+                          </div>
+                          <Suspense fallback={<small>...</small>}>
+                            <WeatherInfo cidade={item.cidade} />
+                          </Suspense>
+                          <MiniSparkline dias={item.dias} />
+                        </td>
+                        <td>{item.territorio}</td>
+                        <td
+                          style={{
+                            backgroundColor:
+                              status === "24H"
+                                ? "#40960f83"
+                                : status === "48H"
+                                  ? "#d1dd2562"
+                                  : "#e92f2f79",
+                            fontWeight: "bold",
+                            color: "#333",
+                          }}
+                        >
+                          {status}
+                        </td>
+                        <td>{item.escala_tecnica}</td>
+                        <td>{item.qtd}</td>
+                        {dias.map((dia) => {
+                          const d = item.dias[dia];
+                          const pClass =
+                            d?.taxa_ocupacao > 100
+                              ? Style["percent-danger"]
+                              : d?.taxa_ocupacao > 80
+                                ? Style["percent-warning"]
+                                : Style["percent-normal"];
+                          return (
+                            <React.Fragment key={dia}>
+                              <td>{d?.saldo ?? 0}</td>
+                              <td>{d?.qtd_os ?? 0}</td>
+                              <td className={pClass}>
+                                {d?.taxa_ocupacao ?? 0}%{" "}
+                              </td>
+                            </React.Fragment>
+                          );
+                        })}
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}{" "}
+        </>
       )}
     </main>
   );

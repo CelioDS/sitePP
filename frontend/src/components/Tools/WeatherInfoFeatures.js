@@ -4,6 +4,8 @@ import { fetchWeatherApi } from "openmeteo";
 export default function WeatherInfoFeatures({ cidade, dia }) {
   const [clima, setClima] = useState(null);
 
+  const CACHE_TIME = 15 * 60 * 1000; // 15 minutos
+
   function weatherCodeToText(code) {
     const map = {
       0: "céu limpo",
@@ -38,8 +40,21 @@ export default function WeatherInfoFeatures({ cidade, dia }) {
     const cityClean = cidade?.split(/[|,/]/)[0].trim();
     if (!cityClean) return;
 
-    // ✅ Limita o dia: somente D+1 ou D+2
     const diaSeguro = Math.min(Math.max(dia, 1), 2);
+
+    const cacheKey2 = `weather_${cityClean}_${diaSeguro}`;
+
+    // 🔹 1. Verifica cache
+    const cached = localStorage.getItem(cacheKey2);
+
+    if (cached) {
+      const parsed = JSON.parse(cached);
+
+      if (Date.now() - parsed.timestamp < CACHE_TIME) {
+        setClima(parsed.data);
+        return; // ⛔ evita chamada na API
+      }
+    }
 
     const loadWeather = async () => {
       try {
@@ -76,31 +91,41 @@ export default function WeatherInfoFeatures({ cidade, dia }) {
         const daily = response.daily();
         if (!current || !daily) return;
 
-        /* Atual */
         const tempAtual = current.variables(0).value();
         const umidadeAtual = current.variables(1).value();
 
-        /* Previsão com dia limitado */
         const tempMax = daily.variables(0).valuesArray()[diaSeguro];
         const tempMin = daily.variables(1).valuesArray()[diaSeguro];
         const chuva = daily.variables(2).valuesArray()[diaSeguro];
         const weatherCode = daily.variables(3).valuesArray()[diaSeguro];
 
-        setClima({
+        const data = {
           temp: Math.round(tempAtual),
           umidade: Math.round(umidadeAtual),
           chuva,
-          desc: `${diaSeguro === 1 ? "Amanhã" : "Depois de amanhã"}: ${Math.round(
+          desc: `${diaSeguro === 1 ? "" : ""}: ${Math.round(
             tempMin
           )}° / ${Math.round(tempMax)}° - ${weatherCodeToText(weatherCode)}`,
           icon: weatherCodeToIcon(weatherCode),
-        });
+        };
+
+        setClima(data);
+
+        // 🔹 2. Salva no cache
+        localStorage.setItem(
+          cacheKey2,
+          JSON.stringify({
+            data,
+            timestamp: Date.now(),
+          })
+        );
       } catch (e) {
         console.error("Erro ao buscar clima:", e);
       }
     };
 
     loadWeather();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cidade, dia]);
 
   if (!clima)
@@ -109,7 +134,12 @@ export default function WeatherInfoFeatures({ cidade, dia }) {
   return (
     <div style={{ display: "flex", flexDirection: "column", marginTop: "4px" }}>
       <div
-        style={{ display: "flex", alignItems: "center", fontSize: "11px", gap: "2px" }}
+        style={{
+          display: "flex",
+          alignItems: "center",
+          fontSize: "11px",
+          gap: "2px",
+        }}
       >
         <img src={clima.icon} alt="ícone" width={32} />
         <b style={{ color: "#d32f2f" }}>{clima.temp}°C</b>
