@@ -37,10 +37,16 @@ const buildDateFilter = (tableAlias, start, end, latest) => {
  * Importa cotas do painel COP
  * Filtro: REGIONAL contendo "INTERIOR" + CLASSE1
  */
+
 export const importarCotasCop = async (req, res) => {
   try {
     const { data_ref } = req.body || {};
     console.log("IMPORTANDO COTAS COP | FILTRO: INTERIOR + CLASSE1");
+
+    // ===============================
+    // ✅ DATA ÚNICA DA COLETA (UMA POR EXECUÇÃO)
+    // ===============================
+    const dataColeta = new Date().toISOString().slice(0, 19).replace("T", " ");
 
     // ===============================
     // 1️⃣ BUSCA PAINEL COP
@@ -64,8 +70,6 @@ export const importarCotasCop = async (req, res) => {
     // 2️⃣ HTML → OBJETOS LIMPOS
     // ===============================
     const $ = cheerio.load(`<table>${payload.tableBody}</table>`);
-
-    
     const registros = [];
 
     $("tr").each((_, tr) => {
@@ -82,7 +86,6 @@ export const importarCotasCop = async (req, res) => {
       const mercado = cols[3];
       const classe = cols[4];
 
-
       // ===============================
       // ✅ FILTRO DE NEGÓCIO
       // ===============================
@@ -95,6 +98,7 @@ export const importarCotasCop = async (req, res) => {
 
       let index = 5;
       let diaSeq = 0;
+
       // Cada DIA = 5 colunas
       while (index + 4 < cols.length) {
         const cotaAgenda = Number(cols[index]) || 0;
@@ -106,6 +110,7 @@ export const importarCotasCop = async (req, res) => {
         // ignora dias vazios
         if (cotaAgenda > 0 || qtdOs > 0) {
           registros.push({
+            data_coleta: dataColeta,
             data_ref: payload.dtExport,
             regional,
             cluster,
@@ -135,15 +140,30 @@ export const importarCotasCop = async (req, res) => {
     // ===============================
     // 3️⃣ GRAVAÇÃO NO BANCO
     // ===============================
-    if (dataBase.beginTransaction) await dataBase.beginTransaction();
+    if (dataBase.beginTransaction) {
+      await dataBase.beginTransaction();
+    }
 
     for (const r of registros) {
       await dataBase.query(
         `
         INSERT INTO cop_ocupacao
-        (data_ref, regional, cluster, cidade, mercado, classe, dia,
-         cota_agenda, cota_disp_est, qtd_os, saldo, taxa_ocupacao)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        (
+          data_coleta,
+          data_ref,
+          regional,
+          cluster,
+          cidade,
+          mercado,
+          classe,
+          dia,
+          cota_agenda,
+          cota_disp_est,
+          qtd_os,
+          saldo,
+          taxa_ocupacao
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ON DUPLICATE KEY UPDATE
           cota_agenda   = VALUES(cota_agenda),
           cota_disp_est = VALUES(cota_disp_est),
@@ -152,6 +172,7 @@ export const importarCotasCop = async (req, res) => {
           taxa_ocupacao = VALUES(taxa_ocupacao)
         `,
         [
+          r.data_coleta,
           r.data_ref,
           r.regional,
           r.cluster,
@@ -168,7 +189,9 @@ export const importarCotasCop = async (req, res) => {
       );
     }
 
-    if (dataBase.commit) await dataBase.commit();
+    if (dataBase.commit) {
+      await dataBase.commit();
+    }
 
     // ===============================
     // 4️⃣ RESPOSTA
@@ -176,11 +199,14 @@ export const importarCotasCop = async (req, res) => {
     return res.json({
       message: "Importação concluída",
       filtro: "Regional contém INTERIOR + CLASSE1",
+      data_coleta: dataColeta,
       total_registros: registros.length,
       amostra: registros.slice(0, 5),
     });
   } catch (err) {
-    if (dataBase.rollback) await dataBase.rollback();
+    if (dataBase.rollback) {
+      await dataBase.rollback();
+    }
     console.error("Erro importarCotasCop:", err);
     return res.status(500).json({ error: err.message });
   }
@@ -242,7 +268,6 @@ export const getCotasCop = async (req, res) => {
     // ✅ AGRUPAMENTO: Cidade → Dia
     // ===============================
     const resultado = {};
-
 
     rows.forEach((r) => {
       if (!resultado[r.cidade]) {

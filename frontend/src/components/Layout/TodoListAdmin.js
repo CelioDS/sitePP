@@ -34,10 +34,11 @@ export default function TodoListAdmin() {
       try {
         const res = await axios.get(`${Url}/todo`);
         const ordenado = res.data.sort(
-          (a, b) => (a.ordem ?? 0) - (b.ordem ?? 0),
+          (a, b) => (a.ordem ?? 0) - (b.ordem ?? 0)
         );
-        setDataBase(ordenado);
-        setTarefasOrdenadas(ordenado);
+
+        setDataBase(ordenado.filter((item) => item.ocultar === 0));
+        setTarefasOrdenadas(ordenado.filter((item) => item.ocultar === 0));
       } catch (err) {
         console.error(err);
         toast.error("Erro ao carregar dados.");

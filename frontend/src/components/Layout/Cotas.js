@@ -7,12 +7,12 @@ import ClaroLogo from "../Item-Layout/ClaroLogo";
 import logo from "../IMG/claroLogo.webp";
 import { useRef } from "react";
 import DashboardAnalytics from "./DashCotas";
-
+import Loading from "../Item-Layout/Loading";
 // Lazy Load do Clima para performance
 const WeatherInfo = React.lazy(() => import("../Tools/WeatherInfo"));
-const WeatherInfoFeatures = React.lazy(
-  () => import("../Tools/WeatherInfoFeatures"),
-);
+//const WeatherInfoFeatures = React.lazy(
+//  () => import("../Tools/WeatherInfoFeatures"),
+//);
 
 export default function PainelBucketsPivot() {
   const [dados, setDados] = useState([]);
@@ -39,9 +39,14 @@ export default function PainelBucketsPivot() {
       const diasUnicos = Array.from(
         new Set(lista.flatMap((item) => Object.keys(item.dias || {}))),
       ).sort((a, b) => Number(a.replace("D", "")) - Number(b.replace("D", "")));
-
+      
       setDados(
-        lista.sort((a, b) => a.territorio.localeCompare(b.territorio, "pt-BR")),
+        lista.sort((a, b) =>
+          String(a.territorio || "").localeCompare(
+            String(b.territorio || ""),
+            "pt-BR",
+          ),
+        ),
       );
       setDias(diasUnicos);
     },
@@ -208,8 +213,18 @@ export default function PainelBucketsPivot() {
 
   const cidadesFiltradas = React.useMemo(() => {
     return Array.from(
-      new Set(dadosFiltrados.map((i) => i.cidade).filter(Boolean)),
-    ).sort((a, b) => String(a).localeCompare(String(b), "pt-BR"));
+      new Set(
+        dadosFiltrados
+          .map((i) => i.cidade)
+          .filter(Boolean)
+          .flatMap((cidade) =>
+            String(cidade)
+              .split("|")
+              .map((c) => c.trim())
+              .filter(Boolean),
+          ),
+      ),
+    ).sort((a, b) => a.localeCompare(b, "pt-BR"));
   }, [dadosFiltrados]);
 
   const territoriosFiltrados = React.useMemo(() => {
@@ -471,8 +486,12 @@ export default function PainelBucketsPivot() {
               </div>
             </aside>
           </div>
-          {loading || dadosFiltrados?.length === 0 ? (
-            <p>Carregando painel...</p>
+          {console.log(dadosFiltrados)}
+          {loading || dadosFiltrados?.length <= 0 ? (
+            <>
+              <Loading />
+              <p style={{ textAlign: "center" }}>Atualizando painel...</p>
+            </>
           ) : (
             <div className={Style["table-container"]}>
               <table>
@@ -536,7 +555,7 @@ export default function PainelBucketsPivot() {
                           {status}
                         </td>
                         <td>{item.escala_tecnica}</td>
-                        <td>{item.qtd}</td>
+                        <td>{item.qtd || 0}</td>
                         {dias.map((dia) => {
                           const d = item.dias[dia];
                           const pClass =

@@ -45,8 +45,6 @@ export default function TodoListUser() {
 
   const Url = process.env.REACT_APP_API_URL || "http://localhost:8000";
 
-
-  
   // Normaliza strings removendo acentos e padronizando para minúsculas
   function normalize(str) {
     return (str ?? "")
@@ -123,7 +121,9 @@ export default function TodoListUser() {
       try {
         const res = await axios.get(`${Url}/todo`);
 
-        const ordenado = res.data.sort((a, b) => a.ordem - b.ordem);
+        const ordenado = res.data
+          .sort((a, b) => a.ordem - b.ordem)
+          .filter((item) => item.ocultar === 0);
 
         setDataBase(ordenado);
       } catch (err) {
@@ -422,10 +422,13 @@ export default function TodoListUser() {
     setIsSubmit(true);
 
     try {
-      await axios.delete(`${Url}/todo/${id}`, {}).then(({ data }) => {
-        setDataBase((prev) => (prev || []).filter((item) => item.id !== id));
-        toast.success(data?.message ?? "Tarefa excluída!");
+      await axios.patch(`${Url}/todo/${id}`, {
+        ocultar: 1,
       });
+
+      toast.success("Tarefa excluída!");
+
+      setDataBase((prev) => (prev || []).filter((item) => item.id !== id));
     } catch (err) {
       toast.error(err.response?.data || err.message);
     } finally {
@@ -869,20 +872,16 @@ export default function TodoListUser() {
                                     aria-label="Excluir tarefa"
                                     title="Excluir tarefa"
                                     className={Style.btnDelete}
-                                    onClick={() =>
-                                      setdeleteTarefa((prev) => !prev)
-                                    }
+                                    onClick={() => setdeleteTarefa(tarefa.id)}
                                   >
                                     <BsTrashFill />
                                   </button>
                                 </td>
 
-                                {!!deleteTarefa && (
+                                {deleteTarefa === tarefa.id && (
                                   <Modal
-                                    cancelar={() =>
-                                      setdeleteTarefa((prev) => !prev)
-                                    }
-                                    confirmar={() => handleDelete(tarefa.id)}
+                                    cancelar={() => setdeleteTarefa(null)}
+                                    confirmar={() => handleDelete(deleteTarefa)}
                                     titulo={"Deletar tarefa?"}
                                     texto={`Deseja deletar a essa tarefa?`}
                                   />
@@ -1154,17 +1153,15 @@ export default function TodoListUser() {
                                           className={Style.btnDelete}
                                           key={et.id ?? i}
                                           disabled={et.concluido === 1}
-                                          onClick={() =>
-                                            setdeleteEtapas((prev) => !prev)
-                                          }
+                                          onClick={() => setdeleteEtapas(et.id)}
                                         >
                                           <BsTrashFill />
                                         </button>
 
-                                        {!!deleteEtapas && (
+                                        {deleteEtapas === et.id && (
                                           <Modal
                                             cancelar={() => {
-                                              setdeleteEtapas((prev) => !prev);
+                                              setdeleteEtapas(null);
                                             }}
                                             confirmar={(e) =>
                                               handleDeleteEtapas(et)
