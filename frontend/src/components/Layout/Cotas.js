@@ -1,15 +1,24 @@
-import React, { useEffect, useState, useCallback, Suspense } from "react";
+import React, {
+  useEffect,
+  useState,
+  useCallback,
+  Suspense,
+  useMemo,
+} from "react";
 import axios from "axios";
 import Style from "./Cotas.module.css";
 import MiniSparkline from "../Tools/MiniSparkline";
-import { BsCircleFill } from "react-icons/bs";
+import { BsCircleFill, BsEyeFill, BsEyeSlashFill } from "react-icons/bs";
 import ClaroLogo from "../Item-Layout/ClaroLogo";
 import logo from "../IMG/claroLogo.webp";
 import { useRef } from "react";
 import DashboardAnalytics from "./DashCotas";
 import Loading from "../Item-Layout/Loading";
+import { ImportarCotas } from "../Tools/importarCotasCop";
+
 // Lazy Load do Clima para performance
 const WeatherInfo = React.lazy(() => import("../Tools/WeatherInfo"));
+
 //const WeatherInfoFeatures = React.lazy(
 //  () => import("../Tools/WeatherInfoFeatures"),
 //);
@@ -19,7 +28,6 @@ export default function PainelBucketsPivot() {
   const [dias, setDias] = useState([]);
   const tableRef = useRef(null);
   const [loading, setLoading] = useState(true);
-
   const [cidadeFiltro, setCidadeFiltro] = useState("TODAS");
   const [territorioFiltro, setTerritorioFiltro] = useState("TODAS");
   const [alarmeFiltro, setAlarmeFiltro] = useState("TODOS");
@@ -27,31 +35,12 @@ export default function PainelBucketsPivot() {
   const [dddFiltro, setdddFiltro] = useState("TODOS");
   const [search, setSearch] = useState("");
   const [handleCotas, setHandleCotas] = useState(false);
+  const [hidden, setHidden] = useState(0);
 
   const Url = process.env.REACT_APP_API_URL || "http://localhost:8000";
 
   const CACHE_KEY = "cotas_painel_cache";
   const CACHE_TIME = 5 * 60 * 1000; // 5 Minutos
-
-  // Função para processar os dados e organizar os filtros
-  const organizarDados = useCallback(
-    (lista) => {
-      const diasUnicos = Array.from(
-        new Set(lista.flatMap((item) => Object.keys(item.dias || {}))),
-      ).sort((a, b) => Number(a.replace("D", "")) - Number(b.replace("D", "")));
-      
-      setDados(
-        lista.sort((a, b) =>
-          String(a.territorio || "").localeCompare(
-            String(b.territorio || ""),
-            "pt-BR",
-          ),
-        ),
-      );
-      setDias(diasUnicos);
-    },
-    [setDias, setDados],
-  );
 
   const ultimaAtualizacao = React.useMemo(() => {
     if (!dados || dados.length === 0) return null;
@@ -61,6 +50,26 @@ export default function PainelBucketsPivot() {
       .filter(Boolean)
       .sort((a, b) => new Date(b) - new Date(a))[0];
   }, [dados]);
+  // Função para processar os dados e organizar os filtros
+  const organizarDados = useCallback(
+    (lista) => {
+      const diasUnicos = Array.from(
+        new Set(lista.flatMap((item) => Object.keys(item.dias || {}))),
+      ).sort((a, b) => Number(a.replace("D", "")) - Number(b.replace("D", "")));
+
+      setDados(
+        lista.sort((a, b) =>
+          String(a.territorio || "").localeCompare(
+            String(b.territorio || ""),
+            "pt-BR",
+          ),
+        ),
+      );
+      setDias(diasUnicos);
+      ImportarCotas(Url, ultimaAtualizacao);
+    },
+    [setDias, setDados, Url, ultimaAtualizacao],
+  );
 
   const addDaysAndFormat = (baseDate, daysToAdd) => {
     if (!baseDate) return "--";
@@ -178,7 +187,7 @@ export default function PainelBucketsPivot() {
       (item) => segmentoFiltro === "TODOS" || item.mercado === segmentoFiltro,
     )
     .filter((item) => {
-      const termo = search.toUpperCase();
+      const termo = search.toUpperCase().trim();
       return (
         item.cidade.toUpperCase().includes(termo) ||
         item.mercado.toUpperCase().includes(termo)
@@ -247,6 +256,29 @@ export default function PainelBucketsPivot() {
 
   const backlogTotal = React.useMemo(
     () => dadosFiltrados.reduce((total, item) => total + Number(item.qtd), 0),
+    [dadosFiltrados],
+  );
+
+  const totalSemAgenda = useMemo(
+    () =>
+      dadosFiltrados.reduce(
+        (total, item) => total + Number(item.sem_agenda),
+        0,
+      ),
+    [dadosFiltrados],
+  );
+
+  const totalAgendaFutura = useMemo(
+    () =>
+      dadosFiltrados.reduce(
+        (total, item) => total + Number(item.agenda_futura),
+        0,
+      ),
+    [dadosFiltrados],
+  );
+
+  const totalRota = useMemo(
+    () => dadosFiltrados.reduce((total, item) => total + Number(item.rota), 0),
     [dadosFiltrados],
   );
 
@@ -486,7 +518,6 @@ export default function PainelBucketsPivot() {
               </div>
             </aside>
           </div>
-          {console.log(dadosFiltrados)}
           {loading || dadosFiltrados?.length <= 0 ? (
             <>
               <Loading />
@@ -494,14 +525,29 @@ export default function PainelBucketsPivot() {
             </>
           ) : (
             <div className={Style["table-container"]}>
-              <table>
+              <table className={`${hidden ? Style.hidden : ""}`}>
                 <thead>
                   <tr>
                     <th>Cidade</th>
                     <th>Territorio</th>
                     <th>Alarme Agenda</th>
                     <th>Escala Tecnica</th>
-                    <th>Backlog </th>
+                    <th className={Style.btnHidden}>
+                      <h4>Backlog</h4>
+                      <button
+                        className={Style.btnHidden}
+                        onClick={() => setHidden((prev) => !prev)}
+                      >
+                        {hidden ? <BsEyeSlashFill /> : <BsEyeFill />}
+                      </button>
+                    </th>
+                    {!!hidden && (
+                      <>
+                        <th>Sem Agenda</th>
+                        <th>Agenda Futura</th>
+                        <th>rota</th>
+                      </>
+                    )}
                     {dias.map((dia, index) => (
                       <th key={dia} colSpan={3}>
                         {addDaysAndFormat(ultimaAtualizacao, index)}
@@ -515,6 +561,14 @@ export default function PainelBucketsPivot() {
                     <th></th>
                     <th></th>
                     <th>Total {backlogTotal}</th>
+
+                    {!!hidden && (
+                      <>
+                        <th>Total {totalSemAgenda}</th>
+                        <th>Total {totalAgendaFutura}</th>
+                        <th>Total {totalRota}</th>
+                      </>
+                    )}
                     {dias.map((dia) => (
                       <React.Fragment key={dia}>
                         <th>Cotas {totaisPorDia[dia]?.cotas}</th>
@@ -554,8 +608,16 @@ export default function PainelBucketsPivot() {
                         >
                           {status}
                         </td>
+
                         <td>{item.escala_tecnica}</td>
                         <td>{item.qtd || 0}</td>
+                        {!!hidden && (
+                          <>
+                            <td>{item.sem_agenda ?? 0}</td>
+                            <td>{item.agenda_futura ?? 0}</td>
+                            <td>{item.rota ?? 0}</td>
+                          </>
+                        )}
                         {dias.map((dia) => {
                           const d = item.dias[dia];
                           const pClass =

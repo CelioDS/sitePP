@@ -189,6 +189,56 @@ export const importarCotasCop = async (req, res) => {
       );
     }
 
+    // update de backlog / agenda
+
+    await dataBase.query(`
+  UPDATE cop_ocupacao a
+LEFT JOIN (
+    SELECT
+        TRIM(p.cidades_bucket) AS cidade,
+        p.DDD,
+        p.subcluster,
+        p.território     AS territorio,
+        p.escala_técnica AS escala_tecnica,
+        SUM(p.QTD) AS QTD_BACKLOG,
+        SUM(CASE
+            WHEN p.grupo_agenda = 'AGENDA FUTURA' THEN p.QTD
+            ELSE 0
+        END) AS agenda_futura,
+        SUM(CASE
+            WHEN p.grupo_agenda = 'SEM AGENDA' THEN p.QTD
+            ELSE 0
+        END) AS sem_agenda,
+        SUM(CASE
+            WHEN p.grupo_agenda = 'ROTA' THEN p.QTD
+            ELSE 0
+        END) AS rota
+    FROM tbl_backlog_painel p
+    WHERE p.data = (
+        SELECT MAX(x.data)
+        FROM tbl_backlog_painel x
+    )
+    GROUP BY
+        TRIM(p.cidades_bucket),
+        p.DDD,
+        p.subcluster,
+        p.território,
+        p.escala_técnica
+) b
+    ON TRIM(a.cidade) = b.cidade
+SET
+    a.ddd            = b.DDD,
+    a.subcluster     = b.subcluster,
+    a.territorio     = b.territorio,
+    a.escala_tecnica = b.escala_tecnica,
+    a.qtd            = b.QTD_BACKLOG,
+    a.sem_agenda     = b.sem_agenda,
+    a.agenda_futura  = b.agenda_futura,
+    a.rota  = b.rota;
+      `);
+
+    //resposta
+
     if (dataBase.commit) {
       await dataBase.commit();
     }
@@ -277,6 +327,9 @@ export const getCotasCop = async (req, res) => {
           cluster: r.cluster,
           cidade: r.cidade,
           mercado: r.mercado,
+          sem_agenda: r.sem_agenda,
+          agenda_futura: r.agenda_futura,
+          rota: r.rota,
           classe: r.classe,
           subcluster: r.subcluster,
           escala_tecnica: r.escala_tecnica,
