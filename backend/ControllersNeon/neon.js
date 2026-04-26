@@ -9,7 +9,7 @@ dotenv.config();
 // GET: lista todos
 export const getDBLoginNeon = async (_, res) => {
   try {
-    const query = "SELECT * FROM usuariosAgen";
+    const query = "SELECT * FROM usuariosagen";
     const result = await neonDB.query(query); // Postgres retorna objeto
 
     return res.status(200).json(result.rows); // Dados em .rows
@@ -22,7 +22,7 @@ export const getDBLoginNeon = async (_, res) => {
 // GET: busca por ID
 export const getDBLoginIDNeon = async (req, res) => {
   try {
-    const query = "SELECT * FROM usuariosAgen WHERE id = $1"; // $1 em vez de ?
+    const query = "SELECT * FROM usuariosagen WHERE id = $1"; // $1 em vez de ?
     const result = await neonDB.query(query, [req.params.id]);
     
     return res.status(200).json(result.rows);
@@ -46,7 +46,7 @@ export const setDBLoginNeon = async (req, res) => {
     // No Postgres, colunas com letras maiúsculas devem estar entre aspas duplas "" se criadas assim
     // E os valores usam $1, $2, $3...
     const query = `
-      INSERT INTO usuariosAgen (login, nome, senha, canal, mis, admin, mis_admin, ultimo_acesso, ocultar)
+      INSERT INTO usuariosagen (login, nome, senha, canal, mis, admin, mis_admin, ultimo_acesso, ocultar)
       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
       RETURNING id
     `;
@@ -76,14 +76,14 @@ export const updateDBLoginNeon = async (req, res) => {
     if (senha) {
       const hashed = await bcrypt.hash(senha, 10);
       sql = `
-        UPDATE usuariosAgen
+        UPDATE usuariosagen
            SET login = $1, nome = $2, senha = $3, canal = $4, mis = $5, admin = $6, ultimo_acesso = $7
          WHERE id = $8
       `;
       params = [login, nome, hashed, canal, mis, admin, ultimo_acesso, id];
     } else {
       sql = `
-        UPDATE usuariosAgen
+        UPDATE usuariosagen
            SET login = $1, nome = $2, canal = $3, mis = $4, admin = $5, ultimo_acesso = $6
          WHERE id = $7
       `;
@@ -107,7 +107,7 @@ export const updateDBLoginNeon = async (req, res) => {
 export const deleteDBLoginNeon = async (req, res) => {
   try {
     const { id } = req.params;
-    const query = "DELETE FROM usuariosAgen WHERE id = $1";
+    const query = "DELETE FROM usuariosagen WHERE id = $1";
     const result = await neonDB.query(query, [id]);
 
     if (result.rowCount === 0) {

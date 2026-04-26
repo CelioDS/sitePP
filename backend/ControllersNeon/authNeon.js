@@ -18,7 +18,7 @@ export const LoginDBNeon = async (req, res) => {
     // 1) Busca pelo login (Postgres usa $1 e os dados vêm em result.rows)
     const query = `
       SELECT id, login, nome, senha AS senha_hash, admin, canal, mis, mis_admin 
-      FROM usuariosAgen 
+      FROM usuariosagen 
       WHERE login = $1 
       LIMIT 1
     `;
