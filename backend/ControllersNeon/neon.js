@@ -120,3 +120,66 @@ export const deleteDBLoginNeon = async (req, res) => {
     return res.status(500).json({ error: "Erro ao deletar usuário no Neon." });
   }
 };
+
+
+
+export const patchDBLoginNeon = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!id) {
+      return res.status(400).json({ error: "ID não informado!" });
+    }
+
+    const allowed = [
+      "login",
+      "nome",
+      "canal",
+      "mis",
+      "admin",
+      "ultimo_acesso",
+      "ocultar",
+    ];
+
+    const setClauses = [];
+    const params = [];
+    let placeholderCount = 1; // Contador para os placeholders ($1, $2...)
+
+    for (const key of allowed) {
+      if (Object.prototype.hasOwnProperty.call(req.body, key)) {
+        // No Postgres, removemos as crases (`) e usamos aspas duplas (") se necessário, 
+        // ou apenas o nome da coluna se for minúsculo.
+        setClauses.push(`${key} = $${placeholderCount}`);
+        params.push(req.body[key]);
+        placeholderCount++;
+      }
+    }
+
+    if (setClauses.length === 0) {
+      return res.status(400).json({ 
+        error: "Nenhum campo válido para atualizar!" 
+      });
+    }
+
+    // O ID será o último parâmetro na ordem do array params
+    const sql = `
+      UPDATE usuariosagen
+      SET ${setClauses.join(", ")}
+      WHERE id = $${placeholderCount}
+    `;
+    
+    params.push(id);
+
+    const result = await neonDB.query(sql, params);
+
+    // No Postgres usamos rowCount em vez de affectedRows
+    if (result.rowCount === 0) {
+      return res.status(404).json({ error: "Usuário não encontrado no Neon!" });
+    }
+
+    return res.status(200).json({ data: "Último acesso ok (Neon)" });
+  } catch (err) {
+    console.error("❌ Erro patchDBLoginNeon:", err.message);
+    return res.status(500).json({ error: "Erro ao atualizar via Patch no Neon" });
+  }
+};

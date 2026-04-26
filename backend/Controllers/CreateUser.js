@@ -191,7 +191,7 @@ export const patchDBLogin = async (req, res) => {
     if (setClauses.length === 0) {
       return res
         .status(400)
-        .jsohn({ error: "patchDBLogin nenhum campo valido para atualizar!" });
+        .json({ error: "patchDBLogin nenhum campo valido para atualizar!" });
     }
 
     const sql = `
