@@ -3,6 +3,7 @@ import express from "express";
 import helmet from "helmet";
 import rateLimit from "express-rate-limit";
 import userRoutes from "./Routes/router.js";
+import userRoutesNeon from "./Routes/routerNeon.js";
 import dotenv from "dotenv";
 
 dotenv.config();
@@ -12,7 +13,6 @@ const app = express();
 //cotas
 
 // ✅ ESSENCIAL
-app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // ----------------------
@@ -27,6 +27,7 @@ const limiter = rateLimit({
   message: "Muitas requisições deste IP, tente novamente mais tarde.",
 });
 app.use("/login", limiter);
+app.use("/neon/login", limiter);
 
 // ----------------------
 // 🔧 Middlewares essenciais
@@ -68,6 +69,7 @@ app.use(
 // 📌 Rotas
 // ----------------------
 app.use("/", userRoutes);
+app.use("/neon", userRoutesNeon);
 
 // ----------------------
 // 🚀 Servidor

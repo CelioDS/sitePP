@@ -9,7 +9,6 @@ export default function TodoList() {
   const [view, setView] = useState(0);
 
   const login = userData?.login;
-  const misAdmin = userData?.mis_admin;
   const nome = userData?.nome;
   //const adminMis = userData?.adminMis;
 

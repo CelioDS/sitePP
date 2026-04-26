@@ -61,10 +61,10 @@ import {
   setExcelExclusivos,
 } from "../Controllers/ExcelUpload.js";
 
+
 const router = express.Router();
 
-/** */
-
+/*------------------ COTAS ------------------*/
 router.get("/importar-cotas-cop", importarCotasCop);
 router.get("/cotas-cop", getCotasCop);
 

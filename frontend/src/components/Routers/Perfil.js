@@ -54,10 +54,11 @@ export default function Perfil() {
 
   return (
     <Container>
+      {loading && <h1>corrigir {console.log(perfilData)}</h1>}
       <RenameTitle initialTitle={"P&P - Perfil"} />
       <main className={Style.perfil}>
         {admin && mis ? (
-          <PerfilAdmin Url={Url} login={login}/>
+          <PerfilAdmin Url={Url} login={login} />
         ) : (
           <PerfilUsuario Url={Url} />
         )}

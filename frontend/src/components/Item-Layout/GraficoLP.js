@@ -17,7 +17,7 @@ export default function RelatorioUser({ Url }) {
   const [userData, setUserData] = useState(null);
   const [dataBase, setDataBase] = useState([]);
 
-  const [statusData, setStatusData] = useState([]);
+   const [statusData, setStatusData] = useState([]);
 
   const [isLoading, setIsLoading] = useState(true);
 
@@ -522,6 +522,7 @@ export default function RelatorioUser({ Url }) {
               icon={<FaCity size={26} color="#000000" />}
             />
           </section>
+          {console.log(statusData)}
 
           <section className={Style.graficoaside}>
             {/* Barras Agrupadas */}
