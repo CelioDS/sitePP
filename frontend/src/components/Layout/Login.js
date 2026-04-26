@@ -37,7 +37,7 @@ export default function Login({ setPermission, setLoginBD }) {
 
     try {
       setText("Entrando...");
-      const response = await axios.post(`${Url}/auth/login`, { login, senha });
+      const response = await axios.post(`${Url}/neon/auth/login`, { login, senha });
 
       if (response.data?.token) {
         const { user, token } = response.data;
@@ -46,7 +46,7 @@ export default function Login({ setPermission, setLoginBD }) {
         localStorage.setItem("permission", true);
         setLoginBD(user.login);
 
-        await axios.patch(`${Url}/users/${user.id}`, {
+        await axios.patch(`${Url}/neon/users/${user.id}`, {
           ultimo_acesso: getDateTimeSaoPaulo(),
         });
 

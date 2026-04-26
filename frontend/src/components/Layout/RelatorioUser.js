@@ -4,7 +4,6 @@ import GraficoVarejo from "../Item-Layout/GraficoVarejo";
 import GraficoPAP from "../Item-Layout/GraficoPAP";
 import ValidarToken from "../Tools/ValidarToken";
 import { useState, useEffect } from "react";
-import Teste from "../Item-Layout/teste";
 
 export default function RelatorioUser({ Url }) {
   const [userData, setUserData] = useState(null);
