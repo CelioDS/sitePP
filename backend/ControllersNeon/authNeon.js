@@ -61,7 +61,6 @@ export const LoginDBNeon = async (req, res) => {
       process.env.JWT_SECRET,
       { expiresIn: "1h" }
     );
-
     // 4) Retorna usuário sem a senha
     return res.status(200).json({
       success: true,
