@@ -157,19 +157,18 @@ export default function NavBar({ setPermission, permission }) {
             `}
         >
           {/* Use arrow function no onClick para passar a string correta se desejar */}
-
-          <li>
-            <Link
-              onClick={() => openMenu("Home")}
-              style={linkAtivo === "Home" ? { color: colorLink } : {}}
-              to="/"
-            >
-              Home
-            </Link>
-          </li>
-
           {canal !== "regional" && (
             <>
+              <li>
+                <Link
+                  onClick={() => openMenu("Home")}
+                  style={linkAtivo === "Home" ? { color: colorLink } : {}}
+                  to="/"
+                >
+                  Home
+                </Link>
+              </li>
+
               <li>
                 <Link
                   onClick={() => openMenu("Carteira")}
@@ -230,7 +229,7 @@ export default function NavBar({ setPermission, permission }) {
             </div>
           </li>
 
-          {permission && (
+          {   canal !== "regional" &&  permission && (
             <li>
               <Link
                 className={styleExt.perfil}

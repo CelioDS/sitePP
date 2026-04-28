@@ -7,6 +7,12 @@
   background-color: #f5f6fa;
 }
 
+.main .sectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
 /* =========================
    CONTAINER COM SCROLL
 ========================= */

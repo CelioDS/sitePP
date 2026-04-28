@@ -24,6 +24,7 @@ const WeatherInfo = React.lazy(() => import("../Tools/WeatherInfo"));
 
 export default function PainelBucketsPivot() {
   const [dados, setDados] = useState([]);
+  const [filtros, setFiltros] = useState(1);
   const [dias, setDias] = useState([]);
   const tableRef = useRef(null);
   const [loading, setLoading] = useState(true);
@@ -122,7 +123,7 @@ export default function PainelBucketsPivot() {
       }
 
       try {
-        const res = await axios.get(`${Url}/neon/cotas-cop`);
+        const res = await axios.get(`${Url}/cotas-cop`);
         const lista = Object.values(res.data || {});
 
         localStorage.setItem(
@@ -433,114 +434,123 @@ export default function PainelBucketsPivot() {
 
   return (
     <main className={Style.main} ref={tableRef}>
-      <button onClick={() => setHandleCotas((prev) => !prev)}>
-        {handleCotas ? "relatorio" : "tabela"}
-      </button>
+      <section className={Style.sectionHeader}>
+        <button onClick={() => setHandleCotas((prev) => !prev)}>
+          {handleCotas ? "relatorio" : "tabela"}
+        </button>
+
+        <button onClick={() => setFiltros((prev) => !prev)}>
+          {" "}
+          {filtros ? "Desativar" : "Ativar"} Filtros
+        </button>
+      </section>
       {!!handleCotas ? (
         <DashboardAnalytics dados={dadosFiltrados} dias={dias} />
       ) : (
         <>
-          <div className={Style.filtros}>
-            <div>
-              <label>Cidade {cidadesFiltradas.length}</label>
-              <select
-                value={cidadeFiltro}
-                onChange={(e) => setCidadeFiltro(e.target.value)}
+          {!!filtros && (
+            <div className={Style.filtros}>
+              <div>
+                <label>Cidade {cidadesFiltradas.length}</label>
+                <select
+                  value={cidadeFiltro}
+                  onChange={(e) => setCidadeFiltro(e.target.value)}
+                >
+                  <option value="TODAS">Todas</option>
+                  {cidadesFiltradas.map((c) => (
+                    <option key={c} value={c}>
+                      {c}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label>Pesquisar</label>
+                <input
+                  type="text"
+                  placeholder="Buscar..."
+                  value={search}
+                  onChange={(e) => {
+                    setSearch(e.target.value);
+                    handleResetFilters(true);
+                  }}
+                />
+              </div>
+              <div>
+                <label>Territorio {territoriosFiltrados.length}</label>
+                <select
+                  value={territorioFiltro}
+                  onChange={(e) => setTerritorioFiltro(e.target.value)}
+                >
+                  <option value="TODAS">Todas</option>
+                  {territoriosFiltrados.map((c) => (
+                    <option key={c} value={c}>
+                      {c}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label>Segmento {segmentosFiltrados.length}</label>
+                <select
+                  value={segmentoFiltro}
+                  onChange={(e) => setSegmentoFiltro(e.target.value)}
+                >
+                  <option value="TODOS">Todos</option>
+                  {segmentosFiltrados.map((c) => (
+                    <option key={c} value={c}>
+                      {c}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label>DDD {dddFiltrados.length}</label>
+                <select
+                  value={dddFiltro}
+                  onChange={(e) => setdddFiltro(e.target.value)}
+                >
+                  <option value="TODOS">Todos</option>
+                  {dddFiltrados.map((s) => (
+                    <option key={s} value={s}>
+                      {s}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label>Alarme</label>
+                <select
+                  value={alarmeFiltro}
+                  onChange={(e) => setAlarmeFiltro(e.target.value)}
+                >
+                  <option value="TODOS">Todos</option>
+                  <option value="24H">24H</option>
+                  <option value="48H">48H</option>
+                  <option value="72H">72H</option>
+                  <option value="96H">96H</option>
+                  <option value=">96H">&gt;96H</option>
+                </select>
+              </div>
+
+              <button
+                className={Style.btnClear}
+                onClick={() => handleResetFilters(false)}
               >
-                <option value="TODAS">Todas</option>
-                {cidadesFiltradas.map((c) => (
-                  <option key={c} value={c}>
-                    {c}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label>Pesquisar</label>
-              <input
-                type="text"
-                placeholder="Buscar..."
-                value={search}
-                onChange={(e) => {
-                  setSearch(e.target.value);
-                  handleResetFilters(true);
+                Limpar Filtros
+              </button>
+              <button
+                className={Style.btnClear}
+                onClick={() => {
+                  handleDownloadExcel();
+                  handleDownloadHTML();
                 }}
-              />
-            </div>
-            <div>
-              <label>Territorio {territoriosFiltrados.length}</label>
-              <select
-                value={territorioFiltro}
-                onChange={(e) => setTerritorioFiltro(e.target.value)}
               >
-                <option value="TODAS">Todas</option>
-                {territoriosFiltrados.map((c) => (
-                  <option key={c} value={c}>
-                    {c}
-                  </option>
-                ))}
-              </select>
+                Download
+              </button>
             </div>
-            <div>
-              <label>Segmento {segmentosFiltrados.length}</label>
-              <select
-                value={segmentoFiltro}
-                onChange={(e) => setSegmentoFiltro(e.target.value)}
-              >
-                <option value="TODOS">Todos</option>
-                {segmentosFiltrados.map((c) => (
-                  <option key={c} value={c}>
-                    {c}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label>DDD {dddFiltrados.length}</label>
-              <select
-                value={dddFiltro}
-                onChange={(e) => setdddFiltro(e.target.value)}
-              >
-                <option value="TODOS">Todos</option>
-                {dddFiltrados.map((s) => (
-                  <option key={s} value={s}>
-                    {s}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label>Alarme</label>
-              <select
-                value={alarmeFiltro}
-                onChange={(e) => setAlarmeFiltro(e.target.value)}
-              >
-                <option value="TODOS">Todos</option>
-                <option value="24H">24H</option>
-                <option value="48H">48H</option>
-                <option value="72H">72H</option>
-                <option value="96H">96H</option>
-                <option value=">96H">&gt;96H</option>
-              </select>
-            </div>
-
-            <button
-              className={Style.btnClear}
-              onClick={() => handleResetFilters(false)}
-            >
-              Limpar Filtros
-            </button>
-            <button
-              className={Style.btnClear}
-              onClick={() => {
-                handleDownloadExcel();
-                handleDownloadHTML();
-              }}
-            >
-              Download
-            </button>
-          </div>
+          )}
           <div
             className={Style.cards}
             style={{
