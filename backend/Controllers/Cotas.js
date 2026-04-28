@@ -1,7 +1,7 @@
 import axios from "axios";
 import * as cheerio from "cheerio";
 import { dataBase } from "../DataBase/dataBase.js";
-import { dataBaseNeon } from "../DataBase/dataBaseNeon.js"; // Adicionado
+import { dataBaseNeon } from "../DataBase/neonDatabase.js"; 
 
 const MAPA_TABELAS = {
   Cotas: "Cotas",
