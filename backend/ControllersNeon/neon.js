@@ -1,10 +1,22 @@
 import { neonDB } from "../DataBase/neonDatabase.js";
+import { dataBase } from "../DataBase/dataBase.js";
 import dotenv from "dotenv";
 import bcrypt from "bcrypt";
 import axios from "axios";
 import * as cheerio from "cheerio";
 
 dotenv.config();
+
+// --------------------- funciton
+
+function brDateTime(data) {
+  if (!data) return null;
+
+  const [datePart, timePart] = data.split(", ");
+  const [day, month, year] = datePart.split("/");
+
+  return `${year}-${month}-${day} ${timePart}`;
+}
 
 // ------------------ LOGIN NEON (POSTGRES) -------------------
 
@@ -165,122 +177,87 @@ export const patchDBLoginNeon = async (req, res) => {
 };
 
 // ------------------ IMPORTAÇÃO COTAS (POSTGRES) -------------------
-
 export const importarCotasCop = async (req, res) => {
   try {
-    const dataColeta = new Date().toISOString().slice(0, 19).replace("T", " ");
-    const response = await axios.get(
-      "http://10.35.0.39/painelocupacaocop/inicio",
-      {
-        headers: { Cookie: "JSESSIONID=xxxx" },
-      },
-    );
-
-    const payload = JSON.parse(response.data);
-    if (!payload?.tableBody)
-      return res.status(500).json({ error: "Resposta inválida do painel COP" });
-
-    const $ = cheerio.load(`<table>${payload.tableBody}</table>`);
-    const registros = [];
-
-    $("tr").each((_, tr) => {
-      const cols = $(tr)
-        .find("td")
-        .map((_, td) => $(td).text().trim())
-        .get();
-      if (cols.length < 10) return;
-
-      const regional = cols[0].replace("Regional", "").trim();
-      if (
-        !regional.toUpperCase().includes("INTERIOR") ||
-        cols[4].toUpperCase() !== "CLASSE1"
+    const queryUltimoLote = `
+      SELECT *
+      FROM cop_ocupacao
+      WHERE data_coleta = (
+        SELECT MAX(data_coleta)
+        FROM cop_ocupacao
       )
-        return;
-
-      let index = 5;
-      let diaSeq = 1;
-      while (index + 4 < cols.length) {
-        const cotaAgenda = Number(cols[index]) || 0;
-        const qtdOs = Number(cols[index + 2]) || 0;
-
-        if (cotaAgenda > 0 || qtdOs > 0) {
-          registros.push([
-            payload.dtExport,
-            regional,
-            cols[1],
-            cols[2],
-            cols[3],
-            cols[4],
-            cotaAgenda,
-            Number(cols[index + 1]) || 0,
-            Number(cols[index + 4].replace("%", "")) || 0,
-            dataColeta,
-            `D${diaSeq}`,
-            cols[index + 2],
-            cols[index + 3],
-          ]);
-        }
-        index += 5;
-        diaSeq++;
-      }
-    });
-
-    if (registros.length === 0)
-      return res.status(400).json({ error: "Nenhum registro encontrado." });
-
-    await neonDB.query("DELETE FROM cop_ocupacao");
-    // Inserção em Massa no Postgres (Lógica de Upsert)
-    // Nota: O constraint 'uk_cop' deve existir na tabela conforme o SQL enviado antes.
-    for (const r of registros) {
-      const queryInsert = `
-        INSERT INTO cop_ocupacao 
-        (data_ref, regional, cluster, cidade, mercado, classe, cota_agenda, cota_disp_est, taxa_ocupacao, data_coleta, dia, qtd_os, saldo)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
-        ON CONFLICT (data_ref, regional, cidade, classe, dia) 
-        DO UPDATE SET
-          cota_agenda = EXCLUDED.cota_agenda,
-          cota_disp_est = EXCLUDED.cota_disp_est,
-          qtd_os = EXCLUDED.qtd_os,
-          saldo = EXCLUDED.saldo,
-          taxa_ocupacao = EXCLUDED.taxa_ocupacao
-      `;
-      await neonDB.query(queryInsert, r);
-    }
-
-    // UPDATE DE BACKLOG (Sintaxe Postgres: UPDATE ... FROM)
-    const queryBacklog = `
-      UPDATE cop_ocupacao a
-      SET 
-          ddd = b.ddd,
-          subcluster = b.subcluster,
-          territorio = b.territorio,
-          escala_tecnica = b.escala_tecnica,
-          qtd = b.qtd_backlog,
-          sem_agenda = b.sem_agenda,
-          agenda_futura = b.agenda_futura,
-          rota = b.rota
-      FROM (
-          SELECT 
-              TRIM(p.cidades_bucket) AS cidade, p.ddd, p.subcluster, p.território AS territorio,
-              p.escala_técnica AS escala_tecnica, SUM(p.qtd) AS qtd_backlog,
-              SUM(CASE WHEN p.grupo_agenda = 'AGENDA FUTURA' THEN p.qtd ELSE 0 END) AS agenda_futura,
-              SUM(CASE WHEN p.grupo_agenda = 'SEM AGENDA' THEN p.qtd ELSE 0 END) AS sem_agenda,
-              SUM(CASE WHEN p.grupo_agenda = 'ROTA' THEN p.qtd ELSE 0 END) AS rota
-          FROM tbl_backlog_painel p
-          WHERE p.data = (SELECT MAX(x.data) FROM tbl_backlog_painel x)
-          GROUP BY TRIM(p.cidades_bucket), p.ddd, p.subcluster, p.território, p.escala_técnica
-      ) b
-      WHERE TRIM(a.cidade) = b.cidade;
     `;
 
-    await neonDB.query(queryBacklog);
+    const [rows] = await dataBase.query(queryUltimoLote);
+
+    console.log("Linhas encontradas:", rows.length);
+
+    if (rows.length === 0) {
+      return res
+        .status(404)
+        .json({ error: "Nenhum registro local encontrado." });
+    }
+
+    // ⚠️ Início da transação para evitar carga parcial
+    await neonDB.query("BEGIN");
+
+    // Limpa tabela no Neon
+    await neonDB.query("TRUNCATE cop_ocupacao");
+
+    const queryInsertNeon = `
+      INSERT INTO cop_ocupacao (
+        data_ref, regional, cluster, cidade, mercado, classe,
+        cota_agenda, cota_disp_est, taxa_ocupacao,
+        data_coleta, dia, qtd_os, saldo, qtd, ddd,
+        escala_tecnica, subcluster, territorio,
+        sem_agenda, agenda_futura, rota
+      )
+      VALUES (
+        $1,$2,$3,$4,$5,$6,
+        $7,$8,$9,
+        $10,$11,$12,$13,$14,$15,
+        $16,$17,$18,
+        $19,$20,$21
+      )
+    `;
+
+    for (const r of rows) {
+      await neonDB.query(queryInsertNeon, [
+        brDateTime(r.data_ref), // ✅ SEM brDateTime
+        r.regional,
+        r.cluster,
+        r.cidade,
+        r.mercado,
+        r.classe,
+        r.cota_agenda,
+        r.cota_disp_est,
+        r.taxa_ocupacao,
+        r.data_coleta, // ✅ SEM conversão
+        r.dia,
+        r.qtd_os,
+        r.saldo,
+        r.qtd,
+        r.ddd,
+        r.escala_tecnica,
+        r.subcluster,
+        r.territorio,
+        r.sem_agenda,
+        r.agenda_futura,
+        r.rota,
+      ]);
+    }
+
+    // Confirma carga
+    await neonDB.query("COMMIT");
 
     return res.json({
-      message: "Importação concluída no Neon",
-      total: registros.length,
+      message: "Último lote sincronizado com sucesso no Neon",
+      data_coleta: rows[0].data_coleta,
+      total: rows.length,
     });
   } catch (err) {
-    console.error("Erro importarCotasCop:", err);
+    await neonDB.query("ROLLBACK");
+    console.error("Erro ao subir dados para o Neon:", err);
     return res.status(500).json({ error: err.message });
   }
 };

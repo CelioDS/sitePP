@@ -270,6 +270,7 @@ export default function PerfilAdmin({ login, DataBase }) {
                 <option value="PAP">Porta a Porta</option>
                 <option value="AA">Agente Autorizado</option>
                 <option value="admin">Admin</option>
+                <option value="regional">Regional</option>
               </select>
             </div>
           )}
