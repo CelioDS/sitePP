@@ -183,3 +183,113 @@ export const patchDBLoginNeon = async (req, res) => {
     return res.status(500).json({ error: "Erro ao atualizar via Patch no Neon" });
   }
 };
+
+
+
+export const getCotasCop = async (req, res) => {
+  try {
+    let {
+      q,
+      limit = 200000,
+      offset = 0,
+      orderBy = "id",
+      orderDir = "DESC",
+    } = req.query;
+
+    limit = Math.min(Number(limit) || 1000, 200000);
+    offset = Number(offset) || 0;
+
+    const validOrder = ["id", "cluster", "cidade", "mercado"];
+    orderBy = validOrder.includes(orderBy) ? orderBy : "id";
+    orderDir = orderDir.toUpperCase() === "ASC" ? "ASC" : "DESC";
+
+    const where = [];
+    const params = [];
+
+    // 🔍 Busca textual
+    if (q) {
+      const like = `%${q}%`;
+      where.push(`
+        (
+          c.cluster LIKE ?
+          OR c.cidade LIKE ?
+          OR c.mercado LIKE ?
+          OR c.classe LIKE ?
+        )
+      `);
+      params.push(like, like, like, like);
+    }
+
+    const sql = `
+      WITH data_max AS (
+        SELECT MAX(data_coleta) AS data_coleta_max
+        FROM cop_ocupacao
+      )
+      SELECT c.*
+      FROM cop_ocupacao c
+      JOIN data_max d
+        ON c.data_coleta = d.data_coleta_max
+      ${where.length ? `WHERE ${where.join(" AND ")}` : ""}
+      ORDER BY c.${orderBy} ${orderDir}
+      LIMIT ?, ?
+    `;
+
+    params.push(offset, limit);
+
+    const [rows] = await dataBase.query(sql, params);
+
+    // ===============================
+    // ✅ AGRUPAMENTO: Cidade → Dia
+    // ===============================
+    const resultado = {};
+
+    rows.forEach((r) => {
+      if (!resultado[r.cidade]) {
+        resultado[r.cidade] = {
+          data_ref: r.data_ref,
+          regional: r.regional,
+          cluster: r.cluster,
+          cidade: r.cidade,
+          mercado: r.mercado,
+          sem_agenda: r.sem_agenda,
+          agenda_futura: r.agenda_futura,
+          rota: r.rota,
+          classe: r.classe,
+          subcluster: r.subcluster,
+          escala_tecnica: r.escala_tecnica,
+          classe: r.classe,
+          territorio: r.territorio,
+          ddd: r.ddd,
+          qtd: r.qtd,
+          dias: {},
+        };
+      }
+
+      resultado[r.cidade].dias[r.dia] = {
+        cota_agenda: r.cota_agenda,
+        cota_disp_est: r.cota_disp_est,
+        qtd_os: r.qtd_os,
+        saldo: r.saldo,
+        taxa_ocupacao: r.taxa_ocupacao,
+      };
+    });
+
+    // ✅ Ordena D1 → D2 → D3
+    Object.values(resultado).forEach((cidadeObj) => {
+      cidadeObj.dias = Object.fromEntries(
+        Object.entries(cidadeObj.dias).sort(([a], [b]) => {
+          const nA = Number(a.replace("D", ""));
+          const nB = Number(b.replace("D", ""));
+          return nA - nB;
+        }),
+      );
+    });
+
+    return res.status(200).json(resultado);
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({
+      error: "Erro ao buscar cop_ocupacao",
+    });
+  }
+};

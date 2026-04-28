@@ -1,6 +1,7 @@
 import axios from "axios";
 import * as cheerio from "cheerio";
 import { dataBase } from "../DataBase/dataBase.js";
+import { dataBaseNeon } from "../DataBase/dataBaseNeon.js"; // Adicionado
 
 const MAPA_TABELAS = {
   Cotas: "Cotas",
@@ -33,24 +34,13 @@ const buildDateFilter = (tableAlias, start, end, latest) => {
   return { where, params };
 };
 
-/**
- * Importa cotas do painel COP
- * Filtro: REGIONAL contendo "INTERIOR" + CLASSE1
- */
-
 export const importarCotasCop = async (req, res) => {
   try {
     const { data_ref } = req.body || {};
     console.log("IMPORTANDO COTAS COP | FILTRO: INTERIOR + CLASSE1");
 
-    // ===============================
-    // ✅ DATA ÚNICA DA COLETA (UMA POR EXECUÇÃO)
-    // ===============================
     const dataColeta = new Date().toISOString().slice(0, 19).replace("T", " ");
 
-    // ===============================
-    // 1️⃣ BUSCA PAINEL COP
-    // ===============================
     const response = await axios.get(
       "http://10.35.0.39/painelocupacaocop/inicio",
       {
@@ -66,9 +56,6 @@ export const importarCotasCop = async (req, res) => {
       return res.status(500).json({ error: "Resposta inválida do painel COP" });
     }
 
-    // ===============================
-    // 2️⃣ HTML → OBJETOS LIMPOS
-    // ===============================
     const $ = cheerio.load(`<table>${payload.tableBody}</table>`);
     const registros = [];
 
@@ -86,9 +73,6 @@ export const importarCotasCop = async (req, res) => {
       const mercado = cols[3];
       const classe = cols[4];
 
-      // ===============================
-      // ✅ FILTRO DE NEGÓCIO
-      // ===============================
       if (
         !regional.toUpperCase().includes("INTERIOR") ||
         classe.toUpperCase() !== "CLASSE1"
@@ -99,7 +83,6 @@ export const importarCotasCop = async (req, res) => {
       let index = 5;
       let diaSeq = 0;
 
-      // Cada DIA = 5 colunas
       while (index + 4 < cols.length) {
         const cotaAgenda = Number(cols[index]) || 0;
         const cotaDisp = Number(cols[index + 1]) || 0;
@@ -107,7 +90,6 @@ export const importarCotasCop = async (req, res) => {
         const saldo = Number(cols[index + 3]) || 0;
         const ocupPct = Number(cols[index + 4].replace("%", "")) || 0;
 
-        // ignora dias vazios
         if (cotaAgenda > 0 || qtdOs > 0) {
           registros.push({
             data_coleta: dataColeta,
@@ -138,31 +120,15 @@ export const importarCotasCop = async (req, res) => {
     }
 
     // ===============================
-    // 3️⃣ GRAVAÇÃO NO BANCO
+    // 3️⃣ GRAVAÇÃO NO BANCO LOCAL
     // ===============================
     if (dataBase.beginTransaction) {
       await dataBase.beginTransaction();
     }
 
-    for (const r of registros) {
-      await dataBase.query(
-        `
-        INSERT INTO cop_ocupacao
-        (
-          data_coleta,
-          data_ref,
-          regional,
-          cluster,
-          cidade,
-          mercado,
-          classe,
-          dia,
-          cota_agenda,
-          cota_disp_est,
-          qtd_os,
-          saldo,
-          taxa_ocupacao
-        )
+    const querySql = `
+        INSERT INTO cop_ocupacao 
+        (data_coleta, data_ref, regional, cluster, cidade, mercado, classe, dia, cota_agenda, cota_disp_est, qtd_os, saldo, taxa_ocupacao)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ON DUPLICATE KEY UPDATE
           cota_agenda   = VALUES(cota_agenda),
@@ -170,7 +136,39 @@ export const importarCotasCop = async (req, res) => {
           qtd_os        = VALUES(qtd_os),
           saldo         = VALUES(saldo),
           taxa_ocupacao = VALUES(taxa_ocupacao)
-        `,
+    `;
+
+    for (const r of registros) {
+      await dataBase.query(querySql, [
+        r.data_coleta,
+        r.data_ref,
+        r.regional,
+        r.cluster,
+        r.cidade,
+        r.mercado,
+        r.classe,
+        r.dia,
+        r.cota_agenda,
+        r.cota_disp_est,
+        r.qtd_os,
+        r.saldo,
+        r.taxa_ocupacao,
+      ]);
+    }
+
+    // ===============================
+    // 🆕 GRAVAÇÃO NO NEON (APENAS 1 REGISTRO)
+    // ===============================
+    // Limpamos o Neon para manter apenas a carga atual
+    await dataBaseNeon.query("DELETE FROM cop_ocupacao");
+
+    for (const r of registros) {
+      // No Neon usamos INSERT simples sem o ON DUPLICATE pois a tabela foi limpa acima
+      await dataBaseNeon.query(
+        `
+        INSERT INTO cop_ocupacao 
+        (data_coleta, data_ref, regional, cluster, cidade, mercado, classe, dia, cota_agenda, cota_disp_est, qtd_os, saldo, taxa_ocupacao)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
           r.data_coleta,
           r.data_ref,
@@ -189,69 +187,39 @@ export const importarCotasCop = async (req, res) => {
       );
     }
 
-    // update de backlog / agenda
+    // ===============================
+    // UPDATE DE BACKLOG / AGENDA
+    // ===============================
+    const queryBacklog = `
+      UPDATE cop_ocupacao a
+      LEFT JOIN (
+        SELECT
+            TRIM(p.cidades_bucket) AS cidade,
+            p.DDD, p.subcluster, p.território AS territorio, p.escala_técnica AS escala_tecnica,
+            SUM(p.QTD) AS QTD_BACKLOG,
+            SUM(CASE WHEN p.grupo_agenda = 'AGENDA FUTURA' THEN p.QTD ELSE 0 END) AS agenda_futura,
+            SUM(CASE WHEN p.grupo_agenda = 'SEM AGENDA' THEN p.QTD ELSE 0 END) AS sem_agenda,
+            SUM(CASE WHEN p.grupo_agenda = 'ROTA' THEN p.QTD ELSE 0 END) AS rota
+        FROM tbl_backlog_painel p
+        WHERE p.data = (SELECT MAX(x.data) FROM tbl_backlog_painel x)
+        GROUP BY TRIM(p.cidades_bucket), p.DDD, p.subcluster, p.território, p.escala_técnica
+      ) b ON TRIM(a.cidade) = b.cidade
+      SET
+          a.ddd = b.DDD, a.subcluster = b.subcluster, a.territorio = b.territorio,
+          a.escala_tecnica = b.escala_tecnica, a.qtd = b.QTD_BACKLOG,
+          a.sem_agenda = b.sem_agenda, a.agenda_futura = b.agenda_futura, a.rota = b.rota;
+    `;
 
-    await dataBase.query(`
-  UPDATE cop_ocupacao a
-LEFT JOIN (
-    SELECT
-        TRIM(p.cidades_bucket) AS cidade,
-        p.DDD,
-        p.subcluster,
-        p.território     AS territorio,
-        p.escala_técnica AS escala_tecnica,
-        SUM(p.QTD) AS QTD_BACKLOG,
-        SUM(CASE
-            WHEN p.grupo_agenda = 'AGENDA FUTURA' THEN p.QTD
-            ELSE 0
-        END) AS agenda_futura,
-        SUM(CASE
-            WHEN p.grupo_agenda = 'SEM AGENDA' THEN p.QTD
-            ELSE 0
-        END) AS sem_agenda,
-        SUM(CASE
-            WHEN p.grupo_agenda = 'ROTA' THEN p.QTD
-            ELSE 0
-        END) AS rota
-    FROM tbl_backlog_painel p
-    WHERE p.data = (
-        SELECT MAX(x.data)
-        FROM tbl_backlog_painel x
-    )
-    GROUP BY
-        TRIM(p.cidades_bucket),
-        p.DDD,
-        p.subcluster,
-        p.território,
-        p.escala_técnica
-) b
-    ON TRIM(a.cidade) = b.cidade
-SET
-    a.ddd            = b.DDD,
-    a.subcluster     = b.subcluster,
-    a.territorio     = b.territorio,
-    a.escala_tecnica = b.escala_tecnica,
-    a.qtd            = b.QTD_BACKLOG,
-    a.sem_agenda     = b.sem_agenda,
-    a.agenda_futura  = b.agenda_futura,
-    a.rota  = b.rota;
-      `);
-
-    //resposta
+    await dataBase.query(queryBacklog);
+    await dataBaseNeon.query(queryBacklog); // Backlog no Neon também
 
     if (dataBase.commit) {
       await dataBase.commit();
     }
 
-    // ===============================
-    // 4️⃣ RESPOSTA
-    // ===============================
     return res.json({
-      message: "Importação concluída",
-      filtro: "Regional contém INTERIOR + CLASSE1",
-      data_coleta: dataColeta,
+      message: "Importação concluída local e online",
       total_registros: registros.length,
-      amostra: registros.slice(0, 5),
     });
   } catch (err) {
     if (dataBase.rollback) {
