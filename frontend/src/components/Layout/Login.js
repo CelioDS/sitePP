@@ -13,7 +13,7 @@ export default function Login({ setPermission, setLoginBD }) {
   const [senha, setSenha] = useState();
   //const [admin, setAdmin] = useState();
 
-  const Url = process.env.REACT_APP_API_URL || "http://localhost:8000";
+  const Url = process.env.REACT_APP_API_URL
 
   function getDateTimeSaoPaulo() {
     const formatter = new Intl.DateTimeFormat("sv-SE", {
