@@ -66,7 +66,7 @@ export default function PainelBucketsPivot() {
         ),
       );
       setDias(diasUnicos);
-      //ImportarCotas(Url, ultimaAtualizacao);
+      ImportarCotas(Url, ultimaAtualizacao);
     },
     [setDias, setDados, Url, ultimaAtualizacao],
   );
