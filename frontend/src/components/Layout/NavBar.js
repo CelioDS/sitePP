@@ -189,48 +189,46 @@ export default function NavBar({ setPermission, permission }) {
                   Relatorio
                 </Link>
               </li>
-
-              <li className={styleExt.submenu}>
-                {/* O link principal que sempre fica visível */}
-                <Link
-                  onClick={() => openMenu("MIS")}
-                  style={
-                    linkAtivo === "MIS" ||
-                    linkAtivo === "TodoList" ||
-                    linkAtivo === "Cotas"
-                      ? { color: colorLink }
-                      : {}
-                  }
-                  to="/MIS"
-                >
-                  MIS
-                </Link>
-
-                {/* O container que "surge" ao passar o mouse */}
-                <div className={styleExt.submenuItem}>
-                  {mis === 1 && canal === "admin" && (
-                    <Link
-                      style={
-                        linkAtivo === "TodoList" ? { color: colorLink } : {}
-                      }
-                      to={`/TodoList/${login}`}
-                      onClick={() => openMenu("TodoList")}
-                    >
-                      TodoList
-                    </Link>
-                  )}
-
-                  <Link
-                    style={linkAtivo === "Cotas" ? { color: colorLink } : {}}
-                    to="/Cotas"
-                    onClick={() => openMenu("Cotas")}
-                  >
-                    Cotas
-                  </Link>
-                </div>
-              </li>
             </>
           )}
+
+          <li className={styleExt.submenu}>
+            {/* O link principal que sempre fica visível */}
+            <Link
+              onClick={() => openMenu("MIS")}
+              style={
+                linkAtivo === "MIS" ||
+                linkAtivo === "TodoList" ||
+                linkAtivo === "Cotas"
+                  ? { color: colorLink }
+                  : {}
+              }
+              to="/MIS"
+            >
+              MIS
+            </Link>
+
+            {/* O container que "surge" ao passar o mouse */}
+            <div className={styleExt.submenuItem}>
+              {mis === 1 && canal === "admin" && (
+                <Link
+                  style={linkAtivo === "TodoList" ? { color: colorLink } : {}}
+                  to={`/TodoList/${login}`}
+                  onClick={() => openMenu("TodoList")}
+                >
+                  TodoList
+                </Link>
+              )}
+
+              <Link
+                style={linkAtivo === "Cotas" ? { color: colorLink } : {}}
+                to="/Cotas"
+                onClick={() => openMenu("Cotas")}
+              >
+                Cotas
+              </Link>
+            </div>
+          </li>
 
           {permission && (
             <li>

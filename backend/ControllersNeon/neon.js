@@ -143,6 +143,7 @@ export const patchDBLoginNeon = async (req, res) => {
       "admin",
       "ultimo_acesso",
       "ocultar",
+      "regional",
     ];
     const setClauses = [];
     const params = [];

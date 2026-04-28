@@ -14,7 +14,6 @@ import logo from "../IMG/claroLogo.webp";
 import { useRef } from "react";
 import DashboardAnalytics from "./DashCotas";
 import Loading from "../Item-Layout/Loading";
-import { ImportarCotas } from "../Tools/importarCotasCop";
 
 // Lazy Load do Clima para performance
 const WeatherInfo = React.lazy(() => import("../Tools/WeatherInfo"));
@@ -66,9 +65,8 @@ export default function PainelBucketsPivot() {
         ),
       );
       setDias(diasUnicos);
-      ImportarCotas(Url, ultimaAtualizacao);
     },
-    [setDias, setDados, Url, ultimaAtualizacao],
+    [setDias, setDados],
   );
 
   const addDaysAndFormat = (baseDate, daysToAdd) => {
