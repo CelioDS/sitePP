@@ -66,7 +66,7 @@ export default function PainelBucketsPivot() {
         ),
       );
       setDias(diasUnicos);
-      ImportarCotas(Url, ultimaAtualizacao);
+      //ImportarCotas(Url, ultimaAtualizacao);
     },
     [setDias, setDados, Url, ultimaAtualizacao],
   );
@@ -124,7 +124,7 @@ export default function PainelBucketsPivot() {
       }
 
       try {
-        const res = await axios.get(`${Url}/cotas-cop`);
+        const res = await axios.get(`${Url}/neon/cotas-cop`);
         const lista = Object.values(res.data || {});
 
         localStorage.setItem(

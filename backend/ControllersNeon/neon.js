@@ -266,13 +266,13 @@ export const getCotasCop = async (req, res) => {
   try {
     let {
       q,
-      limit = 1000,
+      limit = 10000,
       offset = 0,
       orderBy = "id",
       orderDir = "DESC",
     } = req.query;
 
-    limit = Math.min(Number(limit) || 1000, 200000);
+    limit = Math.min(Number(limit) || 10000, 200000);
     offset = Number(offset) || 0;
     orderDir = orderDir.toUpperCase() === "ASC" ? "ASC" : "DESC";
 
@@ -285,7 +285,7 @@ export const getCotasCop = async (req, res) => {
     }
 
     const sql = `
-      WITH data_max AS (
+     WITH data_max AS (
         SELECT MAX(data_coleta) AS data_coleta_max FROM cop_ocupacao
       )
       SELECT c.*
@@ -294,6 +294,7 @@ export const getCotasCop = async (req, res) => {
       ${whereClause}
       ORDER BY c.${orderBy} ${orderDir}
       LIMIT $${params.length + 1} OFFSET $${params.length + 2}
+      
     `;
 
     params.push(limit, offset);
