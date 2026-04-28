@@ -26,13 +26,25 @@ export const getDBLoginIDNeon = async (req, res) => {
     return res.status(200).json(result.rows);
   } catch (err) {
     console.error("Erro getDBLoginIDNeon:", err);
-    return res.status(500).json({ error: "Erro ao buscar usuário por ID no Neon." });
+    return res
+      .status(500)
+      .json({ error: "Erro ao buscar usuário por ID no Neon." });
   }
 };
 
 export const setDBLoginNeon = async (req, res) => {
   try {
-    const { login, nome, senha, canal, mis, admin, mis_admin, ultimo_acesso, ocultar } = req.body;
+    const {
+      login,
+      nome,
+      senha,
+      canal,
+      mis,
+      admin,
+      mis_admin,
+      ultimo_acesso,
+      ocultar,
+    } = req.body;
     if (!login || !senha || canal === undefined || admin === undefined) {
       return res.status(400).json({ error: "Campos obrigatórios ausentes." });
     }
@@ -42,9 +54,21 @@ export const setDBLoginNeon = async (req, res) => {
       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
       RETURNING id
     `;
-    const values = [login, nome, hashedPassword, canal, mis, admin, mis_admin, ultimo_acesso, ocultar];
+    const values = [
+      login,
+      nome,
+      hashedPassword,
+      canal,
+      mis,
+      admin,
+      mis_admin,
+      ultimo_acesso,
+      ocultar,
+    ];
     const result = await neonDB.query(query, values);
-    return res.status(201).json({ id: result.rows[0].id, message: "Usuário criado no Neon" });
+    return res
+      .status(201)
+      .json({ id: result.rows[0].id, message: "Usuário criado no Neon" });
   } catch (err) {
     console.error("Erro setDBLoginNeon:", err);
     return res.status(500).json({ error: "Erro ao criar usuário no Neon." });
@@ -67,19 +91,26 @@ export const updateDBLoginNeon = async (req, res) => {
     }
 
     const result = await neonDB.query(sql, params);
-    if (result.rowCount === 0) return res.status(404).json({ error: "Usuário não encontrado." });
+    if (result.rowCount === 0)
+      return res.status(404).json({ error: "Usuário não encontrado." });
     return res.status(200).json({ message: "Usuário atualizado no Neon" });
   } catch (err) {
     console.error("Erro updateDBLoginNeon:", err);
-    return res.status(500).json({ error: "Erro ao atualizar usuário no Neon." });
+    return res
+      .status(500)
+      .json({ error: "Erro ao atualizar usuário no Neon." });
   }
 };
 
 export const deleteDBLoginNeon = async (req, res) => {
   try {
     const { id } = req.params;
-    const result = await neonDB.query("DELETE FROM usuariosagen WHERE id = $1", [id]);
-    if (result.rowCount === 0) return res.status(404).json({ error: "Usuário não encontrado." });
+    const result = await neonDB.query(
+      "DELETE FROM usuariosagen WHERE id = $1",
+      [id],
+    );
+    if (result.rowCount === 0)
+      return res.status(404).json({ error: "Usuário não encontrado." });
     return res.status(200).json({ message: "Deletado do Neon" });
   } catch (err) {
     console.error("Erro deleteDBLoginNeon:", err);
@@ -92,7 +123,15 @@ export const patchDBLoginNeon = async (req, res) => {
     const { id } = req.params;
     if (!id) return res.status(400).json({ error: "ID não informado!" });
 
-    const allowed = ["login", "nome", "canal", "mis", "admin", "ultimo_acesso", "ocultar"];
+    const allowed = [
+      "login",
+      "nome",
+      "canal",
+      "mis",
+      "admin",
+      "ultimo_acesso",
+      "ocultar",
+    ];
     const setClauses = [];
     const params = [];
     let placeholderCount = 1;
@@ -105,17 +144,23 @@ export const patchDBLoginNeon = async (req, res) => {
       }
     }
 
-    if (setClauses.length === 0) return res.status(400).json({ error: "Nenhum campo válido para atualizar!" });
+    if (setClauses.length === 0)
+      return res
+        .status(400)
+        .json({ error: "Nenhum campo válido para atualizar!" });
 
     const sql = `UPDATE usuariosagen SET ${setClauses.join(", ")} WHERE id = $${placeholderCount}`;
     params.push(id);
     const result = await neonDB.query(sql, params);
 
-    if (result.rowCount === 0) return res.status(404).json({ error: "Usuário não encontrado no Neon!" });
+    if (result.rowCount === 0)
+      return res.status(404).json({ error: "Usuário não encontrado no Neon!" });
     return res.status(200).json({ data: "Último acesso ok (Neon)" });
   } catch (err) {
     console.error("❌ Erro patchDBLoginNeon:", err.message);
-    return res.status(500).json({ error: "Erro ao atualizar via Patch no Neon" });
+    return res
+      .status(500)
+      .json({ error: "Erro ao atualizar via Patch no Neon" });
   }
 };
 
@@ -124,22 +169,33 @@ export const patchDBLoginNeon = async (req, res) => {
 export const importarCotasCop = async (req, res) => {
   try {
     const dataColeta = new Date().toISOString().slice(0, 19).replace("T", " ");
-    const response = await axios.get("URL_DO_SEU_PAINEL_COP", {
-      headers: { Cookie: "JSESSIONID=xxxx" },
-    });
+    const response = await axios.get(
+      "http://10.35.0.39/painelocupacaocop/inicio",
+      {
+        headers: { Cookie: "JSESSIONID=xxxx" },
+      },
+    );
 
     const payload = JSON.parse(response.data);
-    if (!payload?.tableBody) return res.status(500).json({ error: "Resposta inválida do painel COP" });
+    if (!payload?.tableBody)
+      return res.status(500).json({ error: "Resposta inválida do painel COP" });
 
     const $ = cheerio.load(`<table>${payload.tableBody}</table>`);
     const registros = [];
 
     $("tr").each((_, tr) => {
-      const cols = $(tr).find("td").map((_, td) => $(td).text().trim()).get();
+      const cols = $(tr)
+        .find("td")
+        .map((_, td) => $(td).text().trim())
+        .get();
       if (cols.length < 10) return;
 
       const regional = cols[0].replace("Regional", "").trim();
-      if (!regional.toUpperCase().includes("INTERIOR") || cols[4].toUpperCase() !== "CLASSE1") return;
+      if (
+        !regional.toUpperCase().includes("INTERIOR") ||
+        cols[4].toUpperCase() !== "CLASSE1"
+      )
+        return;
 
       let index = 5;
       let diaSeq = 1;
@@ -149,10 +205,19 @@ export const importarCotasCop = async (req, res) => {
 
         if (cotaAgenda > 0 || qtdOs > 0) {
           registros.push([
-            payload.dtExport, regional, cols[1], cols[2], cols[3], cols[4],
-            cotaAgenda, Number(cols[index + 1]) || 0,
+            payload.dtExport,
+            regional,
+            cols[1],
+            cols[2],
+            cols[3],
+            cols[4],
+            cotaAgenda,
+            Number(cols[index + 1]) || 0,
             Number(cols[index + 4].replace("%", "")) || 0,
-            dataColeta, `D${diaSeq}`, cols[index + 2], cols[index + 3]
+            dataColeta,
+            `D${diaSeq}`,
+            cols[index + 2],
+            cols[index + 3],
           ]);
         }
         index += 5;
@@ -160,8 +225,10 @@ export const importarCotasCop = async (req, res) => {
       }
     });
 
-    if (registros.length === 0) return res.status(400).json({ error: "Nenhum registro encontrado." });
+    if (registros.length === 0)
+      return res.status(400).json({ error: "Nenhum registro encontrado." });
 
+    await neonDB.query("DELETE FROM cop_ocupacao");
     // Inserção em Massa no Postgres (Lógica de Upsert)
     // Nota: O constraint 'uk_cop' deve existir na tabela conforme o SQL enviado antes.
     for (const r of registros) {
@@ -208,7 +275,10 @@ export const importarCotasCop = async (req, res) => {
 
     await neonDB.query(queryBacklog);
 
-    return res.json({ message: "Importação concluída no Neon", total: registros.length });
+    return res.json({
+      message: "Importação concluída no Neon",
+      total: registros.length,
+    });
   } catch (err) {
     console.error("Erro importarCotasCop:", err);
     return res.status(500).json({ error: err.message });
@@ -217,7 +287,13 @@ export const importarCotasCop = async (req, res) => {
 
 export const getCotasCop = async (req, res) => {
   try {
-    let { q, limit = 1000, offset = 0, orderBy = "id", orderDir = "DESC" } = req.query;
+    let {
+      q,
+      limit = 1000,
+      offset = 0,
+      orderBy = "id",
+      orderDir = "DESC",
+    } = req.query;
 
     limit = Math.min(Number(limit) || 1000, 200000);
     offset = Number(offset) || 0;
@@ -251,30 +327,46 @@ export const getCotasCop = async (req, res) => {
     rows.forEach((r) => {
       if (!resultado[r.cidade]) {
         resultado[r.cidade] = {
-          data_ref: r.data_ref, regional: r.regional, cluster: r.cluster, cidade: r.cidade,
-          mercado: r.mercado, sem_agenda: r.sem_agenda, agenda_futura: r.agenda_futura,
-          rota: r.rota, classe: r.classe, subcluster: r.subcluster, escala_tecnica: r.escala_tecnica,
-          territorio: r.territorio, ddd: r.ddd, qtd: r.qtd, dias: {},
+          data_ref: r.data_ref,
+          regional: r.regional,
+          cluster: r.cluster,
+          cidade: r.cidade,
+          mercado: r.mercado,
+          sem_agenda: r.sem_agenda,
+          agenda_futura: r.agenda_futura,
+          rota: r.rota,
+          classe: r.classe,
+          subcluster: r.subcluster,
+          escala_tecnica: r.escala_tecnica,
+          territorio: r.territorio,
+          ddd: r.ddd,
+          qtd: r.qtd,
+          dias: {},
         };
       }
       resultado[r.cidade].dias[r.dia] = {
-        cota_agenda: r.cota_agenda, cota_disp_est: r.cota_disp_est,
-        qtd_os: r.qtd_os, saldo: r.saldo, taxa_ocupacao: r.taxa_ocupacao,
+        cota_agenda: r.cota_agenda,
+        cota_disp_est: r.cota_disp_est,
+        qtd_os: r.qtd_os,
+        saldo: r.saldo,
+        taxa_ocupacao: r.taxa_ocupacao,
       };
     });
 
     // Ordenação dos dias
     Object.values(resultado).forEach((cidadeObj) => {
       cidadeObj.dias = Object.fromEntries(
-        Object.entries(cidadeObj.dias).sort(([a], [b]) => 
-          Number(a.replace("D", "")) - Number(b.replace("D", ""))
-        )
+        Object.entries(cidadeObj.dias).sort(
+          ([a], [b]) => Number(a.replace("D", "")) - Number(b.replace("D", "")),
+        ),
       );
     });
 
     return res.status(200).json(resultado);
   } catch (err) {
     console.error(err);
-    return res.status(500).json({ error: "Erro ao buscar cop_ocupacao no Neon" });
+    return res
+      .status(500)
+      .json({ error: "Erro ao buscar cop_ocupacao no Neon" });
   }
 };

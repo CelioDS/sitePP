@@ -8,44 +8,61 @@ export function ImportarCotas(Url, ultimaAtualizacao) {
     }
 
     try {
-      const res = await axios.get(`${Url}/import-cotas-cop`);
-      const data = res.data;
-      toast.success(data.message || "Importação concluída");
+      // Dispara as duas requisições simultaneamente
+      const [resLocal, resNeon] = await Promise.all([
+        axios.get(`${Url}/import-cotas-cop`),
+        axios.get(`${Url}/neon/import-cotas-cop`),
+      ]);
+
+      // Se chegou aqui, ambos tiveram sucesso
+      toast.success("Importação concluída (Local e Neon)");
+      console.log("Local:", resLocal.data, "Neon:", resNeon.data);
     } catch (err) {
-      toast.error("Erro ao importar");
+      // Identifica onde ocorreu o erro para facilitar o debug
+      console.error("Erro na importação:", err);
+
+      if (err.response) {
+        toast.error(`Falha: ${err.response.data.error || "Erro no servidor"}`);
+      } else {
+        toast.error("Erro de conexão ao importar dados");
+      }
     }
   };
 
   importar();
-}function podeExecutarAgora(ultimaAtualizacao) {
+}
+
+function podeExecutarAgora(ultimaAtualizacao) {
   const agora = new Date();
-  const dia = agora.getDay();
-  const hora = agora.getHours();
-  const minuto = agora.getMinutes();
+  const diaSemana = agora.getDay();
+  const horaAtual = agora.getHours();
+  const minutoAtual = agora.getMinutes();
 
-  // Segunda a sexta
-  if (dia < 1 || dia > 5) return false;
+  // 1. Segunda (1) a Sexta (5)
+  if (diaSemana < 1 || diaSemana > 5) return false;
 
-  // Das 09h às 18h
-  if (hora < 9 || hora > 18 ) return false;
+  // 2. Das 09h às 18h (Para às 18:00)
+  if (horaAtual < 9 || horaAtual >= 18) return false;
 
-  // Após o minuto 10
-  if (minuto <= 10 || minuto >=20 ) return false;
+  // 3. Janela específica: entre o minuto 11 e 19
+  // Se quiser que rode em qualquer momento após o minuto 10, use (minutoAtual <= 10)
+  if (minutoAtual < 10) return false; // Bloqueia apenas os primeiros 10 min
 
-  // Validação "1 vez por hora", baseada na última atualização
+  // 4. Validação de "1 vez por hora"
   if (ultimaAtualizacao) {
-    const partes = ultimaAtualizacao.split(",");
-    if (partes[1]) {
-      const horaStr = partes[1].trim().split(":")[0];
-      const ultimaHora = Number(horaStr);
+    try {
+      // Tenta extrair a hora indpendente de vírgula ou espaço
+      const apenasHoraStr = ultimaAtualizacao.match(/(\d{2}):/)[1];
+      const ultimaHora = Number(apenasHoraStr);
 
-      console.log(ultimaHora, hora)
-      if (!isNaN(ultimaHora) && ultimaHora === hora) {
+      if (!isNaN(ultimaHora) && ultimaHora === horaAtual) {
+        console.log("Já atualizado nesta hora.");
         return false;
       }
+    } catch (e) {
+      console.error("Erro ao processar string de data:", e);
     }
   }
-
 
   return true;
 }
