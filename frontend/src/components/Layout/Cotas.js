@@ -122,14 +122,23 @@ export default function PainelBucketsPivot() {
       }
 
       try {
-        const res = await axios.get(`${Url}/neon/cotas-cop`);
-        const lista = Object.values(res.data || {});
-
-        localStorage.setItem(
-          CACHE_KEY,
-          JSON.stringify({ timestamp: Date.now(), data: lista }),
-        );
-        organizarDados(lista);
+        if (process.env.REACT_APP_LOCAL === 1) {
+          const res = await axios.get(`${Url}/cotas-cop`);
+          const lista = Object.values(res.data || {});
+          organizarDados(lista);
+          localStorage.setItem(
+            CACHE_KEY,
+            JSON.stringify({ timestamp: Date.now(), data: lista }),
+          );
+        } else {
+          const res = await axios.get(`${Url}/neon/cotas-cop`);
+          const lista = Object.values(res.data || {});
+          organizarDados(lista);
+          localStorage.setItem(
+            CACHE_KEY,
+            JSON.stringify({ timestamp: Date.now(), data: lista }),
+          );
+        }
       } catch (e) {
         console.error("Erro ao carregar dados:", e);
       } finally {
