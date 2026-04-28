@@ -334,18 +334,25 @@
 
   /* Filtros em coluna */
   .main .filtros {
-    flex-direction: column;
+    flex-direction: row;
     align-items: stretch;
   }
 
-  .main .filtros div,
+  .main .filtros div {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    width: 135px;
+  }
+
   .main .filtros div input,
   .main .filtros div select {
-    width: 100%;
+    width: 120px;
   }
 
   .main .btnClear {
-    width: 100%;
+    width: 135px;
   }
 
   /* Cards empilhados */
