@@ -582,7 +582,10 @@ export default function PainelBucketsPivot() {
                   alignItems: "end",
                 }}
               >
-                Ultima atualização {ultimaAtualizacao}
+                Ultima atualização{" "}
+                {process.env.REACT_APP_LOCAL === 0
+                  ? String(ultimaAtualizacao).replace("T", " ")
+                  : ultimaAtualizacao}
               </span>
             </aside>
 
