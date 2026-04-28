@@ -122,23 +122,14 @@ export default function PainelBucketsPivot() {
       }
 
       try {
-        if (process.env.REACT_APP_LOCAL === 1) {
-          const res = await axios.get(`${Url}/cotas-cop`);
-          const lista = Object.values(res.data || {});
-          organizarDados(lista);
-          localStorage.setItem(
-            CACHE_KEY,
-            JSON.stringify({ timestamp: Date.now(), data: lista }),
-          );
-        } else {
-          const res = await axios.get(`${Url}/neon/cotas-cop`);
-          const lista = Object.values(res.data || {});
-          organizarDados(lista);
-          localStorage.setItem(
-            CACHE_KEY,
-            JSON.stringify({ timestamp: Date.now(), data: lista }),
-          );
-        }
+        const res = await axios.get(`${Url}/cotas-cop`);
+        const lista = Object.values(res.data || {});
+
+        localStorage.setItem(
+          CACHE_KEY,
+          JSON.stringify({ timestamp: Date.now(), data: lista }),
+        );
+        organizarDados(lista);
       } catch (e) {
         console.error("Erro ao carregar dados:", e);
       } finally {
@@ -582,10 +573,7 @@ export default function PainelBucketsPivot() {
                   alignItems: "end",
                 }}
               >
-                Ultima atualização{" "}
-                {process.env.REACT_APP_LOCAL === 0
-                  ? String(ultimaAtualizacao).replace("T", " ")
-                  : ultimaAtualizacao}
+                Ultima atualização {ultimaAtualizacao}
               </span>
             </aside>
 
