@@ -168,7 +168,7 @@ export default function NavBar({ setPermission, permission }) {
             </Link>
           </li>
 
-          {canal === "regional" && (
+          {canal !== "regional" && (
             <>
               <li>
                 <Link
