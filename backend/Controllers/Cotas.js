@@ -280,7 +280,7 @@ export const getCotasCop = async (req, res) => {
 
     params.push(offset, limit);
 
-    const [rows] = await dataBase.query(sql, params);
+    const [rows] = await dataBaseNeon.query(sql, params);
 
     // ===============================
     // ✅ AGRUPAMENTO: Cidade → Dia

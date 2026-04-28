@@ -533,8 +533,14 @@ export default function PainelBucketsPivot() {
             >
               Limpar Filtros
             </button>
-            <button className={Style.btnClear} onClick={handleDownloadExcel}>
-              Download HTML
+            <button
+              className={Style.btnClear}
+              onClick={() => {
+                handleDownloadExcel();
+                handleDownloadHTML();
+              }}
+            >
+              Download
             </button>
           </div>
           <div
