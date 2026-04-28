@@ -5,7 +5,8 @@ import {
   updateDBLoginNeon,
   setDBLoginNeon,
   patchDBLoginNeon,
-  getCotasCop
+  getCotasCop,
+  importarCotasCop,
 } from "../ControllersNeon/neon.js";
 import { LoginDBNeon, validateTokenNeon } from "../ControllersNeon/authNeon.js";
 
@@ -17,7 +18,8 @@ router.post("/auth/login", LoginDBNeon);
 router.get("/auth/validate", validateTokenNeon);
 
 
-router.get("cotas-cop", getCotasCop);
+router.get("/cotas-cop", getCotasCop);
+router.get("/importar-cotas-cop", importarCotasCop);
 1
 // routerNeon.js
 router.patch("/users/:id", patchDBLoginNeon);
