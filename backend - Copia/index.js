@@ -75,13 +75,6 @@ app.use("/neon", userRoutesNeon);
 // ----------------------
 const PORT = process.env.PORT || 8000;
 
-// 1. REGRA DA VERCEL: Exportar o app em vez de usar listen diretamente
-export default app;
-
-// 2. REGRA LOCAL: Só ativa o app.listen se não estiver na Vercel (produção)
-if (process.env.NODE_ENV !== "production") {
-  const PORT = process.env.PORT || 8000;
-  app.listen(PORT, "0.0.0.0", () => {
-    console.log(`Servidor rodando localmente na porta ${PORT}`);
-  });
-}
+app.listen(PORT, "0.0.0.0", () => {
+  console.log(`Servidor rodando em .0:${PORT}`);
+});

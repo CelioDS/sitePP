@@ -6,13 +6,10 @@
       "use": "@vercel/node"
     }
   ],
-  "env": {
-    "NEON_DATABASE_URL": "@neon_database_url"
-  },
-  "routes": [
+  "rewrites": [
     {
-      "src": "/(.*)",
-      "dest": "index.js"
+      "source": "/(.*)",
+      "destination": "/index.js"
     }
   ]
 }

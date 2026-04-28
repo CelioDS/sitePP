@@ -1,0 +1,208 @@
+CREATE TABLE IF NOT EXISTS usuariosAgen (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    login VARCHAR(50) NOT NULL UNIQUE,
+    senha VARCHAR(255) NOT NULL, -- Armazena o hash do bcrypt
+    admin BOOLEAN DEFAULT FALSE,
+    canal VARCHAR(50),
+    mis VARCHAR(50),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+
+
+USE db_projetos;
+
+-- ----------------------------------------------------------
+-- Tabela: tarefas
+-- Campos usados pelo seu código:
+--   id, tarefa, etapas, porcentagem, responsavel, concluido, data_atualizacao
+-- ----------------------------------------------------------
+
+DROP TABLE IF EXISTS tarefas;
+CREATE TABLE tarefas (
+  id               INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  tarefa           VARCHAR(200) NOT NULL,
+  responsavel      VARCHAR(100) NULL,
+  concluido        TINYINT(1)   NOT NULL DEFAULT 0,      -- 0 = não, 1 = sim
+  data_atualizacao       DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  KEY idx_tarefas_concluido (concluido),
+  KEY idx_tarefas_responsavel (responsavel)
+) ENGINE=InnoDB;
+-- ----------------------------------------------------------
+-- Tabela: tarefasEtapas
+-- Seu update usa: peso, etapas, status, concluido, md5, data_atualizacao
+-- Recomendo relacionar com tarefas (tarefa_id)
+-- ----------------------------------------------------------
+use db_projetos;
+DROP TABLE IF EXISTS tarefasEtapas;
+CREATE TABLE tarefasEtapas (
+  id               INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  tarefa_id        INT UNSIGNED NOT NULL,               -- FK -> tarefas.id
+  etapas           VARCHAR(200) NOT NULL,               -- descrição da etapa (se preferir número, mude para INT)
+  peso             DECIMAL(6,2) NOT NULL DEFAULT 0.00,  -- peso da etapa (ex.: 10.00)
+  status           TINYINT      NOT NULL DEFAULT 0,     -- 0=pending, 1=doing, 2=done (ajuste conforme regra)
+  concluido        TINYINT(1)   NOT NULL DEFAULT 0,     -- 0/1
+  data_atualizacao DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  criado_em        DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  KEY idx_tarefasEtapas_tarefa (tarefa_id),
+  CONSTRAINT fk_tarefasEtapas_tarefa
+    FOREIGN KEY (tarefa_id) REFERENCES tarefas(id)
+    ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB;
+
+
+use db_projetos;
+
+-- Ajuste o schema se necessário:
+-- CREATE DATABASE IF NOT EXISTS seu_schema DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
+-- USE seu_schema;
+
+DROP TABLE IF EXISTS `aa`;
+CREATE TABLE `aa` (
+  `ID` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+
+  `ANOMES`           CHAR(6)            NOT NULL,                      -- Ex: 202602 (YYYYMM)
+  `CANAL`            VARCHAR(100)       NULL,
+  `IBGE`             CHAR(7)            NULL,                          -- Código IBGE do município (7 dígitos)
+  `CIDADE`           VARCHAR(120)       NULL,
+  `RAZAO_SOCIAL`     VARCHAR(200)       NULL,
+  `PARCEIRO_LOJA`    VARCHAR(200)       NULL,
+  `CNPJ`             CHAR(14)           NULL,                          -- CNPJ sem máscara
+  `NOME`             VARCHAR(200)       NULL,
+  `CLASSIFICACAO`    VARCHAR(100)       NULL,
+  `SEGMENTO`         VARCHAR(100)       NULL,
+  `PRODUTO_ATUACAO`  VARCHAR(150)       NULL,
+  `DATA_CADASTRO`    VARCHAR(100)       NULL,
+  `SITUACAO`         VARCHAR(100)       NULL,
+  `LOGIN_NET`        VARCHAR(100)       NULL,
+  `TIPO`             VARCHAR(100)       NULL,
+  `LOGIN_CLARO`      VARCHAR(100)       NULL,
+  `EXECUTIVO`        VARCHAR(150)       NULL,
+  `COMTA`            VARCHAR(100)       NULL,
+  `CABEAMENTO`       VARCHAR(100)       NULL,
+  `FILIAL_COORDENADOR` VARCHAR(150)     NULL,
+
+  `DATA_ATUALIZACAO` DATETIME           NOT NULL,                      -- vindo do servidor (yyyy-MM-dd-HH-mm -> ajuste para datetime no insert, se quiser)
+  `LOGIN_ATUALIZACAO` VARCHAR(100)      NOT NULL,                      -- header login
+
+  PRIMARY KEY (`ID`),
+
+  -- Índices auxiliares para performance
+  KEY `idx_aa_anomes`        (`ANOMES`),
+  KEY `idx_aa_cnpj`          (`CNPJ`),
+  KEY `idx_aa_cidade`        (`CIDADE`),
+  KEY `idx_aa_canal`         (`CANAL`),
+  KEY `idx_aa_login_net`     (`LOGIN_NET`),
+  KEY `idx_aa_login_claro`   (`LOGIN_CLARO`)
+
+  -- Se quiser evitar duplicidade por mês + CNPJ + loja (ajuste conforme sua regra):
+  -- UNIQUE KEY `uk_aa_anomes_cnpj_loja` (`ANOMES`, `CNPJ`, `PARCEIRO_LOJA`)
+  
+  -- Alternativa de unicidade (ex.: mês + login_net + login_claro):
+  -- UNIQUE KEY `uk_aa_anomes_logins` (`ANOMES`, `LOGIN_NET`, `LOGIN_CLARO`)
+  
+  -- Se IBGE sempre vem numérico (7 dígitos), você pode mudar `CHAR(7)` para `INT` e ajustar o índice
+  -- e.g., `IBGE` INT UNSIGNED, KEY `idx_aa_ibge` (`IBGE`)
+  
+  -- Você também pode normalizar cidade e executivo em tabelas de dimensão e referenciar por FK
+  -- Exemplo de FK (se houver tabela cidades):
+  -- CONSTRAINT `fk_aa_cidade` FOREIGN KEY (`IBGE`) REFERENCES `cidades`(`ibge`)
+) ENGINE=InnoDB;
+
+
+
+
+-- Seleciona o banco
+USE db_projetos;
+
+-- Remove a tabela se já existir (opcional)
+DROP TABLE IF EXISTS pap;
+
+-- Cria a tabela
+CREATE TABLE IF NOT EXISTS pap (
+  `ID` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  ANOMES                 CHAR(6)        NOT NULL,                         /* Ex: '202601' (AAAAMM) */
+  CANAL                  VARCHAR(50)    NULL,
+  ESTRUTURA              VARCHAR(100)   NULL,
+  IBGE                   VARCHAR(7)     NULL,                              /* Código IBGE do município */
+  CNPJ                   CHAR(14)       NULL,                              /* Somente dígitos */
+  PARCEIRO_LOJA          VARCHAR(120)   NULL,
+  CLASSIFICACAO          VARCHAR(50)    NULL,
+  SEGMENTO               VARCHAR(50)    NULL,
+  LOGIN_NET              VARCHAR(60)    NULL,
+  LOGIN_CLARO            VARCHAR(60)    NULL,
+  NOME                   VARCHAR(150)   NULL,
+  DATA_CADASTRO_VENDEDOR DATE           NULL,
+  SITUACAO               VARCHAR(40)    NULL,
+  EXECUTIVO              VARCHAR(120)   NULL,
+  FILIAL_COORDENADOR     VARCHAR(120)   NULL,
+  DATA_ATUALIZACAO       DATETIME       NULL,
+  LOGIN_ATUALIZACAO      VARCHAR(60)    NULL,
+
+    PRIMARY KEY (`ID`),
+
+  -- Índices
+  INDEX idx_anomes (ANOMES),
+  INDEX idx_cnpj (CNPJ),
+  INDEX idx_canal (CANAL),
+  INDEX idx_ibge (IBGE)
+)
+ENGINE = InnoDB
+
+-- Seleciona o banco (ajuste se necessário)
+USE db_projetos;
+
+-- Remove a tabela se já existir (opcional e seguro para recriação)
+DROP TABLE IF EXISTS pme;
+
+-- Cria a tabela pme
+CREATE TABLE IF NOT EXISTS pme (
+  `ID` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+
+  -- Campos de identificação e cadastro
+  CPF               CHAR(11)        NULL COMMENT 'Somente dígitos',
+  NOME              VARCHAR(150)    NULL,
+  INPUT             VARCHAR(100)    NULL,                                  -- Coluna "Input" do cabeçalho
+  LOGIN_NET         VARCHAR(60)     NULL,
+  CNPJ_CPF          CHAR(14)        NULL COMMENT 'CNPJ (14) ou CPF (11) sem máscara',
+  RAZAO_SOCIAL      VARCHAR(150)    NULL,
+  SITUACAO          VARCHAR(40)     NULL,
+  CELULAR           VARCHAR(20)     NULL,                                  -- Ex.: +55DDDXXXXXXXX
+  EMAIL             VARCHAR(150)    NULL,
+  EMAIL_GESTOR      VARCHAR(150)    NULL,
+
+  -- Códigos e estrutura comercial
+  COD               VARCHAR(40)     NULL,
+  COMTA             VARCHAR(60)     NULL,                                  -- Mantido como texto; especifique se for código numérico
+  COORDENADOR       VARCHAR(120)    NULL,
+  GERENTE           VARCHAR(120)    NULL,
+  TERRITORIO        VARCHAR(120)    NULL,
+  GERENTE_2         VARCHAR(120)    NULL,                                  -- Coluna duplicada do cabeçalho
+  COORDENADOR_2     VARCHAR(120)    NULL,                                  -- Coluna duplicada do cabeçalho
+  CANAL             VARCHAR(80)     NULL,
+  REGIONAL          VARCHAR(120)    NULL,
+  NOME_AACE         VARCHAR(150)    NULL,
+  TIME              VARCHAR(120)    NULL,
+  CANAL_2           VARCHAR(80)     NULL,                                  -- Coluna duplicada do cabeçalho
+
+  -- Controle de atualização (opcional, segue a lógica do seu exemplo)
+  DATA_ATUALIZACAO  DATETIME        NULL,
+  LOGIN_ATUALIZACAO VARCHAR(60)     NULL,
+
+  PRIMARY KEY (`ID`),
+
+  -- Índices úteis para busca/relatórios
+  INDEX idx_cpf (CPF),
+  INDEX idx_cnpj_cpf (CNPJ_CPF),
+  INDEX idx_login_net (LOGIN_NET),
+  INDEX idx_email (EMAIL),
+  INDEX idx_situacao (SITUACAO),
+  INDEX idx_canal (CANAL),
+  INDEX idx_regional (REGIONAL)
+)
+ENGINE = InnoDB
+DEFAULT CHARSET = utf8mb4
+COLLATE = utf8mb4_unicode_ci;
+``

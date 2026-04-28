@@ -292,23 +292,123 @@ export default function PainelBucketsPivot() {
     setdddFiltro("TODOS");
     setAlarmeFiltro("TODOS");
   }
-
+  // Função para exportar um HTML estático limpo da tabela filtrada
   const handleDownloadHTML = () => {
-    const htmlCompleto = document.documentElement.outerHTML;
+    if (!tableRef.current) return;
+
+    // Busca apenas a tabela dentro da ref principal
+    const tableElement = tableRef.current.querySelector("table");
+    if (!tableElement) return;
+
+    const tableHTML = tableElement.outerHTML;
+
+    // Cria um HTML estático envelopando a tabela e aplicando um CSS básico
+    const htmlCompleto = `
+      <!DOCTYPE html>
+      <html lang="pt-BR">
+      <head>
+        <meta charset="UTF-8">
+        <title>Relatório de Cotas P&P</title>
+        <style>
+          body { font-family: Arial, sans-serif; padding: 20px; color: #333; }
+          h2 { text-align: center; color: #e3000f; /* Cor padrão Claro */ }
+          table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 12px; }
+          th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
+          th { background-color: #f4f4f4; font-weight: bold; }
+          .city { text-align: left; font-weight: bold; }
+        </style>
+      </head>
+      <body>
+        <h2>Relatório de Cotas - Filtros Atuais</h2>
+        <p><strong>Filtros aplicados:</strong> Cidade: ${cidadeFiltro} | Território: ${territorioFiltro} | Alarme: ${alarmeFiltro}</p>
+        ${tableHTML}
+      </body>
+      </html>
+    `;
 
     const blob = new Blob([htmlCompleto], { type: "text/html;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
-
     const a = document.createElement("a");
     a.href = url;
-    a.download = `P&P-cotas-${new Date().toISOString().slice(0, 10)}.html`;
-
+    a.download = `Relatorio_Cotas_${new Date().toISOString().slice(0, 10)}.html`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
   };
 
+  // Função para exportar nativamente para Excel (CSV compatível)
+  const handleDownloadExcel = () => {
+    // 1. Montar Cabeçalhos
+    let colunas = [
+      "Cidade",
+      "Territorio",
+      "Alarme Agenda",
+      "Escala Tecnica",
+      "Backlog Total",
+    ];
+
+    if (hidden) {
+      colunas.push("Sem Agenda", "Agenda Futura", "Rota");
+    }
+
+    dias.forEach((dia, index) => {
+      const dataLabel = addDaysAndFormat(ultimaAtualizacao, index);
+      colunas.push(
+        `${dataLabel} - Cotas`,
+        `${dataLabel} - Agendado`,
+        `${dataLabel} - % Ocupacao`,
+      );
+    });
+
+    let csvContent = colunas.join(";") + "\n"; // Usando ponto e vírgula para separar (padrão Excel PT-BR)
+
+    // 2. Montar Linhas com os dados filtrados
+    dadosFiltrados.forEach((item) => {
+      const status = SearchCotas(item.dias, dias).status;
+
+      // Envelopa os textos em aspas para evitar quebra de colunas caso haja ponto e vírgula na string
+      let linha = [
+        `"${item.cidade.replace(/[|/-]/g, ", ")}"`,
+        `"${item.territorio}"`,
+        `"${status}"`,
+        `"${item.escala_tecnica}"`,
+        `"${item.qtd || 0}"`,
+      ];
+
+      if (hidden) {
+        linha.push(
+          `"${item.sem_agenda || 0}"`,
+          `"${item.agenda_futura || 0}"`,
+          `"${item.rota || 0}"`,
+        );
+      }
+
+      dias.forEach((dia) => {
+        const d = item.dias[dia];
+        linha.push(
+          `"${d?.saldo || 0}"`,
+          `"${d?.qtd_os || 0}"`,
+          `"${d?.taxa_ocupacao || 0}%"`,
+        );
+      });
+
+      csvContent += linha.join(";") + "\n";
+    });
+
+    // 3. Gerar o Blob. O "\uFEFF" é o BOM (Byte Order Mark) que garante que o Excel leia UTF-8 e não quebre os acentos
+    const blob = new Blob(["\uFEFF" + csvContent], {
+      type: "text/csv;charset=utf-8;",
+    });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `Dados_Cotas_${new Date().toISOString().slice(0, 10)}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
   const totaisPorDia = React.useMemo(() => {
     const totais = {};
 
@@ -433,7 +533,7 @@ export default function PainelBucketsPivot() {
             >
               Limpar Filtros
             </button>
-            <button className={Style.btnClear} onClick={handleDownloadHTML}>
+            <button className={Style.btnClear} onClick={handleDownloadExcel}>
               Download HTML
             </button>
           </div>
