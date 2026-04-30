@@ -23,19 +23,20 @@ const WeatherInfo = React.lazy(() => import("../Tools/WeatherInfo"));
 //);
 
 export default function PainelBucketsPivot() {
-  const [dados, setDados] = useState([]);
-  const [filtros, setFiltros] = useState(1);
-  const [dias, setDias] = useState([]);
   const tableRef = useRef(null);
+  const [dias, setDias] = useState([]);
+  const [dados, setDados] = useState([]);
+  const [hidden, setHidden] = useState(0);
+  const [search, setSearch] = useState("");
+  const [filtros, setFiltros] = useState(1);
   const [loading, setLoading] = useState(true);
+  const [dddFiltro, setdddFiltro] = useState("TODOS");
+  const [clusterFiltro, setClusterFiltro] = useState("TODOS");
+  const [handleCotas, setHandleCotas] = useState(false);
   const [cidadeFiltro, setCidadeFiltro] = useState("TODAS");
-  const [territorioFiltro, setTerritorioFiltro] = useState("TODAS");
   const [alarmeFiltro, setAlarmeFiltro] = useState("TODOS");
   const [segmentoFiltro, setSegmentoFiltro] = useState("TODOS");
-  const [dddFiltro, setdddFiltro] = useState("TODOS");
-  const [search, setSearch] = useState("");
-  const [handleCotas, setHandleCotas] = useState(false);
-  const [hidden, setHidden] = useState(0);
+  const [territorioFiltro, setTerritorioFiltro] = useState("TODAS");
 
   const Url = process.env.REACT_APP_API_URL || "http://localhost:8000";
 
@@ -185,6 +186,9 @@ export default function PainelBucketsPivot() {
     .filter(
       (item) => segmentoFiltro === "TODOS" || item.mercado === segmentoFiltro,
     )
+    .filter(
+      (item) => clusterFiltro === "TODOS" || item.cluster === clusterFiltro,
+    )
     .filter((item) => {
       const termo = search.toUpperCase().trim();
       return (
@@ -247,6 +251,12 @@ export default function PainelBucketsPivot() {
     ).sort((a, b) => String(a).localeCompare(String(b), "pt-BR"));
   }, [dadosFiltrados]);
 
+  const clusterFiltrados = React.useMemo(() => {
+    return Array.from(
+      new Set(dadosFiltrados.map((i) => i.cluster).filter(Boolean)),
+    ).sort((a, b) => String(a).localeCompare(String(b), "pt-BR"));
+  }, [dadosFiltrados]);
+
   const dddFiltrados = React.useMemo(() => {
     return Array.from(
       new Set(dadosFiltrados.map((i) => i.ddd).filter(Boolean)),
@@ -285,6 +295,7 @@ export default function PainelBucketsPivot() {
     setCidadeFiltro("TODAS");
     setTerritorioFiltro("TODAS");
     setSegmentoFiltro("TODOS");
+    setClusterFiltro("TODOS");
     if (!search) {
       setSearch("");
     }
@@ -512,6 +523,20 @@ export default function PainelBucketsPivot() {
                 >
                   <option value="TODOS">Todos</option>
                   {dddFiltrados.map((s) => (
+                    <option key={s} value={s}>
+                      {s}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label>Cluster {clusterFiltrados.length}</label>
+                <select
+                  value={clusterFiltro}
+                  onChange={(e) => setClusterFiltro(e.target.value)}
+                >
+                  <option value="TODOS">Todos</option>
+                  {clusterFiltrados.map((s) => (
                     <option key={s} value={s}>
                       {s}
                     </option>
