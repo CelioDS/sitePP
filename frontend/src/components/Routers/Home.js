@@ -42,12 +42,12 @@ export default function Home() {
         if (onlyMovel) {
           if (year) params.set("year", year); // filtra AAAA
           if (referencia) params.set("referencia", referencia); // filtra REFERENCIA
-          const resp = await axios.get(`${Url}/neon/pdumovel?${params.toString()}`);
+          const resp = await axios.get(`${Url}/pdumovel?${params.toString()}`);
           setData(resp.data || []);
         } else {
           if (year) params.set("year", year); // filtra AAAA
           if (referencia) params.set("referencia", referencia); // filtra REFERENCIA
-          const resp = await axios.get(`${Url}/neon/pdu?${params.toString()}`);
+          const resp = await axios.get(`${Url}/pdu?${params.toString()}`);
           setData(resp.data || []);
         }
       } catch (err) {
@@ -64,7 +64,7 @@ export default function Home() {
         // Se quiser simular outra data:
         // params.set("refDate", "2026-01-27");
 
-        const resp = await axios.get(`${Url}/neon/PduFull`);
+        const resp = await axios.get(`${Url}/PduFull`);
         setDataFULL(resp.data || []);
       } catch (err) {
         console.error("Erro ao carregar dados:", err);

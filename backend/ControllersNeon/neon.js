@@ -602,27 +602,19 @@ export const getPduFull = async (req, res) => {
   }
 };
 
-
 export const getPDUMovel = async (req, res) => {
   try {
     const { refDate, year } = req.query;
 
     const params = [];
-    const hasRefDate = !!refDate;
-    const hasYear = !!year && /^\d{4}$/.test(String(year));
+    let baseDateExpr;
 
-    /* =====================================================
-       DATA BASE (MESMA LÓGICA DO MYSQL)
-       ===================================================== */
-    let refDateBaseExpr;
-
-    if (hasRefDate) {
-      refDateBaseExpr = `$1::date`;
+    // -------- Data base (equivalente ao MySQL) --------
+    if (refDate) {
+      baseDateExpr = `$1::date`;
       params.push(refDate);
-    } else if (hasYear) {
-      // equivalente ao:
-      // STR_TO_DATE(CONCAT(?, '-', DATE_FORMAT(CURDATE(), '%m'), '-01'), ...)
-      refDateBaseExpr = `
+    } else if (year && /^\d{4}$/.test(String(year))) {
+      baseDateExpr = `
         MAKE_DATE(
           $1::int,
           EXTRACT(MONTH FROM (CURRENT_DATE AT TIME ZONE 'America/Sao_Paulo'))::int,
@@ -631,59 +623,37 @@ export const getPDUMovel = async (req, res) => {
       `;
       params.push(Number(year));
     } else {
-      refDateBaseExpr = `(CURRENT_DATE AT TIME ZONE 'America/Sao_Paulo')::date`;
+      baseDateExpr = `(CURRENT_DATE AT TIME ZONE 'America/Sao_Paulo')::date`;
     }
 
     const sql = `
-      WITH
-      params AS (
-        SELECT
-          ${refDateBaseExpr} AS ref_date_base,
-          (CURRENT_DATE AT TIME ZONE 'America/Sao_Paulo')::date AS today_real
-      ),
-      bounds AS (
-        SELECT
-          CASE
-            WHEN ${hasYear ? 'TRUE' : 'FALSE'} THEN
-              LEAST(
-                ref_date_base
-                  + (EXTRACT(DAY FROM today_real) - 1) * INTERVAL '1 day',
-                (date_trunc('month', ref_date_base) + interval '1 month - 1 day')::date
-              )
-            ELSE
-              LEAST(
-                ref_date_base,
-                (date_trunc('month', ref_date_base) + interval '1 month - 1 day')::date
-              )
-          END AS today_eff
-        FROM params
+      WITH base AS (
+        SELECT ${baseDateExpr} AS today_eff
       ),
       ranges AS (
         SELECT
-          -- mês corrente
+          today_eff,
+
           date_trunc('month', today_eff)::date AS first_day_cur,
           (date_trunc('month', today_eff) + interval '1 month - 1 day')::date AS last_day_cur,
 
-          -- mês anterior
           date_trunc('month', today_eff - interval '1 month')::date AS first_day_prev,
           (date_trunc('month', today_eff - interval '1 month') + interval '1 month - 1 day')::date AS last_day_prev,
 
-          -- próximo mês
           date_trunc('month', today_eff + interval '1 month')::date AS first_day_next,
           (date_trunc('month', today_eff + interval '1 month') + interval '1 month - 1 day')::date AS last_day_next,
 
-          -- mesmo mês ano passado
-          date_trunc('month', today_eff - interval '1 year')::date AS first_day_cur_prev_year,
-          (date_trunc('month', today_eff - interval '1 year') + interval '1 month - 1 day')::date AS last_day_cur_prev_year,
-
-          today_eff
-        FROM bounds
+          date_trunc('month', today_eff - interval '1 year')::date AS first_day_ly,
+          (date_trunc('month', today_eff - interval '1 year') + interval '1 month - 1 day')::date AS last_day_ly
+        FROM base
       )
       SELECT
         r.today_eff AS data_referencia,
 
         EXTRACT(DAY FROM r.last_day_cur) AS dias_no_mes,
+
         (r.today_eff - r.first_day_cur + 1) AS dias_passados,
+
         GREATEST(
           EXTRACT(DAY FROM r.last_day_cur)
           - (r.today_eff - r.first_day_cur + 1),
@@ -691,111 +661,54 @@ export const getPDUMovel = async (req, res) => {
         ) AS dias_restantes,
 
         ROUND(
-          CAST(
-            100.0 * (r.today_eff - r.first_day_cur + 1)
-            / EXTRACT(DAY FROM r.last_day_cur)
-            AS NUMERIC
-          ),
+          (100.0 * (r.today_eff - r.first_day_cur + 1)
+          / EXTRACT(DAY FROM r.last_day_cur))::NUMERIC,
           2
         ) AS perc_mes_transcorrido,
 
-        /* ===========================================
-           MAPA ORIGINAL (MYSQL)
-           inst_* = BRASIL  |  vb_* = SPI
-           =========================================== */
-
-        -- mês atual
-        ROUND(CAST(SUM(CASE
+        -- BRASIL
+        ROUND(SUM(CASE
           WHEN p.dt BETWEEN r.first_day_cur AND r.last_day_cur
-           AND p.ref_is_br = 1
-          THEN p.movel ELSE 0 END) AS NUMERIC), 2) AS inst_mes_atual,
+           AND p.referencia_norm = 'BRASIL'
+          THEN p.movel ELSE 0 END)::NUMERIC,2) AS inst_mes_atual,
 
-        ROUND(CAST(SUM(CASE
+        -- SPI
+        ROUND(SUM(CASE
           WHEN p.dt BETWEEN r.first_day_cur AND r.last_day_cur
-           AND p.ref_is_spi = 1
-          THEN p.movel ELSE 0 END) AS NUMERIC), 2) AS vb_mes_atual,
-
-        -- mês anterior
-        ROUND(CAST(SUM(CASE
-          WHEN p.dt BETWEEN r.first_day_prev AND r.last_day_prev
-           AND p.ref_is_br = 1
-          THEN p.movel ELSE 0 END) AS NUMERIC), 2) AS inst_mes_anterior,
-
-        ROUND(CAST(SUM(CASE
-          WHEN p.dt BETWEEN r.first_day_prev AND r.last_day_prev
-           AND p.ref_is_spi = 1
-          THEN p.movel ELSE 0 END) AS NUMERIC), 2) AS vb_mes_anterior,
-
-        -- próximo mês
-        ROUND(CAST(SUM(CASE
-          WHEN p.dt BETWEEN r.first_day_next AND r.last_day_next
-           AND p.ref_is_br = 1
-          THEN p.movel ELSE 0 END) AS NUMERIC), 2) AS inst_prox_mes,
-
-        ROUND(CAST(SUM(CASE
-          WHEN p.dt BETWEEN r.first_day_next AND r.last_day_next
-           AND p.ref_is_spi = 1
-          THEN p.movel ELSE 0 END) AS NUMERIC), 2) AS vb_prox_mes,
-
-        -- acumulado até hoje
-        ROUND(CAST(SUM(CASE
-          WHEN p.dt BETWEEN r.first_day_cur AND r.today_eff
-           AND p.ref_is_br = 1
-          THEN p.movel ELSE 0 END) AS NUMERIC), 2) AS inst_ate_hoje,
-
-        ROUND(CAST(SUM(CASE
-          WHEN p.dt BETWEEN r.first_day_cur AND r.today_eff
-           AND p.ref_is_spi = 1
-          THEN p.movel ELSE 0 END) AS NUMERIC), 2) AS vb_ate_hoje,
-
-        -- mesmo mês ano passado
-        ROUND(CAST(SUM(CASE
-          WHEN p.dt BETWEEN r.first_day_cur_prev_year AND r.last_day_cur_prev_year
-           AND p.ref_is_br = 1
-          THEN p.movel ELSE 0 END) AS NUMERIC), 2) AS inst_mes_ano_passado,
-
-        ROUND(CAST(SUM(CASE
-          WHEN p.dt BETWEEN r.first_day_cur_prev_year AND r.last_day_cur_prev_year
-           AND p.ref_is_spi = 1
-          THEN p.movel ELSE 0 END) AS NUMERIC), 2) AS vb_mes_ano_passado
+           AND p.referencia_norm ~ '^S.?O PAULO INTERIOR$'
+          THEN p.movel ELSE 0 END)::NUMERIC,2) AS vb_mes_atual
 
       FROM ranges r
       LEFT JOIN (
         SELECT
           dt,
-          COALESCE(movel, 0) AS movel,
-          CASE WHEN UPPER(TRIM(referencia)) = 'BRASIL' THEN 1 ELSE 0 END AS ref_is_br,
-          CASE WHEN UPPER(TRIM(referencia)) ~ '^S.?O PAULO INTERIOR$' THEN 1 ELSE 0 END AS ref_is_spi
+          COALESCE(movel,0) AS movel,
+          UPPER(TRIM(REPLACE(referencia, E'\\r',''))) AS referencia_norm
         FROM pdu
+        WHERE dt IS NOT NULL
       ) p
-        ON (
-          (p.dt BETWEEN r.first_day_prev AND r.last_day_next)
-          OR
-          (p.dt BETWEEN r.first_day_cur_prev_year AND r.last_day_cur_prev_year)
-        )
+        ON p.dt BETWEEN r.first_day_prev AND r.last_day_next
       GROUP BY
         r.today_eff,
-        r.first_day_cur, r.last_day_cur,
-        r.first_day_prev, r.last_day_prev,
-        r.first_day_next, r.last_day_next,
-        r.first_day_cur_prev_year, r.last_day_cur_prev_year;
+        r.first_day_cur,
+        r.last_day_cur;
     `;
 
     const { rows } = await neonDB.query(sql, params);
-    return res.status(200).json(rows);
+    return res.json(rows);
 
   } catch (err) {
     console.error(err);
-    return res.status(500).json({ error: "Erro ao buscar PDUMovel" });
+    return res.status(500).json({
+      error: "Erro ao buscar PDUMovel",
+      detail: err.message
+    });
   }
 };
-
-
 export const getPduFullGrafico = async (req, res) => {
   try {
     const { year, referencia } = req.query;
 
-    /* ========= Validação ========= */
     if (!year || !/^\d{4}$/.test(String(year))) {
       return res.status(400).json({ error: "Parâmetro year é obrigatório (YYYY)" });
     }
@@ -814,102 +727,87 @@ export const getPduFullGrafico = async (req, res) => {
     const mappedRef = REF_MAP[refKey];
 
     const params = [Number(year)];
-    const where = [`p.aaaa_num = $1`];
+    const where = [`EXTRACT(YEAR FROM dt) = $1`];
 
     let onlyOneRef = false;
 
     if (mappedRef) {
       onlyOneRef = true;
       if (mappedRef === "BRASIL") {
-        where.push(`p.ref_norm = 'BRASIL'`);
+        where.push(`ref_norm = 'BRASIL'`);
       } else {
-        where.push(`p.ref_norm ~ '^S.?O PAULO INTERIOR$'`);
+        where.push(`ref_norm ~ '^S.?O PAULO INTERIOR$'`);
       }
     }
 
     const whereSql = `WHERE ${where.join(" AND ")}`;
 
-    /* ========= Subselect NORMALIZADO ========= */
-    const baseSubselect = `
-      SELECT
-        (EXTRACT(YEAR FROM dt)::int * 100 + EXTRACT(MONTH FROM dt)::int) AS anomes_num,
-        EXTRACT(YEAR FROM dt)::int                                     AS aaaa_num,
-        UPPER(TRIM(REPLACE(referencia, E'\\r', '')))                  AS ref_norm,
-        vb,
-        inst,
-        COALESCE(movel, 0)                                            AS movel
-      FROM pdu
-      WHERE dt IS NOT NULL
-    `;
-
     const sql = onlyOneRef
       ? `
         SELECT
-          p.anomes_num AS anomes,
-          ROUND(SUM(p.vb)::numeric,2)    AS vb_soma,
-          ROUND(SUM(p.inst)::numeric,2)  AS inst_soma,
-          ROUND(SUM(p.movel)::numeric,2) AS movel_soma
-        FROM (${baseSubselect}) p
+          (EXTRACT(YEAR FROM dt)::int * 100 + EXTRACT(MONTH FROM dt)::int) AS anomes,
+          ROUND(SUM(vb)::NUMERIC, 2)    AS vb_soma,
+          ROUND(SUM(inst)::NUMERIC, 2)  AS inst_soma,
+          ROUND(SUM(COALESCE(movel,0))::NUMERIC, 2) AS movel_soma
+        FROM (
+          SELECT
+            dt,
+            vb,
+            inst,
+            COALESCE(movel,0) AS movel,
+            UPPER(TRIM(REPLACE(referencia, E'\\r',''))) AS ref_norm
+          FROM pdu
+          WHERE dt IS NOT NULL
+        ) p
         ${whereSql}
-        GROUP BY p.anomes_num
-        ORDER BY p.anomes_num
+        GROUP BY anomes
+        ORDER BY anomes;
       `
       : `
         SELECT
-          p.anomes_num AS anomes,
+          (EXTRACT(YEAR FROM dt)::int * 100 + EXTRACT(MONTH FROM dt)::int) AS anomes,
 
-          ROUND(SUM(CASE WHEN p.ref_norm = 'BRASIL'
-               THEN p.vb ELSE 0 END)::numeric,2) AS vb_soma_br,
+          ROUND(SUM(CASE WHEN ref_norm = 'BRASIL'
+               THEN vb ELSE 0 END)::NUMERIC, 2) AS vb_soma_br,
 
-          ROUND(SUM(CASE WHEN p.ref_norm ~ '^S.?O PAULO INTERIOR$'
-               THEN p.vb ELSE 0 END)::numeric,2) AS vb_soma_rsi,
+          ROUND(SUM(CASE WHEN ref_norm ~ '^S.?O PAULO INTERIOR$'
+               THEN vb ELSE 0 END)::NUMERIC, 2) AS vb_soma_rsi,
 
-          ROUND(SUM(CASE WHEN p.ref_norm = 'BRASIL'
-               THEN p.inst ELSE 0 END)::numeric,2) AS inst_soma_br,
+          ROUND(SUM(CASE WHEN ref_norm = 'BRASIL'
+               THEN inst ELSE 0 END)::NUMERIC, 2) AS inst_soma_br,
 
-          ROUND(SUM(CASE WHEN p.ref_norm ~ '^S.?O PAULO INTERIOR$'
-               THEN p.inst ELSE 0 END)::numeric,2) AS inst_soma_rsi,
+          ROUND(SUM(CASE WHEN ref_norm ~ '^S.?O PAULO INTERIOR$'
+               THEN inst ELSE 0 END)::NUMERIC, 2) AS inst_soma_rsi,
 
-          ROUND(SUM(CASE WHEN p.ref_norm = 'BRASIL'
-               THEN p.movel ELSE 0 END)::numeric,2) AS movel_soma_br,
+          ROUND(SUM(CASE WHEN ref_norm = 'BRASIL'
+               THEN movel ELSE 0 END)::NUMERIC, 2) AS movel_soma_br,
 
-          ROUND(SUM(CASE WHEN p.ref_norm ~ '^S.?O PAULO INTERIOR$'
-               THEN p.movel ELSE 0 END)::numeric,2) AS movel_soma_rsi
-        FROM (${baseSubselect}) p
+          ROUND(SUM(CASE WHEN ref_norm ~ '^S.?O PAULO INTERIOR$'
+               THEN movel ELSE 0 END)::NUMERIC, 2) AS movel_soma_rsi
+        FROM (
+          SELECT
+            dt,
+            vb,
+            inst,
+            COALESCE(movel,0) AS movel,
+            UPPER(TRIM(REPLACE(referencia, E'\\r',''))) AS ref_norm
+          FROM pdu
+          WHERE dt IS NOT NULL
+        ) p
         ${whereSql}
-        GROUP BY p.anomes_num
-        ORDER BY p.anomes_num
+        GROUP BY anomes
+        ORDER BY anomes;
       `;
 
     const { rows } = await neonDB.query(sql, params);
 
-    /* ========= Esqueleto 12 meses ========= */
-    const skeleton = Array.from({ length: 12 }, (_, i) =>
-      Number(`${year}${String(i + 1).padStart(2, "0")}`)
-    );
-
-    const byKey = new Map(rows.map(r => [Number(r.anomes), r]));
-
-    const completed = skeleton.map(anomes =>
-      byKey.get(anomes) ||
-      (onlyOneRef
-        ? { anomes, vb_soma: 0, inst_soma: 0, movel_soma: 0 }
-        : {
-            anomes,
-            vb_soma_br: 0,
-            vb_soma_rsi: 0,
-            inst_soma_br: 0,
-            inst_soma_rsi: 0,
-            movel_soma_br: 0,
-            movel_soma_rsi: 0,
-          })
-    );
-
-    return res.json(completed);
+    res.json(rows);
 
   } catch (err) {
     console.error(err);
-    return res.status(500).json({ error: "Erro ao buscar FULLBASE" });
+    res.status(500).json({
+      error: "Erro ao buscar FULLBASE",
+      detalhamento: err.message,
+    });
   }
 };
-``

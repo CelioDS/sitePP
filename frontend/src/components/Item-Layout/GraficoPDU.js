@@ -18,7 +18,7 @@ export default function GraficoPDU({ year, Url, referencia  }) {
     const fetchData = async () => {
       try {
     
-        const resp = await axios.get(`${Url}/neon/PduFullGrafico`);
+        const resp = await axios.get(`${Url}/PduFullGrafico`);
         setDataFULL(resp.data || []);
       } catch (err) {
         console.error("Erro ao carregar dados:", err);
