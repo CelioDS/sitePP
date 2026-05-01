@@ -343,34 +343,67 @@ export const getCotasCop = async (req, res) => {
 };
 
 
-//------ pdu//
-
 
 /* =========================================================
    GET PDU – RESUMO MENSAL (INST / VB)
    ========================================================= */
-export const getPDU = async (req, res) => {
+   export const getPDU = async (req, res) => {
   try {
-    const { refDate } = req.query;
+    const { refDate, year, referencia, movel } = req.query;
 
     const params = [];
-    const refExpr = refDate ? "$1::date" : "CURRENT_DATE";
-    if (refDate) params.push(refDate);
+    const joinFilters = [];
+
+    /* =====================================================
+       REFERENCIA (BR / SP_INT / tolerância a acento)
+       ===================================================== */
+    if (referencia) {
+      const key = referencia.toUpperCase().trim();
+      if (key === "BR" || key === "BRASIL") {
+        joinFilters.push(`p.ref_norm = 'BRASIL'`);
+      } else {
+        joinFilters.push(`p.ref_norm ~ '^S.?O PAULO INTERIOR$'`);
+      }
+    }
+
+    /* =====================================================
+       MOVEL (true / false)
+       ===================================================== */
+    if (typeof movel !== "undefined") {
+      const v = String(movel).toLowerCase();
+      if (["1", "true", "movel", "móvel"].includes(v)) {
+        joinFilters.push(`ROUND(p.movel::numeric,0) = 1`);
+      }
+      if (["0", "false", "fixo"].includes(v)) {
+        joinFilters.push(`ROUND(p.movel::numeric,0) = 0`);
+      }
+    }
+
+    const joinExtra =
+      joinFilters.length > 0 ? `AND ${joinFilters.join(" AND ")}` : "";
+
+    /* =====================================================
+       DATA BASE (refDate / year / hoje)
+       ===================================================== */
+    let baseDateExpr;
+    if (refDate) {
+      baseDateExpr = `$1::date`;
+      params.push(refDate);
+    } else if (year) {
+      baseDateExpr = `MAKE_DATE($1::int, EXTRACT(MONTH FROM CURRENT_DATE)::int, 1)`;
+      params.push(Number(year));
+    } else {
+      baseDateExpr = `(CURRENT_DATE AT TIME ZONE 'America/Sao_Paulo')::date`;
+    }
 
     const sql = `
-      WITH params AS (
-        SELECT ${refExpr} AS ref_date_base
-      ),
-      bounds AS (
-        SELECT
-          LEAST(
-            ref_date_base,
-            (date_trunc('month', ref_date_base) + interval '1 month - 1 day')::date
-          ) AS today_eff
-        FROM params
+      WITH base AS (
+        SELECT ${baseDateExpr} AS today_eff
       ),
       ranges AS (
         SELECT
+          today_eff,
+
           date_trunc('month', today_eff)::date AS first_day_cur,
           (date_trunc('month', today_eff) + interval '1 month - 1 day')::date AS last_day_cur,
 
@@ -380,149 +413,84 @@ export const getPDU = async (req, res) => {
           date_trunc('month', today_eff + interval '1 month')::date AS first_day_next,
           (date_trunc('month', today_eff + interval '1 month') + interval '1 month - 1 day')::date AS last_day_next,
 
-          today_eff
-        FROM bounds
+          date_trunc('month', today_eff - interval '1 year')::date AS first_day_ly,
+          (date_trunc('month', today_eff - interval '1 year') + interval '1 month - 1 day')::date AS last_day_ly
+        FROM base
       )
       SELECT
         r.today_eff AS data_referencia,
+
         EXTRACT(DAY FROM r.last_day_cur) AS dias_no_mes,
         (r.today_eff - r.first_day_cur + 1) AS dias_passados,
-        ROUND(100.0 * (r.today_eff - r.first_day_cur + 1) / EXTRACT(DAY FROM r.last_day_cur),2) AS perc_mes_transcorrido,
+        GREATEST(
+          EXTRACT(DAY FROM r.last_day_cur) - (r.today_eff - r.first_day_cur + 1),
+          0
+        ) AS dias_restantes,
 
-        ROUND(SUM(CASE WHEN p.dt BETWEEN r.first_day_cur AND r.last_day_cur THEN p.inst ELSE 0 END),2) AS inst_mes_atual,
-        ROUND(SUM(CASE WHEN p.dt BETWEEN r.first_day_prev AND r.last_day_prev THEN p.inst ELSE 0 END),2) AS inst_mes_anterior,
-        ROUND(SUM(CASE WHEN p.dt BETWEEN r.first_day_next AND r.last_day_next THEN p.inst ELSE 0 END),2) AS inst_prox_mes,
+        ROUND(
+          CAST(100.0 * (r.today_eff - r.first_day_cur + 1)
+          / EXTRACT(DAY FROM r.last_day_cur) AS NUMERIC),
+          2
+        ) AS perc_mes_transcorrido,
 
-        ROUND(SUM(CASE WHEN p.dt BETWEEN r.first_day_cur AND r.last_day_cur THEN p.vb ELSE 0 END),2) AS vb_mes_atual,
-        ROUND(SUM(CASE WHEN p.dt BETWEEN r.first_day_prev AND r.last_day_prev THEN p.vb ELSE 0 END),2) AS vb_mes_anterior,
-        ROUND(SUM(CASE WHEN p.dt BETWEEN r.first_day_next AND r.last_day_next THEN p.vb ELSE 0 END),2) AS vb_prox_mes
-      FROM ranges r
-      LEFT JOIN pdu p
-        ON p.dt BETWEEN r.first_day_prev AND r.last_day_next
-      GROUP BY
-        r.today_eff,
-        r.first_day_cur,
-        r.last_day_cur,
-        r.first_day_prev,
-        r.last_day_prev,
-        r.first_day_next,
-        r.last_day_next;
-    `;
+        /* ----- MÊS ATUAL / ANTERIOR / PRÓXIMO ----- */
+        ROUND(CAST(SUM(CASE WHEN p.dt BETWEEN r.first_day_cur AND r.last_day_cur THEN p.inst ELSE 0 END) AS NUMERIC),2) AS inst_mes_atual,
+        ROUND(CAST(SUM(CASE WHEN p.dt BETWEEN r.first_day_prev AND r.last_day_prev THEN p.inst ELSE 0 END) AS NUMERIC),2) AS inst_mes_anterior,
+        ROUND(CAST(SUM(CASE WHEN p.dt BETWEEN r.first_day_next AND r.last_day_next THEN p.inst ELSE 0 END) AS NUMERIC),2) AS inst_prox_mes,
 
-    const { rows } = await neonDB.query(sql, params);
-    res.json(rows);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Erro getPDU" });
-  }
-};
+        ROUND(CAST(SUM(CASE WHEN p.dt BETWEEN r.first_day_cur AND r.last_day_cur THEN p.vb ELSE 0 END) AS NUMERIC),2) AS vb_mes_atual,
+        ROUND(CAST(SUM(CASE WHEN p.dt BETWEEN r.first_day_prev AND r.last_day_prev THEN p.vb ELSE 0 END) AS NUMERIC),2) AS vb_mes_anterior,
+        ROUND(CAST(SUM(CASE WHEN p.dt BETWEEN r.first_day_next AND r.last_day_next THEN p.vb ELSE 0 END) AS NUMERIC),2) AS vb_prox_mes,
 
-/* =========================================================
-   GET PDU FULL – AGRUPADO POR ANOMES
-   ========================================================= */
-export const getPduFull = async (req, res) => {
-  try {
-    const { year } = req.query;
-    if (!year) return res.status(400).json({ error: "year obrigatório" });
+        /* ----- ACUMULADO ATÉ HOJE ----- */
+        ROUND(CAST(SUM(CASE WHEN p.dt BETWEEN r.first_day_cur AND r.today_eff THEN p.inst ELSE 0 END) AS NUMERIC),2) AS inst_ate_hoje,
+        ROUND(CAST(SUM(CASE WHEN p.dt BETWEEN r.first_day_cur AND r.today_eff THEN p.vb   ELSE 0 END) AS NUMERIC),2) AS vb_ate_hoje,
 
-    const sql = `
-      SELECT
-        (EXTRACT(YEAR FROM dt)::int * 100 + EXTRACT(MONTH FROM dt)::int) AS anomes,
-        SUM(CASE WHEN ref_norm = 'BRASIL' THEN vb ELSE 0 END) AS vb_br,
-        SUM(CASE WHEN ref_norm ~ '^S.?O PAULO INTERIOR$' THEN vb ELSE 0 END) AS vb_spi,
-        SUM(CASE WHEN ref_norm = 'BRASIL' THEN inst ELSE 0 END) AS inst_br,
-        SUM(CASE WHEN ref_norm ~ '^S.?O PAULO INTERIOR$' THEN inst ELSE 0 END) AS inst_spi
-      FROM (
-        SELECT
-          dt,
-          vb,
-          inst,
-          UPPER(TRIM(referencia)) AS ref_norm
-        FROM pdu
-      ) p
-      WHERE EXTRACT(YEAR FROM dt) = $1
-      GROUP BY anomes
-      ORDER BY anomes;
-    `;
-
-    const { rows } = await neonDB.query(sql, [year]);
-    res.json(rows);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Erro getPduFull" });
-  }
-};
-
-/* =========================================================
-   GET PDU MOVEL – BRASIL x SPI
-   ========================================================= */
-export const getPDUMovel = async (req, res) => {
-  try {
-    const { refDate } = req.query;
-    const params = [];
-    const refExpr = refDate ? "$1::date" : "CURRENT_DATE";
-    if (refDate) params.push(refDate);
-
-    const sql = `
-      WITH params AS (
-        SELECT ${refExpr} AS ref_date_base
-      ),
-      bounds AS (
-        SELECT
-          LEAST(
-            ref_date_base,
-            (date_trunc('month', ref_date_base) + interval '1 month - 1 day')::date
-          ) AS today_eff
-        FROM params
-      ),
-      ranges AS (
-        SELECT
-          date_trunc('month', today_eff)::date AS first_day_cur,
-          (date_trunc('month', today_eff) + interval '1 month - 1 day')::date AS last_day_cur,
-          today_eff
-        FROM bounds
-      )
-      SELECT
-        r.today_eff AS data_referencia,
-
-        ROUND(SUM(CASE 
-          WHEN p.dt BETWEEN r.first_day_cur AND r.last_day_cur
-           AND p.ref_norm = 'BRASIL'
-          THEN p.movel ELSE 0 END),2) AS movel_br,
-
-        ROUND(SUM(CASE 
-          WHEN p.dt BETWEEN r.first_day_cur AND r.last_day_cur
-           AND p.ref_norm ~ '^S.?O PAULO INTERIOR$'
-          THEN p.movel ELSE 0 END),2) AS movel_spi
+        /* ----- MESMO MÊS ANO PASSADO ----- */
+        ROUND(CAST(SUM(CASE WHEN p.dt BETWEEN r.first_day_ly AND r.last_day_ly THEN p.inst ELSE 0 END) AS NUMERIC),2) AS inst_mes_ano_passado,
+        ROUND(CAST(SUM(CASE WHEN p.dt BETWEEN r.first_day_ly AND r.last_day_ly THEN p.vb   ELSE 0 END) AS NUMERIC),2) AS vb_mes_ano_passado
 
       FROM ranges r
       LEFT JOIN (
         SELECT
           dt,
+          inst,
+          vb,
           COALESCE(movel,0) AS movel,
           UPPER(TRIM(referencia)) AS ref_norm
         FROM pdu
       ) p
-        ON p.dt BETWEEN r.first_day_cur AND r.last_day_cur
-      GROUP BY r.today_eff, r.first_day_cur, r.last_day_cur;
+        ON (
+             (p.dt BETWEEN r.first_day_prev AND r.last_day_next)
+             OR
+             (p.dt BETWEEN r.first_day_ly AND r.last_day_ly)
+           )
+        ${joinExtra}
+      GROUP BY
+        r.today_eff,
+        r.first_day_cur, r.last_day_cur,
+        r.first_day_prev, r.last_day_prev,
+        r.first_day_next, r.last_day_next,
+        r.first_day_ly, r.last_day_ly;
     `;
 
     const { rows } = await neonDB.query(sql, params);
-    res.json(rows);
+    return res.status(200).json(rows);
+
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: "Erro getPDUMovel" });
+    return res.status(500).json({ error: "Erro ao buscar PDU" });
   }
 };
 
 
-
-export const getPduFullGrafico = async (req, res) => {
+export const getPduFull = async (req, res) => {
   try {
     const { year, referencia } = req.query;
 
+    /* ---------------- Validações ---------------- */
     const hasYear = !!year && /^\d{4}$/.test(String(year));
-    const refKey = (referencia || "").toString().toUpperCase().trim();
+    const refKey = (referencia || "").toUpperCase().trim();
 
     const REF_MAP = {
       BR: "BRASIL",
@@ -535,6 +503,7 @@ export const getPduFullGrafico = async (req, res) => {
 
     const mappedRef = REF_MAP[refKey];
 
+    /* ---------------- Filtros dinâmicos ---------------- */
     const params = [];
     const where = [];
 
@@ -556,30 +525,27 @@ export const getPduFullGrafico = async (req, res) => {
 
     const whereSql = where.length ? `WHERE ${where.join(" AND ")}` : "";
 
-    /* =======================================================
-       Subselect base (PostgreSQL)
-       ======================================================= */
+    /* ---------------- Subselect normalizador ----------------
+       ⬇️ Substitui CAST/REPLACE/SUBSTR do MySQL
+       ⬇️ Usa dt (DATE) corretamente no PostgreSQL
+    --------------------------------------------------------- */
     const baseSubselect = `
       SELECT
         (EXTRACT(YEAR FROM dt)::int * 100 + EXTRACT(MONTH FROM dt)::int) AS anomes_num,
         EXTRACT(YEAR FROM dt)::int                                     AS aaaa_num,
         UPPER(TRIM(referencia))                                       AS ref_norm,
         vb,
-        inst,
-        COALESCE(movel, 0)                                            AS movel
+        inst
       FROM pdu
     `;
 
-    /* =======================================================
-       SELECT final
-       ======================================================= */
+    /* ---------------- SELECT FINAL ---------------- */
     const selectSql = onlyOneRef
       ? `
         SELECT
           p.anomes_num AS anomes,
-          ROUND(SUM(p.vb),   2) AS vb_soma,
-          ROUND(SUM(p.inst), 2) AS inst_soma,
-          ROUND(SUM(p.movel),2) AS movel_soma
+          ROUND(CAST(SUM(p.vb)   AS NUMERIC), 2) AS vb_soma,
+          ROUND(CAST(SUM(p.inst) AS NUMERIC), 2) AS inst_soma
         FROM (${baseSubselect}) p
         ${whereSql}
         GROUP BY p.anomes_num
@@ -589,18 +555,11 @@ export const getPduFullGrafico = async (req, res) => {
         SELECT
           p.anomes_num AS anomes,
 
-          /* VB */
-          ROUND(SUM(CASE WHEN p.ref_norm = 'BRASIL' THEN p.vb ELSE 0 END), 2) AS vb_soma_br,
-          ROUND(SUM(CASE WHEN p.ref_norm ~ '^S.?O PAULO INTERIOR$' THEN p.vb ELSE 0 END), 2) AS vb_soma_rsi,
+          ROUND(CAST(SUM(CASE WHEN p.ref_norm = 'BRASIL' THEN p.vb ELSE 0 END) AS NUMERIC), 2) AS VB_soma_br,
+          ROUND(CAST(SUM(CASE WHEN p.ref_norm ~ '^S.?O PAULO INTERIOR$' THEN p.vb ELSE 0 END) AS NUMERIC), 2) AS VB_soma_RSI,
 
-          /* INST */
-          ROUND(SUM(CASE WHEN p.ref_norm = 'BRASIL' THEN p.inst ELSE 0 END), 2) AS inst_soma_br,
-          ROUND(SUM(CASE WHEN p.ref_norm ~ '^S.?O PAULO INTERIOR$' THEN p.inst ELSE 0 END), 2) AS inst_soma_rsi,
-
-          /* MOVEL */
-          ROUND(SUM(CASE WHEN p.ref_norm = 'BRASIL' THEN p.movel ELSE 0 END), 2) AS movel_soma_br,
-          ROUND(SUM(CASE WHEN p.ref_norm ~ '^S.?O PAULO INTERIOR$' THEN p.movel ELSE 0 END), 2) AS movel_soma_rsi
-
+          ROUND(CAST(SUM(CASE WHEN p.ref_norm = 'BRASIL' THEN p.inst ELSE 0 END) AS NUMERIC), 2) AS INST_soma_br,
+          ROUND(CAST(SUM(CASE WHEN p.ref_norm ~ '^S.?O PAULO INTERIOR$' THEN p.inst ELSE 0 END) AS NUMERIC), 2) AS INST_soma_RSI
         FROM (${baseSubselect}) p
         ${whereSql}
         GROUP BY p.anomes_num
@@ -609,35 +568,26 @@ export const getPduFullGrafico = async (req, res) => {
 
     const { rows } = await neonDB.query(selectSql, params);
 
-    /* =======================================================
-       Esqueleto de 12 meses (YYYYMM)
-       ======================================================= */
+    /* ---------------- Esqueleto 12 meses ---------------- */
     if (hasYear) {
       const skeleton = Array.from({ length: 12 }, (_, i) =>
         Number(`${year}${String(i + 1).padStart(2, "0")}`)
       );
 
-      const map = new Map(rows.map(r => [Number(r.anomes), r]));
+      const byKey = new Map(rows.map(r => [Number(r.anomes), r]));
 
       const completed = skeleton.map(anomes => {
-        const row = map.get(anomes);
-        if (row) return row;
+        const base = byKey.get(anomes);
+        if (base) return base;
 
         return onlyOneRef
-          ? {
-              anomes,
-              vb_soma: 0,
-              inst_soma: 0,
-              movel_soma: 0,
-            }
+          ? { anomes, vb_soma: 0, inst_soma: 0 }
           : {
               anomes,
-              vb_soma_br: 0,
-              vb_soma_rsi: 0,
-              inst_soma_br: 0,
-              inst_soma_rsi: 0,
-              movel_soma_br: 0,
-              movel_soma_rsi: 0,
+              VB_soma_br: 0,
+              VB_soma_RSI: 0,
+              INST_soma_br: 0,
+              INST_soma_RSI: 0,
             };
       });
 
@@ -645,8 +595,321 @@ export const getPduFullGrafico = async (req, res) => {
     }
 
     return res.status(200).json(rows);
+
   } catch (err) {
     console.error(err);
-    return res.status(500).json({ error: "Erro ao buscar PDU Full Grafico" });
+    return res.status(500).json({ error: "Erro ao buscar FULLBASE" });
   }
 };
+
+
+export const getPDUMovel = async (req, res) => {
+  try {
+    const { refDate, year } = req.query;
+
+    const params = [];
+    const hasRefDate = !!refDate;
+    const hasYear = !!year && /^\d{4}$/.test(String(year));
+
+    /* =====================================================
+       DATA BASE (MESMA LÓGICA DO MYSQL)
+       ===================================================== */
+    let refDateBaseExpr;
+
+    if (hasRefDate) {
+      refDateBaseExpr = `$1::date`;
+      params.push(refDate);
+    } else if (hasYear) {
+      // equivalente ao:
+      // STR_TO_DATE(CONCAT(?, '-', DATE_FORMAT(CURDATE(), '%m'), '-01'), ...)
+      refDateBaseExpr = `
+        MAKE_DATE(
+          $1::int,
+          EXTRACT(MONTH FROM (CURRENT_DATE AT TIME ZONE 'America/Sao_Paulo'))::int,
+          1
+        )
+      `;
+      params.push(Number(year));
+    } else {
+      refDateBaseExpr = `(CURRENT_DATE AT TIME ZONE 'America/Sao_Paulo')::date`;
+    }
+
+    const sql = `
+      WITH
+      params AS (
+        SELECT
+          ${refDateBaseExpr} AS ref_date_base,
+          (CURRENT_DATE AT TIME ZONE 'America/Sao_Paulo')::date AS today_real
+      ),
+      bounds AS (
+        SELECT
+          CASE
+            WHEN ${hasYear ? 'TRUE' : 'FALSE'} THEN
+              LEAST(
+                ref_date_base
+                  + (EXTRACT(DAY FROM today_real) - 1) * INTERVAL '1 day',
+                (date_trunc('month', ref_date_base) + interval '1 month - 1 day')::date
+              )
+            ELSE
+              LEAST(
+                ref_date_base,
+                (date_trunc('month', ref_date_base) + interval '1 month - 1 day')::date
+              )
+          END AS today_eff
+        FROM params
+      ),
+      ranges AS (
+        SELECT
+          -- mês corrente
+          date_trunc('month', today_eff)::date AS first_day_cur,
+          (date_trunc('month', today_eff) + interval '1 month - 1 day')::date AS last_day_cur,
+
+          -- mês anterior
+          date_trunc('month', today_eff - interval '1 month')::date AS first_day_prev,
+          (date_trunc('month', today_eff - interval '1 month') + interval '1 month - 1 day')::date AS last_day_prev,
+
+          -- próximo mês
+          date_trunc('month', today_eff + interval '1 month')::date AS first_day_next,
+          (date_trunc('month', today_eff + interval '1 month') + interval '1 month - 1 day')::date AS last_day_next,
+
+          -- mesmo mês ano passado
+          date_trunc('month', today_eff - interval '1 year')::date AS first_day_cur_prev_year,
+          (date_trunc('month', today_eff - interval '1 year') + interval '1 month - 1 day')::date AS last_day_cur_prev_year,
+
+          today_eff
+        FROM bounds
+      )
+      SELECT
+        r.today_eff AS data_referencia,
+
+        EXTRACT(DAY FROM r.last_day_cur) AS dias_no_mes,
+        (r.today_eff - r.first_day_cur + 1) AS dias_passados,
+        GREATEST(
+          EXTRACT(DAY FROM r.last_day_cur)
+          - (r.today_eff - r.first_day_cur + 1),
+          0
+        ) AS dias_restantes,
+
+        ROUND(
+          CAST(
+            100.0 * (r.today_eff - r.first_day_cur + 1)
+            / EXTRACT(DAY FROM r.last_day_cur)
+            AS NUMERIC
+          ),
+          2
+        ) AS perc_mes_transcorrido,
+
+        /* ===========================================
+           MAPA ORIGINAL (MYSQL)
+           inst_* = BRASIL  |  vb_* = SPI
+           =========================================== */
+
+        -- mês atual
+        ROUND(CAST(SUM(CASE
+          WHEN p.dt BETWEEN r.first_day_cur AND r.last_day_cur
+           AND p.ref_is_br = 1
+          THEN p.movel ELSE 0 END) AS NUMERIC), 2) AS inst_mes_atual,
+
+        ROUND(CAST(SUM(CASE
+          WHEN p.dt BETWEEN r.first_day_cur AND r.last_day_cur
+           AND p.ref_is_spi = 1
+          THEN p.movel ELSE 0 END) AS NUMERIC), 2) AS vb_mes_atual,
+
+        -- mês anterior
+        ROUND(CAST(SUM(CASE
+          WHEN p.dt BETWEEN r.first_day_prev AND r.last_day_prev
+           AND p.ref_is_br = 1
+          THEN p.movel ELSE 0 END) AS NUMERIC), 2) AS inst_mes_anterior,
+
+        ROUND(CAST(SUM(CASE
+          WHEN p.dt BETWEEN r.first_day_prev AND r.last_day_prev
+           AND p.ref_is_spi = 1
+          THEN p.movel ELSE 0 END) AS NUMERIC), 2) AS vb_mes_anterior,
+
+        -- próximo mês
+        ROUND(CAST(SUM(CASE
+          WHEN p.dt BETWEEN r.first_day_next AND r.last_day_next
+           AND p.ref_is_br = 1
+          THEN p.movel ELSE 0 END) AS NUMERIC), 2) AS inst_prox_mes,
+
+        ROUND(CAST(SUM(CASE
+          WHEN p.dt BETWEEN r.first_day_next AND r.last_day_next
+           AND p.ref_is_spi = 1
+          THEN p.movel ELSE 0 END) AS NUMERIC), 2) AS vb_prox_mes,
+
+        -- acumulado até hoje
+        ROUND(CAST(SUM(CASE
+          WHEN p.dt BETWEEN r.first_day_cur AND r.today_eff
+           AND p.ref_is_br = 1
+          THEN p.movel ELSE 0 END) AS NUMERIC), 2) AS inst_ate_hoje,
+
+        ROUND(CAST(SUM(CASE
+          WHEN p.dt BETWEEN r.first_day_cur AND r.today_eff
+           AND p.ref_is_spi = 1
+          THEN p.movel ELSE 0 END) AS NUMERIC), 2) AS vb_ate_hoje,
+
+        -- mesmo mês ano passado
+        ROUND(CAST(SUM(CASE
+          WHEN p.dt BETWEEN r.first_day_cur_prev_year AND r.last_day_cur_prev_year
+           AND p.ref_is_br = 1
+          THEN p.movel ELSE 0 END) AS NUMERIC), 2) AS inst_mes_ano_passado,
+
+        ROUND(CAST(SUM(CASE
+          WHEN p.dt BETWEEN r.first_day_cur_prev_year AND r.last_day_cur_prev_year
+           AND p.ref_is_spi = 1
+          THEN p.movel ELSE 0 END) AS NUMERIC), 2) AS vb_mes_ano_passado
+
+      FROM ranges r
+      LEFT JOIN (
+        SELECT
+          dt,
+          COALESCE(movel, 0) AS movel,
+          CASE WHEN UPPER(TRIM(referencia)) = 'BRASIL' THEN 1 ELSE 0 END AS ref_is_br,
+          CASE WHEN UPPER(TRIM(referencia)) ~ '^S.?O PAULO INTERIOR$' THEN 1 ELSE 0 END AS ref_is_spi
+        FROM pdu
+      ) p
+        ON (
+          (p.dt BETWEEN r.first_day_prev AND r.last_day_next)
+          OR
+          (p.dt BETWEEN r.first_day_cur_prev_year AND r.last_day_cur_prev_year)
+        )
+      GROUP BY
+        r.today_eff,
+        r.first_day_cur, r.last_day_cur,
+        r.first_day_prev, r.last_day_prev,
+        r.first_day_next, r.last_day_next,
+        r.first_day_cur_prev_year, r.last_day_cur_prev_year;
+    `;
+
+    const { rows } = await neonDB.query(sql, params);
+    return res.status(200).json(rows);
+
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ error: "Erro ao buscar PDUMovel" });
+  }
+};
+
+
+export const getPduFullGrafico = async (req, res) => {
+  try {
+    const { year, referencia } = req.query;
+
+    /* ========= Validação ========= */
+    if (!year || !/^\d{4}$/.test(String(year))) {
+      return res.status(400).json({ error: "Parâmetro year é obrigatório (YYYY)" });
+    }
+
+    const refKey = (referencia || "").toUpperCase().trim();
+
+    const REF_MAP = {
+      BR: "BRASIL",
+      BRASIL: "BRASIL",
+      SP_INT: "SÃO PAULO INTERIOR",
+      "SÃO PAULO INTERIOR": "SÃO PAULO INTERIOR",
+      "SAO PAULO INTERIOR": "SÃO PAULO INTERIOR",
+      RSI: "SÃO PAULO INTERIOR",
+    };
+
+    const mappedRef = REF_MAP[refKey];
+
+    const params = [Number(year)];
+    const where = [`p.aaaa_num = $1`];
+
+    let onlyOneRef = false;
+
+    if (mappedRef) {
+      onlyOneRef = true;
+      if (mappedRef === "BRASIL") {
+        where.push(`p.ref_norm = 'BRASIL'`);
+      } else {
+        where.push(`p.ref_norm ~ '^S.?O PAULO INTERIOR$'`);
+      }
+    }
+
+    const whereSql = `WHERE ${where.join(" AND ")}`;
+
+    /* ========= Subselect NORMALIZADO ========= */
+    const baseSubselect = `
+      SELECT
+        (EXTRACT(YEAR FROM dt)::int * 100 + EXTRACT(MONTH FROM dt)::int) AS anomes_num,
+        EXTRACT(YEAR FROM dt)::int                                     AS aaaa_num,
+        UPPER(TRIM(REPLACE(referencia, E'\\r', '')))                  AS ref_norm,
+        vb,
+        inst,
+        COALESCE(movel, 0)                                            AS movel
+      FROM pdu
+      WHERE dt IS NOT NULL
+    `;
+
+    const sql = onlyOneRef
+      ? `
+        SELECT
+          p.anomes_num AS anomes,
+          ROUND(SUM(p.vb)::numeric,2)    AS vb_soma,
+          ROUND(SUM(p.inst)::numeric,2)  AS inst_soma,
+          ROUND(SUM(p.movel)::numeric,2) AS movel_soma
+        FROM (${baseSubselect}) p
+        ${whereSql}
+        GROUP BY p.anomes_num
+        ORDER BY p.anomes_num
+      `
+      : `
+        SELECT
+          p.anomes_num AS anomes,
+
+          ROUND(SUM(CASE WHEN p.ref_norm = 'BRASIL'
+               THEN p.vb ELSE 0 END)::numeric,2) AS vb_soma_br,
+
+          ROUND(SUM(CASE WHEN p.ref_norm ~ '^S.?O PAULO INTERIOR$'
+               THEN p.vb ELSE 0 END)::numeric,2) AS vb_soma_rsi,
+
+          ROUND(SUM(CASE WHEN p.ref_norm = 'BRASIL'
+               THEN p.inst ELSE 0 END)::numeric,2) AS inst_soma_br,
+
+          ROUND(SUM(CASE WHEN p.ref_norm ~ '^S.?O PAULO INTERIOR$'
+               THEN p.inst ELSE 0 END)::numeric,2) AS inst_soma_rsi,
+
+          ROUND(SUM(CASE WHEN p.ref_norm = 'BRASIL'
+               THEN p.movel ELSE 0 END)::numeric,2) AS movel_soma_br,
+
+          ROUND(SUM(CASE WHEN p.ref_norm ~ '^S.?O PAULO INTERIOR$'
+               THEN p.movel ELSE 0 END)::numeric,2) AS movel_soma_rsi
+        FROM (${baseSubselect}) p
+        ${whereSql}
+        GROUP BY p.anomes_num
+        ORDER BY p.anomes_num
+      `;
+
+    const { rows } = await neonDB.query(sql, params);
+
+    /* ========= Esqueleto 12 meses ========= */
+    const skeleton = Array.from({ length: 12 }, (_, i) =>
+      Number(`${year}${String(i + 1).padStart(2, "0")}`)
+    );
+
+    const byKey = new Map(rows.map(r => [Number(r.anomes), r]));
+
+    const completed = skeleton.map(anomes =>
+      byKey.get(anomes) ||
+      (onlyOneRef
+        ? { anomes, vb_soma: 0, inst_soma: 0, movel_soma: 0 }
+        : {
+            anomes,
+            vb_soma_br: 0,
+            vb_soma_rsi: 0,
+            inst_soma_br: 0,
+            inst_soma_rsi: 0,
+            movel_soma_br: 0,
+            movel_soma_rsi: 0,
+          })
+    );
+
+    return res.json(completed);
+
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ error: "Erro ao buscar FULLBASE" });
+  }
+};
+``
