@@ -7,17 +7,6 @@ import * as cheerio from "cheerio";
 
 dotenv.config();
 
-// --------------------- funciton
-
-function brDateTime(data) {
-  if (!data) return null;
-
-  const [datePart, timePart] = data.split(", ");
-  const [day, month, year] = datePart.split("/");
-
-  return `${year}-${month}-${day} ${timePart}`;
-}
-
 // ------------------ LOGIN NEON (POSTGRES) -------------------
 
 export const getDBLoginNeon = async (_, res) => {
@@ -178,7 +167,7 @@ export const patchDBLoginNeon = async (req, res) => {
 };
 
 // ------------------ IMPORTAÇÃO COTAS (POSTGRES) -------------------
-export const importarCotasCop = async (req, res) => {
+export const importarCotasCopNeon = async (req = {}, res = null) => {
   try {
     const queryUltimoLote = `
       SELECT *
@@ -194,9 +183,11 @@ export const importarCotasCop = async (req, res) => {
     console.log("Linhas encontradas:", rows.length);
 
     if (rows.length === 0) {
-      return res
-        .status(404)
-        .json({ error: "Nenhum registro local encontrado." });
+      if (res) {
+        return res
+          .status(404)
+          .json({ error: "Nenhum registro local encontrado." });
+      }
     }
 
     // ⚠️ Início da transação para evitar carga parcial
@@ -224,7 +215,7 @@ export const importarCotasCop = async (req, res) => {
 
     for (const r of rows) {
       await neonDB.query(queryInsertNeon, [
-        brDateTime(r.data_ref), // ✅ SEM brDateTime
+        r.data_ref, // ✅ SEM brDateTime
         r.regional,
         r.cluster,
         r.cidade,
@@ -250,12 +241,13 @@ export const importarCotasCop = async (req, res) => {
 
     // Confirma carga
     await neonDB.query("COMMIT");
-
-    return res.json({
-      message: "Último lote sincronizado com sucesso no Neon",
-      data_coleta: rows[0].data_coleta,
-      total: rows.length,
-    });
+    if (res) {
+      return res.json({
+        message: "Último lote sincronizado com sucesso no Neon",
+        data_coleta: rows[0].data_coleta,
+        total: rows.length,
+      });
+    }
   } catch (err) {
     await neonDB.query("ROLLBACK");
     console.error("Erro ao subir dados para o Neon:", err);

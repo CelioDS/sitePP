@@ -452,7 +452,7 @@ export default function PainelBucketsPivot() {
 
         <button onClick={() => setFiltros((prev) => !prev)}>
           {" "}
-          {filtros ? "Desativar" : "Ativar"} Filtros
+          {filtros ? "Ativar" : " Desativar"} Filtros
         </button>
       </section>
       {!!handleCotas ? (

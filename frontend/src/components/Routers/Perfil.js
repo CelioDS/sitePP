@@ -37,7 +37,7 @@ export default function Perfil() {
       try {
         setLoading(true);
         // Ajuste: chama o endpoint alinhado ao backend
-        const { data } = await axios.get(`${Url}/neon/users/${id}`);
+        const { data } = await axios.get(`${Url}/users/${id}`);
         // data é um array (rows). Garanta estado coerente:
         setPerfilData(Array.isArray(data) ? data : [data]);
       } catch (error) {

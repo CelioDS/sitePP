@@ -38,7 +38,7 @@ const buildDateFilter = (tableAlias, start, end, latest) => {
  * Filtro: REGIONAL contendo "INTERIOR" + CLASSE1
  */
 
-export const importarCotasCop = async (req, res) => {
+export const importarCotasCop = async (req = {}, res = null) => {
   try {
     const { data_ref } = req.body || {};
     console.log("IMPORTANDO COTAS COP | FILTRO: INTERIOR + CLASSE1");
@@ -63,7 +63,11 @@ export const importarCotasCop = async (req, res) => {
     const payload = JSON.parse(response.data);
 
     if (!payload?.tableBody) {
-      return res.status(500).json({ error: "Resposta inválida do painel COP" });
+      if (res) {
+        return res
+          .status(500)
+          .json({ error: "Resposta inválida do painel COP" });
+      }
     }
 
     // ===============================
@@ -132,9 +136,11 @@ export const importarCotasCop = async (req, res) => {
     });
 
     if (registros.length === 0) {
-      return res.status(400).json({
-        error: "Nenhum registro encontrado para INTERIOR + CLASSE1",
-      });
+      if (res) {
+        return res.status(400).json({
+          error: "Nenhum registro encontrado para INTERIOR + CLASSE1",
+        });
+      }
     }
 
     // ===============================
@@ -246,19 +252,24 @@ SET
     // ===============================
     // 4️⃣ RESPOSTA
     // ===============================
-    return res.json({
-      message: "Importação concluída",
-      filtro: "Regional contém INTERIOR + CLASSE1",
-      data_coleta: dataColeta,
-      total_registros: registros.length,
-      amostra: registros.slice(0, 5),
-    });
+    if (res) {
+      return res.json({
+        message: "Importação concluída",
+        filtro: "Regional contém INTERIOR + CLASSE1",
+        data_coleta: dataColeta,
+        total_registros: registros.length,
+        amostra: registros.slice(0, 5),
+      });
+    }
   } catch (err) {
     if (dataBase.rollback) {
       await dataBase.rollback();
     }
     console.error("Erro importarCotasCop:", err);
-    return res.status(500).json({ error: err.message });
+
+    if (res) {
+      return res.status(500).json({ error: err.message });
+    }
   }
 };
 

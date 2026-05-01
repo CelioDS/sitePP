@@ -68,6 +68,9 @@ app.use(
 app.use("/", userRoutes);
 app.use("/neon", userRoutesNeon);
 
+if (process.env.NODE_ENV !== "production") {
+  await import("./jobs/importCotasCopAutomatico.job.js");
+}
 // ----------------------
 // 🚀 Servidor
 // ----------------------
