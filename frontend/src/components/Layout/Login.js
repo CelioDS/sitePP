@@ -6,14 +6,13 @@ import { useState } from "react";
 import { toast } from "react-toastify";
 import axios from "axios";
 
-
 export default function Login({ setPermission, setLoginBD }) {
   const [Text, setText] = useState("Entrar");
   const [login, setLogin] = useState();
   const [senha, setSenha] = useState();
   //const [admin, setAdmin] = useState();
 
-  const Url = process.env.REACT_APP_API_URL
+  const Url = process.env.REACT_APP_API_URL;
 
   function getDateTimeSaoPaulo() {
     const formatter = new Intl.DateTimeFormat("sv-SE", {
@@ -37,7 +36,10 @@ export default function Login({ setPermission, setLoginBD }) {
 
     try {
       setText("Entrando...");
-      const response = await axios.post(`${Url}/neon/auth/login`, { login, senha });
+      const response = await axios.post(`${Url}/neon/auth/login`, {
+        login,
+        senha,
+      });
 
       if (response.data?.token) {
         const { user, token } = response.data;
@@ -86,7 +88,7 @@ export default function Login({ setPermission, setLoginBD }) {
           placeholder={"Digite seu login aqui..."}
           value={login}
           onChange={(e) => {
-            setLogin(e.target.value);
+            setLogin(e.target.value.toLowerCase());
           }}
         />
         <Input
