@@ -45,13 +45,7 @@ export default function MIS() {
         origem:
           "F201154/N6158445.TENDENCIA_RES\nF201154/N6158445.REALIZADO_RES_DIA",
       },
-      {
-        nome: "TENDÊNCIA MATRIZ SHAREPOINT",
-        frequencia: "SEG → SÁB",
-        responsavel: "LAURA / CÉLIO",
-        descricao: "DIRETORIA / GERÊNCIA / PONTAS",
-        origem: "INN.BACKLOGPUSH\nCARD WPP\nBI_HIS_VENDAS_FIXA",
-      },
+
       {
         nome: "BACKLOG COMERCIAL + QUEBRA",
         frequencia: "DAILY",
@@ -108,6 +102,22 @@ export default function MIS() {
         link: "https://corpclarobr.sharepoint.com/:f:/r/sites/USER-PPRSI/Residencial/MPLAY?csf=1&web=1&e=dfB8ov",
         frequencia: "SEX",
         responsavel: "CÉLIO",
+        descricao: "DIRETORIA / GERÊNCIA / PONTAS",
+        origem: "DM_HIS_MOVIMENTO_MPLAY",
+      },
+      {
+        nome: "KPI QUEBRA",
+        link: "https://corpclarobr.sharepoint.com/:f:/r/sites/USER-PPRSI/Residencial/QUEBRA%20DE%20AGENDA?csf=1&web=1&e=hrldSB",
+        frequencia: "DAILY",
+        responsavel: "CÉLIO",
+        descricao: "DIRETORIA / GERÊNCIA / PONTAS",
+        origem: "VERIFICAR",
+      },
+      {
+        nome: "ROTA",
+        link: "https://corpclarobr.sharepoint.com/:f:/r/sites/USER-PPRSI/Residencial/ROTA?csf=1&web=1&e=IlMSib",
+        frequencia: "SEG → SÁB",
+        responsavel: "LAURA/CÉLIO",
         descricao: "DIRETORIA / GERÊNCIA / PONTAS",
         origem: "DM_HIS_MOVIMENTO_MPLAY",
       },
