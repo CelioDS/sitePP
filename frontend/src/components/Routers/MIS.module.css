@@ -7,6 +7,8 @@
 /* HEADER */
 
 .header {
+  display: flex;
+  justify-content: space-around;
   margin-bottom: 30px;
 }
 
@@ -25,6 +27,16 @@
 
 .buttonArea {
   margin-bottom: 25px;
+}
+
+.buttonArea a {
+  background-color: #d4231d;
+  color: #ffffff;
+  font-style: none;
+  padding: 10px 8px;
+}
+.buttonArea a:hover {
+  opacity: 0.9;
 }
 
 /* TABLE */

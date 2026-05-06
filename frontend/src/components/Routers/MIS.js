@@ -131,17 +131,19 @@ export default function MIS() {
 
       <main className={styles.main}>
         <header className={styles.header}>
-          <h1>MIS – Controle de Relatórios</h1>
-          <p>Central de monitoramento das entregas operacionais</p>
-        </header>
-        {mis === 1 && canal === "admin" && (
-          <div className={styles.buttonArea}>
-            <LinkButton to={`/TodoList/${login}`} text="Abrir Todo List" />
+          {mis &&  (
+            <div className={styles.buttonArea}>
+              <LinkButton to={`/TodoList/${login}`} text="Abrir Todo List" />
+            </div>
+          )}
+          <div>
+            <h1>MIS – Controle de Relatórios</h1>
+            <p>Central de monitoramento das entregas operacionais</p>
           </div>
-        )}
-        <div className={styles.buttonArea}>
-          <LinkButton to={`/Cotas`} text="Abrir Cotas" />
-        </div>
+          <div className={styles.buttonArea}>
+            <LinkButton to={`/Cotas`} text="Abrir Cotas" />
+          </div>
+        </header>
 
         <section className={styles.tableSection}>
           <h2>Relatórios Operacionais</h2>
