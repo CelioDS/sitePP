@@ -31,10 +31,10 @@ export default function PainelBucketsPivot() {
   const [filtros, setFiltros] = useState(1);
   const [loading, setLoading] = useState(true);
   const [dddFiltro, setdddFiltro] = useState("TODOS");
-  const [clusterFiltro, setClusterFiltro] = useState("TODOS");
   const [handleCotas, setHandleCotas] = useState(false);
   const [cidadeFiltro, setCidadeFiltro] = useState("TODAS");
   const [alarmeFiltro, setAlarmeFiltro] = useState("TODOS");
+  const [clusterFiltro, setClusterFiltro] = useState("TODOS");
   const [segmentoFiltro, setSegmentoFiltro] = useState("TODOS");
   const [territorioFiltro, setTerritorioFiltro] = useState("TODAS");
 
@@ -59,12 +59,22 @@ export default function PainelBucketsPivot() {
       ).sort((a, b) => Number(a.replace("D", "")) - Number(b.replace("D", "")));
 
       setDados(
-        lista.sort((a, b) =>
-          String(a.territorio || "").localeCompare(
-            String(b.territorio || ""),
-            "pt-BR",
-          ),
-        ),
+        lista.sort((a, b) => {
+          const tA = String(a.territorio || "").trim();
+          const tB = String(b.territorio || "").trim();
+
+          // Se A está vazio → joga pra baixo
+          if (!tA && tB) return 1;
+          // Se B está vazio → A vem primeiro
+          if (tA && !tB) return -1;
+
+          // Ordena por território
+          const comp = tA.localeCompare(tB, "pt-BR");
+          if (comp !== 0) return comp;
+
+          // Se território igual → ordena por qtd
+          return b.qtd - a.qtd;
+        }),
       );
       setDias(diasUnicos);
     },
