@@ -11,7 +11,7 @@ export default function MIS() {
   const [userData, setUserData] = useState(null);
   const login = userData?.login || "usuario";
   const mis = userData?.mis;
-  const canal = userData?.canal;
+  //const canal = userData?.canal;
 
   useEffect(() => {
     let active = true;

@@ -457,12 +457,11 @@ export default function PainelBucketsPivot() {
     <main className={Style.main} ref={tableRef}>
       <section className={Style.sectionHeader}>
         <button onClick={() => setHandleCotas((prev) => !prev)}>
-          {handleCotas ? "relatorio" : "tabela"}
+          {handleCotas ? "Tabela" : "Relatorio"}
         </button>
 
         <button onClick={() => setFiltros((prev) => !prev)}>
-          {" "}
-          {filtros ? "Ativar" : " Desativar"} Filtros
+          {filtros ? "Desativar" : " Ativar"} Filtros
         </button>
       </section>
       {!!handleCotas ? (

@@ -13,6 +13,18 @@
   justify-content: space-between;
 }
 
+.main .sectionHeader button {
+  background-color: #9e0606;
+  color: #ffffff;
+  padding: 8px 5px;
+  width: 110px;
+  cursor: pointer;
+  border: none;
+  margin-bottom: 5px;
+}
+.main .sectionHeader button:hover {
+  opacity: 0.9;
+}
 /* =========================
    CONTAINER COM SCROLL
 ========================= */
@@ -54,7 +66,7 @@
   text-align: center;
   outline: none;
   border: none;
-  width: 140px;
+  width: 130px;
 }
 
 .main .btnClear {
