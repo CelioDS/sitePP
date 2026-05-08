@@ -125,4 +125,20 @@
   .table {
     font-size: 13px;
   }
+  .buttonArea a  {
+    display: inline-flex;
+    text-align: center;
+    justify-content: center;
+    align-items: center;
+    width: 120px;
+    background-color: #d4231d;
+  }
+
+ 
+  .header {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    margin-bottom: 30px;
+  }
 }
