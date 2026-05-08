@@ -111,8 +111,8 @@ export const importarCotasCop = async (req = {}, res = null) => {
         const saldo = Number(cols[index + 3]) || 0;
         const ocupPct = Number(cols[index + 4].replace("%", "")) || 0;
 
-        // ignora dias vazios
-        if (cotaAgenda > 0 || qtdOs > 0) {
+        // Validar se existe valor
+        if (cotaAgenda >= 0 || qtdOs >= 0) {
           registros.push({
             data_coleta: dataColeta,
             data_ref: payload.dtExport,

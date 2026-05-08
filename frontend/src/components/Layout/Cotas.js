@@ -176,6 +176,7 @@ export default function PainelBucketsPivot() {
     let status = ">96H";
 
     for (const dia of listaDiasOrdenados) {
+      console.log(listaDiasOrdenados);
       if (diasData[dia]?.saldo > 1 && alarme[dia]) {
         alarme[dia].qtd += 1;
         status = alarme[dia].label;
@@ -314,49 +315,81 @@ export default function PainelBucketsPivot() {
   }
   // Função para exportar um HTML estático limpo da tabela filtrada
   const handleDownloadHTML = () => {
-    if (!tableRef.current) return;
+    // ✅ pega a página inteira
+    const clone = document.documentElement.cloneNode(true);
 
-    // Busca apenas a tabela dentro da ref principal
-    const tableElement = tableRef.current.querySelector("table");
-    if (!tableElement) return;
+    // ✅ remove scripts (evita erro offline)
+    clone.querySelectorAll("script").forEach((el) => el.remove());
 
-    const tableHTML = tableElement.outerHTML;
+    // ✅ captura TODOS os estilos reais (inclusive CSS modules)
+    const styles = Array.from(document.styleSheets)
+      .map((sheet) => {
+        try {
+          return Array.from(sheet.cssRules)
+            .map((rule) => rule.cssText)
+            .join("");
+        } catch (e) {
+          return "";
+        }
+      })
+      .join("");
 
-    // Cria um HTML estático envelopando a tabela e aplicando um CSS básico
-    const htmlCompleto = `
+    // ✅ injeta CSS dentro do clone
+    const styleTag = document.createElement("style");
+    styleTag.innerHTML = styles;
+    clone.querySelector("head").appendChild(styleTag);
+
+    // ✅ transforma imagens em base64 (pra não quebrar)
+    const images = clone.querySelectorAll("img");
+
+    const toBase64 = (img) =>
+      new Promise((resolve) => {
+        const canvas = document.createElement("canvas");
+        const ctx = canvas.getContext("2d");
+
+        const image = new Image();
+        image.crossOrigin = "anonymous";
+
+        image.onload = function () {
+          canvas.width = this.width;
+          canvas.height = this.height;
+          ctx.drawImage(this, 0, 0);
+          resolve(canvas.toDataURL("image/png"));
+        };
+
+        image.src = img.src;
+      });
+
+    Promise.all(
+      Array.from(images).map(async (img) => {
+        try {
+          const base64 = await toBase64(img);
+          img.src = base64;
+        } catch {}
+      }),
+    ).then(() => {
+      const html = `
       <!DOCTYPE html>
-      <html lang="pt-BR">
-      <head>
-        <meta charset="UTF-8">
-        <title>Relatório de Cotas P&P</title>
-        <style>
-          body { font-family: Arial, sans-serif; padding: 20px; color: #333; }
-          h2 { text-align: center; color: #e3000f; /* Cor padrão Claro */ }
-          table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 12px; }
-          th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
-          th { background-color: #f4f4f4; font-weight: bold; }
-          .city { text-align: left; font-weight: bold; }
-        </style>
-      </head>
-      <body>
-        <h2>Relatório de Cotas - Filtros Atuais</h2>
-        <p><strong>Filtros aplicados:</strong> Cidade: ${cidadeFiltro} | Território: ${territorioFiltro} | Alarme: ${alarmeFiltro}</p>
-        ${tableHTML}
-      </body>
-      </html>
+      ${clone.outerHTML}
     `;
 
-    const blob = new Blob([htmlCompleto], { type: "text/html;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `Relatorio_Cotas_${new Date().toISOString().slice(0, 10)}.html`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  };
+      const blob = new Blob([html], {
+        type: "text/html;charset=utf-8;",
+      });
 
+      const url = URL.createObjectURL(blob);
+
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `snapshot_${new Date().toISOString().slice(0, 10)}.html`;
+
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+
+      URL.revokeObjectURL(url);
+    });
+  };
   // Função para exportar nativamente para Excel (CSV compatível)
   const handleDownloadExcel = () => {
     // 1. Montar Cabeçalhos
