@@ -493,9 +493,11 @@ export default function PainelBucketsPivot() {
           {handleCotas ? "Tabela" : "Relatorio"}
         </button>
 
-        <button onClick={() => setFiltros((prev) => !prev)}>
-          {filtros ? "Desativar" : " Ativar"} Filtros
-        </button>
+        {!handleCotas && (
+          <button onClick={() => setFiltros((prev) => !prev)}>
+            {filtros ? "Desativar" : " Ativar"} Filtros
+          </button>
+        )}
       </section>
       {!!handleCotas ? (
         <DashboardAnalytics dados={dadosFiltrados} dias={dias} />
@@ -630,7 +632,9 @@ export default function PainelBucketsPivot() {
             }}
           >
             <aside>
-              <p style={{ color: "#4e4d4d", gap: "5px" }}>Legenda</p>
+              <p style={{ color: "#4e4d4d", gap: "5px" }}>
+                Legenda grafico saude da cidade
+              </p>
 
               <span style={{ color: "#4e4d4d", gap: "5px" }}>
                 <BsCircleFill color="#5cb85c" /> Cotas
