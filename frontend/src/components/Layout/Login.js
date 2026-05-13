@@ -103,7 +103,7 @@ export default function Login({ setPermission, setLoginBD }) {
         />
         <Button
           text={Text}
-          type={"submit"}
+       
           className={Style.btn}
           onClick={() => {
             handleLogin();

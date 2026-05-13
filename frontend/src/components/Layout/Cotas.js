@@ -176,7 +176,6 @@ export default function PainelBucketsPivot() {
     let status = ">96H";
 
     for (const dia of listaDiasOrdenados) {
-      console.log(listaDiasOrdenados);
       if (diasData[dia]?.saldo > 1 && alarme[dia]) {
         alarme[dia].qtd += 1;
         status = alarme[dia].label;
@@ -188,7 +187,16 @@ export default function PainelBucketsPivot() {
   };
 
   const dadosFiltrados = dados
-    .filter((item) => cidadeFiltro === "TODAS" || item.cidade === cidadeFiltro)
+    .filter((item) => {
+      if (cidadeFiltro === "TODAS") return true;
+
+      const cidades = String(item.cidade)
+        .split("|")
+        .map((c) => c.trim())
+        .filter(Boolean);
+
+      return cidades.includes(cidadeFiltro);
+    })
     .filter(
       (item) =>
         territorioFiltro === "TODAS" || item.territorio === territorioFiltro,
@@ -509,7 +517,9 @@ export default function PainelBucketsPivot() {
                 <label>Cidade {cidadesFiltradas.length}</label>
                 <select
                   value={cidadeFiltro}
-                  onChange={(e) => setCidadeFiltro(e.target.value)}
+                  onChange={(e) => {
+                    setCidadeFiltro(e.target.value);
+                  }}
                 >
                   <option value="TODAS">Todas</option>
                   {cidadesFiltradas.map((c) => (
