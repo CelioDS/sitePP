@@ -37,7 +37,7 @@ export default function PainelBucketsPivot() {
   const [clusterFiltro, setClusterFiltro] = useState("TODOS");
   const [segmentoFiltro, setSegmentoFiltro] = useState("TODOS");
   const [territorioFiltro, setTerritorioFiltro] = useState("TODAS");
-  const [dadosPrint, setDadosPrint] = useState([]);
+  //const [dadosPrint, setDadosPrint] = useState([]);
 
   const Url = process.env.REACT_APP_API_URL || "http://localhost:8000";
 
@@ -136,7 +136,6 @@ export default function PainelBucketsPivot() {
 
       try {
         const res = await axios.get(`${Url}/neon/cotas-cop`);
-        const res2 = await axios.get(`${Url}/neon/porcentagem_ocupacao`);
         const lista = Object.values(res.data || {});
 
         localStorage.setItem(
@@ -145,7 +144,6 @@ export default function PainelBucketsPivot() {
         );
         organizarDados(lista);
 
-        setDadosPrint(res2.data)
 
       } catch (e) {
         console.error("Erro ao carregar dados:", e);
@@ -566,7 +564,7 @@ export default function PainelBucketsPivot() {
       </section>
       {console.log(alarmeFiltro)}
       {!!handleCotas ? (
-        <DashboardAnalytics dados={dadosFiltrados} dias={dias} rankingCidades={rankingCidades} dadosPrint={dadosPrint} />
+        <DashboardAnalytics dados={dadosFiltrados} dias={dias} rankingCidades={rankingCidades}  />
       ) : (
         <>
           {!!filtros && (
