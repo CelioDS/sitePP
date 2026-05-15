@@ -242,10 +242,6 @@ export default function DashboardAnalytics({
             />
           </div>
 
-        </aside>
-      </section>
-
-      <section className={Style.elet}>
           {/* 🌎 Território */}
           <div>
             <h3>Distribuição de backlog por Território</h3>
@@ -258,6 +254,10 @@ export default function DashboardAnalytics({
               }}
             />
           </div>
+        </aside>
+      </section>
+
+      <section className={Style.elet}>
         <div>
           <h3>Cotas vs Agendado por Dia</h3>
           <ReactApexChart

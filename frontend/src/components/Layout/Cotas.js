@@ -143,13 +143,10 @@ export default function PainelBucketsPivot() {
           CACHE_KEY,
           JSON.stringify({ timestamp: Date.now(), data: lista }),
         );
-        localStorage.setItem(
-          CACHE_KEY,
-          JSON.stringify({ timestamp: Date.now(), data: res2.data }),
-        );
         organizarDados(lista);
 
-        setDadosPrint(res2.data);
+        setDadosPrint(res2.data)
+
       } catch (e) {
         console.error("Erro ao carregar dados:", e);
       } finally {
@@ -231,6 +228,7 @@ export default function PainelBucketsPivot() {
       return resultado.status === alarmeFiltro;
     });
 
+
   const resumoAlarmes = React.useMemo(() => {
     const total = {
       "24H": 0,
@@ -279,8 +277,11 @@ export default function PainelBucketsPivot() {
       // 1. Primeiro pelo peso
       if (a.peso !== b.peso) return a.peso - b.peso;
 
+
       // 2. Critério de desempate → cotas menor é melhor
       // para melhores
+
+
 
       // 2. Critério de desempate → backlog menor é melhor
       return a.qtd - b.qtd;
@@ -290,7 +291,7 @@ export default function PainelBucketsPivot() {
       melhores: ordenado.slice(0, 10),
       piores: ordenado.slice(-10).reverse(),
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dadosFiltrados, dias]);
 
   const cidadesFiltradas = React.useMemo(() => {
@@ -565,12 +566,7 @@ export default function PainelBucketsPivot() {
       </section>
       {console.log(alarmeFiltro)}
       {!!handleCotas ? (
-        <DashboardAnalytics
-          dados={dadosFiltrados}
-          dias={dias}
-          rankingCidades={rankingCidades}
-          dadosPrint={dadosPrint}
-        />
+        <DashboardAnalytics dados={dadosFiltrados} dias={dias} rankingCidades={rankingCidades} dadosPrint={dadosPrint} />
       ) : (
         <>
           {!!filtros && (
