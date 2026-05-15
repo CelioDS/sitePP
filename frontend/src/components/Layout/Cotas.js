@@ -37,6 +37,7 @@ export default function PainelBucketsPivot() {
   const [clusterFiltro, setClusterFiltro] = useState("TODOS");
   const [segmentoFiltro, setSegmentoFiltro] = useState("TODOS");
   const [territorioFiltro, setTerritorioFiltro] = useState("TODAS");
+  const [dadosPrint, setDadosPrint] = useState([]);
 
   const Url = process.env.REACT_APP_API_URL || "http://localhost:8000";
 
@@ -135,13 +136,20 @@ export default function PainelBucketsPivot() {
 
       try {
         const res = await axios.get(`${Url}/neon/cotas-cop`);
+        const res2 = await axios.get(`${Url}/porcentagem_ocupacao`);
         const lista = Object.values(res.data || {});
 
         localStorage.setItem(
           CACHE_KEY,
           JSON.stringify({ timestamp: Date.now(), data: lista }),
         );
+        localStorage.setItem(
+          CACHE_KEY,
+          JSON.stringify({ timestamp: Date.now(), data: res2.data }),
+        );
         organizarDados(lista);
+
+        setDadosPrint(res2.data);
       } catch (e) {
         console.error("Erro ao carregar dados:", e);
       } finally {
@@ -219,6 +227,7 @@ export default function PainelBucketsPivot() {
       if (alarmeFiltro === "TODOS") return true;
 
       const resultado = SearchCotas(item.dias, dias);
+      console.log(item);
       return resultado.status === alarmeFiltro;
     });
 
@@ -240,6 +249,48 @@ export default function PainelBucketsPivot() {
     });
 
     return total;
+  }, [dadosFiltrados, dias]);
+
+  const pesoAlarme = {
+    "24H": 1,
+    "48H": 2,
+    "72H": 3,
+    "96H": 4,
+    ">96H": 5,
+  };
+
+  const rankingCidades = useMemo(() => {
+    // ordenador por ocupacao
+    // remover cidades com escala intercalada
+    const lista = dadosFiltrados
+      .filter((item) => item.escala_tecnica === "DIÁRIO")
+      .map((item) => {
+        const { status } = SearchCotas(item.dias, dias);
+
+        return {
+          ...item,
+          status,
+          peso: pesoAlarme[status] ?? 999,
+        };
+      });
+
+    // Ordena do melhor para pior
+    const ordenado = [...lista].sort((a, b) => {
+      // 1. Primeiro pelo peso
+      if (a.peso !== b.peso) return a.peso - b.peso;
+
+      // 2. Critério de desempate → cotas menor é melhor
+      // para melhores
+
+      // 2. Critério de desempate → backlog menor é melhor
+      return a.qtd - b.qtd;
+    });
+    console.log(lista);
+    return {
+      melhores: ordenado.slice(0, 10),
+      piores: ordenado.slice(-10).reverse(),
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dadosFiltrados, dias]);
 
   const cidadesFiltradas = React.useMemo(() => {
@@ -497,7 +548,12 @@ export default function PainelBucketsPivot() {
   return (
     <main className={Style.main} ref={tableRef}>
       <section className={Style.sectionHeader}>
-        <button onClick={() => setHandleCotas((prev) => !prev)}>
+        <button
+          onClick={() => {
+            setHandleCotas((prev) => !prev);
+            handleResetFilters();
+          }}
+        >
           {handleCotas ? "Tabela" : "Relatorio"}
         </button>
 
@@ -507,8 +563,14 @@ export default function PainelBucketsPivot() {
           </button>
         )}
       </section>
+      {console.log(alarmeFiltro)}
       {!!handleCotas ? (
-        <DashboardAnalytics dados={dadosFiltrados} dias={dias} />
+        <DashboardAnalytics
+          dados={dadosFiltrados}
+          dias={dias}
+          rankingCidades={rankingCidades}
+          dadosPrint={dadosPrint}
+        />
       ) : (
         <>
           {!!filtros && (
@@ -533,7 +595,7 @@ export default function PainelBucketsPivot() {
                 <label>Pesquisar</label>
                 <input
                   type="text"
-                  placeholder="Buscar..."
+                  placeholder="Buscar cidades..."
                   value={search}
                   onChange={(e) => {
                     setSearch(e.target.value);
@@ -542,7 +604,7 @@ export default function PainelBucketsPivot() {
                 />
               </div>
               <div>
-                <label>Territorio {territoriosFiltrados.length}</label>
+                <label>Territorio </label>
                 <select
                   value={territorioFiltro}
                   onChange={(e) => setTerritorioFiltro(e.target.value)}
@@ -556,7 +618,7 @@ export default function PainelBucketsPivot() {
                 </select>
               </div>
               <div>
-                <label>Segmento {segmentosFiltrados.length}</label>
+                <label>Mercado </label>
                 <select
                   value={segmentoFiltro}
                   onChange={(e) => setSegmentoFiltro(e.target.value)}
@@ -570,7 +632,7 @@ export default function PainelBucketsPivot() {
                 </select>
               </div>
               <div>
-                <label>DDD {dddFiltrados.length}</label>
+                <label>DDD </label>
                 <select
                   value={dddFiltro}
                   onChange={(e) => setdddFiltro(e.target.value)}
@@ -584,7 +646,7 @@ export default function PainelBucketsPivot() {
                 </select>
               </div>
               <div>
-                <label>Cluster {clusterFiltrados.length}</label>
+                <label>Cluster </label>
                 <select
                   value={clusterFiltro}
                   onChange={(e) => setClusterFiltro(e.target.value)}

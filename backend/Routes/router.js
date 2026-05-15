@@ -1,6 +1,10 @@
 import express from "express";
 
-import { importarCotasCop, getCotasCop } from "../Controllers/Cotas.js";
+import {
+  importarCotasCop,
+  getCotasCop,
+  porcentagem_ocupacao,
+} from "../Controllers/Cotas.js";
 
 import {
   getDBLogin,
@@ -61,12 +65,12 @@ import {
   setExcelExclusivos,
 } from "../Controllers/ExcelUpload.js";
 
-
 const router = express.Router();
 
 /*------------------ COTAS ------------------*/
 router.get("/importar-cotas-cop", importarCotasCop);
 router.get("/cotas-cop", getCotasCop);
+router.get("/porcentagem_ocupacao", porcentagem_ocupacao);
 
 /*------------------ ROTAS RAIZ------------------*/
 
