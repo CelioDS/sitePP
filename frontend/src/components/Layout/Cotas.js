@@ -129,13 +129,13 @@ export default function PainelBucketsPivot() {
       if (!forcarAtualizacao && cache) {
         try {
           // Adicionado dataPrintCidades na desestruturação
-          const { timestamp, data, dataPrint, dataPrintCidades } =
+          const { timestamp, data } =
             JSON.parse(cache);
 
           if (Date.now() - timestamp < CACHE_TIME) {
             organizarDados(data);
-            setDadosPrint(dataPrint || []);
-            setDadosPrintCidades(dataPrintCidades || []); // Agora a variável existe
+            //setDadosPrint(dataPrint || []);
+            //setDadosPrintCidades(dataPrintCidades || []); // Agora a variável existe
             setLoading(false);
             return;
           }
