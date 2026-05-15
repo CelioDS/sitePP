@@ -37,7 +37,8 @@ export default function PainelBucketsPivot() {
   const [clusterFiltro, setClusterFiltro] = useState("TODOS");
   const [segmentoFiltro, setSegmentoFiltro] = useState("TODOS");
   const [territorioFiltro, setTerritorioFiltro] = useState("TODAS");
-  //const [dadosPrint, setDadosPrint] = useState([]);
+  const [dadosPrint, setDadosPrint] = useState([]);
+  const [dadosPrintCidades, setDadosPrintCidades] = useState([]);
 
   const Url = process.env.REACT_APP_API_URL || "http://localhost:8000";
 
@@ -125,34 +126,53 @@ export default function PainelBucketsPivot() {
       setLoading(true);
 
       const cache = localStorage.getItem(CACHE_KEY);
+
+      // Tenta recuperar cache
       if (!forcarAtualizacao && cache) {
-        const { timestamp, data } = JSON.parse(cache);
+        const { timestamp, data, dataPrint } = JSON.parse(cache);
         if (Date.now() - timestamp < CACHE_TIME) {
           organizarDados(data);
+          setDadosPrint(dataPrint || []); // Recupera também o segundo endpoint do cache
+          setDadosPrintCidades(dadosPrintCidades || []); // Recupera também o segundo endpoint do cache
           setLoading(false);
           return;
         }
       }
 
       try {
-        const res = await axios.get(`${Url}/neon/cotas-cop`);
-        const lista = Object.values(res.data || {});
+        // Executa as duas chamadas em paralelo (mais rápido)
+        const [resCotas, resOcupacao, resOcupacaoCidades] = await Promise.all([
+          axios.get(`${Url}/neon/cotas-cop`),
+          axios.get(`${Url}/porcentagem_ocupacao`),
+          axios.get(`${Url}/porcentagem_ocupacao_cidades`),
+        ]);
 
+        const lista = Object.values(resCotas.data || {});
+        const listaOcupacao = resOcupacao.data || [];
+        const listaOcupacaoCidades = resOcupacaoCidades.data || [];
+
+        // Salva ambos no cache
         localStorage.setItem(
           CACHE_KEY,
-          JSON.stringify({ timestamp: Date.now(), data: lista }),
+          JSON.stringify({
+            timestamp: Date.now(),
+            data: lista,
+            dataPrint: listaOcupacao,
+            dataPrintCidades: listaOcupacaoCidades,
+          }),
         );
+
         organizarDados(lista);
-
-
+        setDadosPrint(listaOcupacao);
+        setDadosPrintCidades(listaOcupacaoCidades);
       } catch (e) {
-        console.error("Erro ao carregar dados:", e);
+        console.error("Erro ao carregar dados do Axios:", e.message);
+        // Opcional: setDados([]) para evitar erros de renderização
       } finally {
         setLoading(false);
       }
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [Url, organizarDados],
+    [CACHE_TIME, Url, dadosPrintCidades, organizarDados],
   );
 
   useEffect(() => {
@@ -168,12 +188,12 @@ export default function PainelBucketsPivot() {
     }
 
     const alarme = {
-      D1: { label: "24H", qtd: 0 },
-      D2: { label: "24H", qtd: 0 },
-      D3: { label: "48H", qtd: 0 },
-      D4: { label: "72H", qtd: 0 },
-      D5: { label: "96H", qtd: 0 },
-      D6: { label: ">96H", qtd: 0 },
+      D1: { label: "24H", qtd: 0, taxa: 0, cotas: 0 },
+      D2: { label: "24H", qtd: 0, taxa: 0, cotas: 0 },
+      D3: { label: "48H", qtd: 0, taxa: 0, cotas: 0 },
+      D4: { label: "72H", qtd: 0, taxa: 0, cotas: 0 },
+      D5: { label: "96H", qtd: 0, taxa: 0, cotas: 0 },
+      D6: { label: ">96H", qtd: 0, taxa: 0, cotas: 0 },
     };
 
     let status = ">96H";
@@ -181,6 +201,9 @@ export default function PainelBucketsPivot() {
     for (const dia of listaDiasOrdenados) {
       if (diasData[dia]?.saldo > 1 && alarme[dia]) {
         alarme[dia].qtd += 1;
+        alarme[dia].taxa = diasData[dia].taxa_ocupacao;
+        alarme[dia].cotas = diasData[dia].saldo;
+
         status = alarme[dia].label;
         break;
       }
@@ -222,10 +245,8 @@ export default function PainelBucketsPivot() {
       if (alarmeFiltro === "TODOS") return true;
 
       const resultado = SearchCotas(item.dias, dias);
-      console.log(item);
       return resultado.status === alarmeFiltro;
     });
-
 
   const resumoAlarmes = React.useMemo(() => {
     const total = {
@@ -261,11 +282,12 @@ export default function PainelBucketsPivot() {
     const lista = dadosFiltrados
       .filter((item) => item.escala_tecnica === "DIÁRIO")
       .map((item) => {
-        const { status } = SearchCotas(item.dias, dias);
+        const { status, alarme } = SearchCotas(item.dias, dias);
 
         return {
           ...item,
           status,
+          alarme,
           peso: pesoAlarme[status] ?? 999,
         };
       });
@@ -275,21 +297,17 @@ export default function PainelBucketsPivot() {
       // 1. Primeiro pelo peso
       if (a.peso !== b.peso) return a.peso - b.peso;
 
-
       // 2. Critério de desempate → cotas menor é melhor
       // para melhores
-
-
 
       // 2. Critério de desempate → backlog menor é melhor
       return a.qtd - b.qtd;
     });
-    console.log(lista);
     return {
       melhores: ordenado.slice(0, 10),
       piores: ordenado.slice(-10).reverse(),
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dadosFiltrados, dias]);
 
   const cidadesFiltradas = React.useMemo(() => {
@@ -564,7 +582,13 @@ export default function PainelBucketsPivot() {
       </section>
       {console.log(alarmeFiltro)}
       {!!handleCotas ? (
-        <DashboardAnalytics dados={dadosFiltrados} dias={dias} rankingCidades={rankingCidades}  />
+        <DashboardAnalytics
+          dados={dadosFiltrados}
+          dias={dias}
+          rankingCidades={rankingCidades}
+          dadosPrint={dadosPrint}
+          dadosPrintCidades={dadosPrintCidades}
+        />
       ) : (
         <>
           {!!filtros && (

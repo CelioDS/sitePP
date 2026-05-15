@@ -4,6 +4,7 @@ import {
   importarCotasCop,
   getCotasCop,
   porcentagem_ocupacao,
+  porcentagem_ocupacao_cidades,
 } from "../Controllers/Cotas.js";
 
 import {
@@ -71,6 +72,7 @@ const router = express.Router();
 router.get("/importar-cotas-cop", importarCotasCop);
 router.get("/cotas-cop", getCotasCop);
 router.get("/porcentagem_ocupacao", porcentagem_ocupacao);
+router.get("/porcentagem_ocupacao_cidades", porcentagem_ocupacao_cidades);
 
 /*------------------ ROTAS RAIZ------------------*/
 

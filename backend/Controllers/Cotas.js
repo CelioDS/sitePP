@@ -386,7 +386,11 @@ export const porcentagem_ocupacao = async (req, res) => {
     const query = `
     SELECT
     territorio, 
-    dia, 
+    CASE 
+        WHEN dia = 'D1' THEN 'D0' 
+        WHEN dia = 'D2' THEN 'D1' 
+        ELSE dia 
+    END AS dia,
     NULLIF(SUM(cota_agenda) / SUM(cota_disp_est), 0) * 100 AS taxa_perc
 FROM cop_ocupacao
 WHERE data_ref = (
@@ -398,6 +402,42 @@ WHERE data_ref = (
 AND dia IN ('D1', 'D2')
 GROUP BY territorio, dia
 ORDER BY territorio DESC, dia DESC;
+    `;
+
+    const [rows] = await dataBase.query(query);
+
+    return res.status(200).json(rows);
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({
+      error: "Erro ao calcular porcentagem de ocupação",
+    });
+  }
+};
+
+export const porcentagem_ocupacao_cidades = async (req, res) => {
+  try {
+    const query = `
+     SELECT
+    cidade,
+     territorio, 
+    CASE 
+        WHEN dia = 'D1' THEN 'D0' 
+        WHEN dia = 'D2' THEN 'D1' 
+        ELSE dia 
+    END AS dia,
+    NULLIF(SUM(cota_agenda) / SUM(cota_disp_est), 0) * 100 AS taxa_perc
+FROM cop_ocupacao
+WHERE data_ref = (
+    SELECT MAX(data_ref)
+    FROM cop_ocupacao
+    WHERE DATE(STR_TO_DATE(data_ref, '%d/%m/%Y, %H:%i:%s')) 
+          = DATE_SUB(CURDATE(), INTERVAL 1 DAY)
+)
+AND dia IN ('D1', 'D2')
+and cidade in ('ARACATUBA','BAURU','CAMPINAS', 'SOROCABA','SANTOS', 'MIRASSOL | SAO JOSE DO RIO PRETO', 'SAO JOSE DOS CAMPOS','RIBEIRAO PRETO')
+GROUP BY cidade, territorio,  dia
+ORDER BY cidade DESC, territorio DESC, dia DESC;
     `;
 
     const [rows] = await dataBase.query(query);

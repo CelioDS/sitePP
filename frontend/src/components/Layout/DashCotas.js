@@ -7,11 +7,29 @@ export default function DashboardAnalytics({
   dias,
   rankingCidades,
   dadosPrint,
+  dadosPrintCidades,
 }) {
-  // 🔹 Totais por dia
+  // 🔹 Cores da paleta
+  const MAPA_CORES_TERRITORIO = {
+    CENTRAL: "#E42B2D",
+    OESTE: "#E69138",
+    NOROESTE: "#F2C516",
+    SUDESTE: "#8A8381",
+    // Adicione todos os seus territórios aqui...
+  };
+
+  // 🔹 Função auxiliar para somar saldo de cotas
+  const somarSaldo = (diasObj) => {
+    if (!diasObj) return 0;
+    return Object.values(diasObj).reduce((total, d) => {
+      const val = Number(d?.saldo || 0);
+      return total + (isNaN(val) ? 0 : val);
+    }, 0);
+  };
+
+  // 🔹 Totais por dia (Gráfico de Linha)
   const totaisPorDia = useMemo(() => {
     const totais = {};
-
     dias.forEach((dia) => {
       totais[dia] = { cotas: 0, agendado: 0 };
     });
@@ -25,62 +43,35 @@ export default function DashboardAnalytics({
         }
       });
     });
-
     return totais;
   }, [dados, dias]);
 
-  const coresCustom = [
-    "#A1343C",
-    "#E68F96",
-    "#bfa5a4",
-    "#595A4A",
-    "#999999",
-    "#b36565",
-    "#CCCCCC",
-    "#897170",
-    "#8BAAAD",
-  ]; // paleta
-
-  // 🔹 Dados gráfico linha
-  const seriesLinha = [
-    {
-      name: "Cotas",
-      data: dias.map((d) => totaisPorDia[d]?.cotas || 0),
-    },
-    {
-      name: "Agendado",
-      data: dias.map((d) => totaisPorDia[d]?.agendado || 0),
-    },
-  ];
-
-  // 🔹 Top cidades
-  const topCidades = useMemo(() => {
-    return [...dados].sort((a, b) => b.qtd - a.qtd).slice(0, 10);
-  }, [dados]);
-
-  const rankingPiores = useMemo(() => {
-    return [...rankingCidades.piores]
-      .sort((a, b) => b.qtd - a.qtd)
-      .slice(0, 10);
-  }, [rankingCidades.piores]);
-
+  // 🔹 Rankings Ordenados por Quantidade de Cotas (Saldo)
   const rankingMelhores = useMemo(() => {
-    return [...rankingCidades.melhores]
-      .sort((a, b) => b.qtd - a.qtd)
+    return [...(rankingCidades?.melhores || [])]
+      .map((c) => ({ ...c, totalCotas: somarSaldo(c.dias) }))
+      .sort((a, b) => b.totalCotas - a.totalCotas)
       .slice(0, 10);
   }, [rankingCidades.melhores]);
 
-  // 🔹 Território
+  const rankingPiores = useMemo(() => {
+    return [...(rankingCidades?.piores || [])]
+      .map((c) => ({ ...c, totalCotas: somarSaldo(c.dias) }))
+      .sort((a, b) => a.totalCotas - b.totalCotas) // Menores saldos primeiro
+      .slice(0, 10);
+  }, [rankingCidades.piores]);
+
+  // 🔹 Preparação do Gráfico de Ocupação (D0 e D1 vindos da Query)
   const graficoOcupacao = useMemo(() => {
     const map = {};
 
     dadosPrint
-      ?.filter((item) => item.territorio && item.taxa_perc != null) // remove lixo/null
+      ?.filter((item) => item.territorio && item.taxa_perc != null)
       .forEach((item) => {
         if (!map[item.territorio]) {
-          map[item.territorio] = { D1: 0, D2: 0 };
+          map[item.territorio] = { D0: 0, D1: 0 };
         }
-
+        // Usa a chave diretamente como vem da query (D0 ou D1)
         map[item.territorio][item.dia] = Number(item.taxa_perc);
       });
 
@@ -90,55 +81,80 @@ export default function DashboardAnalytics({
       categorias,
       series: [
         {
-          name: "D1",
-          data: categorias.map((t) => map[t]?.D1 || 0),
+          name: "D0",
+          data: categorias.map((t) => map[t]?.D0 || 0),
         },
         {
-          name: "D2",
-          data: categorias.map((t) => map[t]?.D2 || 0),
+          name: "D1",
+          data: categorias.map((t) => map[t]?.D1 || 0),
         },
       ],
     };
   }, [dadosPrint]);
 
-  // 🔹 DDD
-  const dddData = useMemo(() => {
+  const graficoOcupacaoCidades = useMemo(() => {
     const map = {};
 
+    dadosPrintCidades
+      ?.filter((item) => item.cidade && item.taxa_perc != null)
+      .forEach((item) => {
+        if (!map[item.cidade]) {
+          map[item.cidade] = { D0: 0, D1: 0 };
+        }
+        // Usa a chave diretamente como vem da query (D0 ou D1)
+        map[item.cidade][item.dia] = Number(item.taxa_perc);
+      });
+
+    const categorias = Object.keys(map);
+
+    return {
+      categorias,
+      series: [
+        {
+          name: "D0",
+          data: categorias.map((t) => map[t]?.D0 || 0),
+        },
+        {
+          name: "D1",
+          data: categorias.map((t) => map[t]?.D1 || 0),
+        },
+      ],
+    };
+  }, [dadosPrintCidades]);
+
+  // 🔹 Dados Adicionais
+  const seriesLinha = [
+    { name: "Cotas", data: dias.map((d) => totaisPorDia[d]?.cotas || 0) },
+    { name: "Agendado", data: dias.map((d) => totaisPorDia[d]?.agendado || 0) },
+  ];
+
+  const topCidades = useMemo(() => {
+    return [...dados].sort((a, b) => b.qtd - a.qtd).slice(0, 10);
+  }, [dados]);
+
+  const dddData = useMemo(() => {
+    const map = {};
     dados.forEach((item) => {
       map[item.ddd] = (map[item.ddd] || 0) + Number(item.qtd || 0);
     });
-
     return map;
   }, [dados]);
 
   const territorioData = useMemo(() => {
     const map = {};
-
     dados.forEach((item) => {
       map[item.territorio] =
         (map[item.territorio] || 0) + Number(item.qtd || 0);
     });
-
     return map;
   }, [dados]);
 
-  const somarSaldo = (diasObj) => {
-    if (!diasObj) return 0;
-
-    return Object.values(diasObj).reduce((total, d) => {
-      return total + Number(d?.saldo || 0);
-    }, 0);
-  };
-
   return (
     <main className={Style.main} style={{ display: "grid", gap: "20px" }}>
-      {/* 📊 Linha: Cotas vs Agendado */}
-
       <section className={Style.asidePrint}>
         <aside>
           <div>
-            <h3>Alta Disponibilidade De Cotas</h3>
+            <h6>Alta Disponibilidade De Cotas (Saldo)</h6>
 
             <ReactApexChart
               type="bar"
@@ -146,111 +162,199 @@ export default function DashboardAnalytics({
               width={600}
               series={[
                 {
-                  data: rankingMelhores.map((c) => somarSaldo(c.dias)),
+                  name: "Cotas",
+                  data: rankingMelhores.map((c) => {
+                    // Procuramos dentro do objeto alarme qual dia tem cotas > 0
+                    const diaComDados = Object.values(c.alarme || {}).find(
+                      (a) => Number(a.cotas) > 0,
+                    );
+                    return diaComDados ? Number(diaComDados.cotas) : 0;
+                  }),
                 },
               ]}
               options={{
                 xaxis: {
-                  categories: rankingMelhores.map((c) => c.cidade),
-                },
-                colors: coresCustom,
-                legend: { show: false },
-                plotOptions: {
-                  bar: {
-                    distributed: true,
+                  categories: rankingMelhores.map((c) => {
+                    // Exemplo: Se tiver '|', divide em duas linhas
+                    if (c.cidade.includes("|")) {
+                      return c.cidade.split("|").map((s) => s.trim());
+                    }
+                    // Se o nome for muito grande, divide por espaços
+                    return c.cidade;
+                  }),
+                  labels: {
+                    show: true,
+                    rotate: -45,
+                    rotateAlways: true,
+                    minHeight: 100, // Dá espaço para o texto rotacionado não sumir
+                    style: {
+                      fontSize: "9px",
+                    },
                   },
                 },
-                dataLabels: {
-                  style: { fontSize: "12px", colors: ["#000000"] },
+                colors: rankingMelhores.map(
+                  (c) => MAPA_CORES_TERRITORIO[c.territorio],
+                ),
+                plotOptions: {
+                  bar: {
+                    distributed: true, // Isso permite que cada barra tenha sua cor do array acima
+                  },
                 },
+
+                dataLabels: {
+                  enabled: true,
+                  style: { fontSize: "10px", colors: ["#000"] },
+                },
+                legend: { show: false },
               }}
             />
 
-            <h3>Baixa Disponibilidade De Cotas</h3>
+            <h6>Baixa Disponibilidade De Cotas (Saldo)</h6>
+            {console.log(rankingPiores)}
             <ReactApexChart
               type="bar"
               height={250}
               width={600}
               series={[
                 {
-                  data: rankingPiores.map((c) => somarSaldo(c.dias)),
+                  name: "Cotas",
+                  data: rankingPiores.map((c) => {
+                    // Procuramos dentro do objeto alarme qual dia tem cotas > 0
+                    const diaComDados = Object.values(c.alarme || {}).find(
+                      (a) => Number(a.cotas) > 0,
+                    );
+                    return diaComDados ? Number(diaComDados.cotas) : 0;
+                  }),
                 },
               ]}
               options={{
                 xaxis: {
-                  categories: rankingPiores.map((c) => c.cidade),
-                },
-                colors: coresCustom,
-                legend: { show: false },
-                plotOptions: {
-                  bar: {
-                    distributed: true,
+                  categories: rankingPiores.map((c) => {
+                    // Exemplo: Se tiver '|', divide em duas linhas
+                    if (c.cidade.includes("|")) {
+                      return c.cidade.split("|").map((s) => s.trim());
+                    }
+                    // Se o nome for muito grande, divide por espaços
+                    return c.cidade;
+                  }),
+                  labels: {
+                    show: true,
+                    rotate: -45,
+                    rotateAlways: true,
+                    minHeight: 100, // Dá espaço para o texto rotacionado não sumir
+                    style: {
+                      fontSize: "9px",
+                    },
                   },
                 },
+                colors: rankingMelhores.map(
+                  (c) => MAPA_CORES_TERRITORIO[c.territorio],
+                ),
+                plotOptions: { bar: { distributed: true } },
                 dataLabels: {
-                  style: { fontSize: "12px", colors: ["#000000"] },
+                  enabled: true,
+                  style: { fontSize: "10px", colors: ["#000"] },
                 },
+                legend: { show: false },
               }}
             />
           </div>
         </aside>
+
         <aside className={Style.graficopizza}>
           <div>
-            <h3>% Ocupação por Território (D0 vs D1)</h3>
-
+            <h6>% Ocupação por Território (D0 vs D1)</h6>
             <ReactApexChart
               type="bar"
               height={250}
               width={600}
-              series={[
-                {
-                  name: "D0",
-                  data: graficoOcupacao.series[0]?.data || [],
-                },
-                {
-                  name: "D1",
-                  data: graficoOcupacao.series[1]?.data || [],
-                },
-              ]}
+              series={graficoOcupacao.series}
               options={{
-                xaxis: {
-                  categories: graficoOcupacao.categorias,
+                xaxis: { categories: graficoOcupacao.categorias },
+
+                fill: {
+                  type: "solid",
+                  opacity: [1, 0.5], // D0 opacidade total, D1 fica 50% mais claro automaticamente
                 },
-                colors: ["#ff261e", "#FF4D4F"], // D1 azul | D2 vermelho
+                colors: [
+                  ({ value, seriesIndex, dataPointIndex, w }) => {
+                    const territorio =
+                      w.config.xaxis.categories[dataPointIndex];
+                    return MAPA_CORES_TERRITORIO[territorio] || "#ccc";
+                  },
+                ],
                 plotOptions: {
                   bar: {
                     horizontal: false,
-                    columnWidth: "50%",
+                    columnWidth: "55%",
+                    distributed: false, // Voltamos para false para agrupar D0 e D1
                   },
                 },
                 dataLabels: {
                   enabled: true,
                   formatter: (val) => val?.toFixed(1) + "%",
-                  style: { fontSize: "12px", colors: ["#000000"] },
+                  style: { fontSize: "9px", colors: ["#333"] },
+                  offsetY: -20,
                 },
-                yaxis: {
-                  labels: {
-                    formatter: (val) => val + "%",
-                  },
+                yaxis: { labels: { formatter: (val) => val + "%" } },
+                legend: {
+                  show: true,
+                  position: "top",
+                  // Forçamos a legenda a mostrar D0 e D1 com cores neutras ou fixas
+                  // para não confundir, já que as barras mudam por território
+                  markers: { fillColors: ["#555", "#AAA"] },
                 },
                 tooltip: {
-                  y: {
-                    formatter: (val) => val.toFixed(2) + "%",
-                  },
+                  shared: true,
+                  intersect: false,
                 },
               }}
             />
           </div>
-
-          {/* 🌎 Território */}
           <div>
-            <h3>Distribuição de backlog por Território</h3>
+            <h6>% Ocupação por CIDADES (D0 vs D1)</h6>
             <ReactApexChart
-              type="donut"
+              type="bar"
               height={250}
-              series={Object.values(territorioData)}
+              width={600}
+              series={graficoOcupacaoCidades.series}
               options={{
-                labels: Object.keys(territorioData),
+                xaxis: {
+                  categories: graficoOcupacaoCidades.categorias.map((c) => {
+                    // Exemplo: Se tiver '|', divide em duas linhas
+                    if (c.cidade.includes("|")) {
+                      return c.cidade.split("|").map((s) => s.trim());
+                    }
+                    // Se o nome for muito grande, divide por espaços
+                    return c.cidade;
+                  }),
+                  labels: {
+                    rotate: -45,
+                    style: { fontSize: "9px" },
+                    multiline: true, // Para evitar que nomes longos sumam
+                  },
+                },
+                // Se quiser cores fixas para D0 e D1 para não quebrar:
+                colors: rankingMelhores.map(
+                  (c) => MAPA_CORES_TERRITORIO[c.territorio],
+                ),
+                plotOptions: {
+                  bar: {
+                    horizontal: false,
+                    columnWidth: "70%",
+                    distributed: true, // Mantenha false para ver D0 e D1 lado a lado
+                  },
+                },
+                dataLabels: {
+                  enabled: true,
+                  formatter: (val) => val?.toFixed(1) + "%",
+                  style: { fontSize: "8px", colors: ["#000"] },
+                },
+                yaxis: { labels: { formatter: (val) => val + "%" } },
+                tooltip: {
+                  shared: true,
+                  intersect: false,
+                },
               }}
             />
           </div>
@@ -259,6 +363,16 @@ export default function DashboardAnalytics({
 
       <section className={Style.elet}>
         <div>
+          <h3>Distribuição de backlog por Território</h3>
+          <ReactApexChart
+            type="donut"
+            height={250}
+            series={Object.values(territorioData)}
+            options={{ labels: Object.keys(territorioData) }}
+          />
+        </div>
+
+        <div>
           <h3>Cotas vs Agendado por Dia</h3>
           <ReactApexChart
             type="line"
@@ -266,14 +380,9 @@ export default function DashboardAnalytics({
             width={1200}
             series={seriesLinha}
             options={{
-              chart: { toolbar: { show: false } },
               xaxis: { categories: dias },
-              colors: coresCustom,
-              plotOptions: {
-                bar: {
-                  distributed: true,
-                },
-              },
+              colors: ["#A1343C", "#595A4A"],
+              chart: { toolbar: { show: false } },
             }}
           />
         </div>
@@ -284,48 +393,29 @@ export default function DashboardAnalytics({
             type="bar"
             height={300}
             width={1200}
-            series={[
-              {
-                data: topCidades.map((c) => c.qtd),
-              },
-            ]}
+            series={[{ data: topCidades.map((c) => c.qtd) }]}
             options={{
-              xaxis: {
-                categories: topCidades.map((c) => c.cidade),
-              },
-              colors: coresCustom,
-              plotOptions: {
-                bar: {
-                  distributed: true,
-                },
-              },
+              xaxis: { categories: topCidades.map((c) => c.cidade) },
+              colors: rankingMelhores.map(
+                (c) => MAPA_CORES_TERRITORIO[c.territorio],
+              ),
+              plotOptions: { bar: { distributed: true } },
             }}
           />
         </div>
 
-        {/* 📍 Top cidades */}
-
-        {/* 📞 DDD */}
         <div>
           <h3>Distribuição por DDD</h3>
           <ReactApexChart
             type="bar"
             height={300}
-            series={[
-              {
-                data: Object.values(dddData),
-              },
-            ]}
+            series={[{ data: Object.values(dddData) }]}
             options={{
-              xaxis: {
-                categories: Object.keys(dddData),
-              },
-              colors: coresCustom,
-              plotOptions: {
-                bar: {
-                  distributed: true,
-                },
-              },
+              xaxis: { categories: Object.keys(dddData) },
+              colors: rankingMelhores.map(
+                (c) => MAPA_CORES_TERRITORIO[c.territorio],
+              ),
+              plotOptions: { bar: { distributed: true } },
             }}
           />
         </div>
