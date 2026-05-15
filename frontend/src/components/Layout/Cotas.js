@@ -37,8 +37,7 @@ export default function PainelBucketsPivot() {
   const [clusterFiltro, setClusterFiltro] = useState("TODOS");
   const [segmentoFiltro, setSegmentoFiltro] = useState("TODOS");
   const [territorioFiltro, setTerritorioFiltro] = useState("TODAS");
-  const [dadosPrint, setDadosPrint] = useState([]);
-  const [dadosPrintCidades, setDadosPrintCidades] = useState([]);
+
 
   const Url = process.env.REACT_APP_API_URL || "http://localhost:8000";
 
@@ -145,29 +144,25 @@ export default function PainelBucketsPivot() {
       }
 
       try {
-        const [resCotas, resOcupacao, resOcupacaoCidades] = await Promise.all([
+        const [resCotas] = await Promise.all([
           axios.get(`${Url}/neon/cotas-cop`),
-          axios.get(`${Url}/porcentagem_ocupacao`),
-          axios.get(`${Url}/porcentagem_ocupacao_cidades`),
+         
         ]);
 
         const lista = Object.values(resCotas.data || {});
-        const listaOcupacao = resOcupacao.data || [];
-        const listaOcupacaoCidades = resOcupacaoCidades.data || [];
+     
 
         localStorage.setItem(
           CACHE_KEY,
           JSON.stringify({
             timestamp: Date.now(),
             data: lista,
-            dataPrint: listaOcupacao,
-            dataPrintCidades: listaOcupacaoCidades,
+       
           }),
         );
 
         organizarDados(lista);
-        setDadosPrint(listaOcupacao);
-        setDadosPrintCidades(listaOcupacaoCidades);
+  
       } catch (e) {
         console.error("Erro ao carregar dados do Axios:", e.message);
       } finally {
@@ -587,8 +582,7 @@ export default function PainelBucketsPivot() {
           dados={dadosFiltrados}
           dias={dias}
           rankingCidades={rankingCidades}
-          dadosPrint={dadosPrint}
-          dadosPrintCidades={dadosPrintCidades}
+      
         />
       ) : (
         <>
