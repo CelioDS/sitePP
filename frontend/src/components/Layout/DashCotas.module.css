@@ -27,3 +27,29 @@
   width: 100%;
   height: 100%;
 }
+.main .cards {
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+  justify-content: space-around;
+  text-align: center;
+  align-items: center;
+  font-size: 11px;
+  border: 1px solid #ccc;
+  background: #ffffff;
+  filter: drop-shadow(3px 3px 3px #000000);
+}
+.main .cards > aside {
+  display: flex;
+  flex-direction: column;
+  text-align: center;
+  justify-content: center;
+  align-self: center;
+}
+.main .cards > aside > span {
+  display: flex;
+  gap: 5px;
+  text-align: center;
+  justify-content: center;
+  align-self: start;
+}

@@ -124,23 +124,27 @@ export default function PainelBucketsPivot() {
   const fetchDados = useCallback(
     async (forcarAtualizacao = false) => {
       setLoading(true);
-
       const cache = localStorage.getItem(CACHE_KEY);
 
-      // Tenta recuperar cache
       if (!forcarAtualizacao && cache) {
-        const { timestamp, data, dataPrint } = JSON.parse(cache);
-        if (Date.now() - timestamp < CACHE_TIME) {
-          organizarDados(data);
-          setDadosPrint(dataPrint || []); // Recupera também o segundo endpoint do cache
-          setDadosPrintCidades(dadosPrintCidades || []); // Recupera também o segundo endpoint do cache
-          setLoading(false);
-          return;
+        try {
+          // Adicionado dataPrintCidades na desestruturação
+          const { timestamp, data, dataPrint, dataPrintCidades } =
+            JSON.parse(cache);
+
+          if (Date.now() - timestamp < CACHE_TIME) {
+            organizarDados(data);
+            setDadosPrint(dataPrint || []);
+            setDadosPrintCidades(dataPrintCidades || []); // Agora a variável existe
+            setLoading(false);
+            return;
+          }
+        } catch (e) {
+          console.error("Erro ao ler cache:", e);
         }
       }
 
       try {
-        // Executa as duas chamadas em paralelo (mais rápido)
         const [resCotas, resOcupacao, resOcupacaoCidades] = await Promise.all([
           axios.get(`${Url}/neon/cotas-cop`),
           axios.get(`${Url}/porcentagem_ocupacao`),
@@ -151,7 +155,6 @@ export default function PainelBucketsPivot() {
         const listaOcupacao = resOcupacao.data || [];
         const listaOcupacaoCidades = resOcupacaoCidades.data || [];
 
-        // Salva ambos no cache
         localStorage.setItem(
           CACHE_KEY,
           JSON.stringify({
@@ -167,13 +170,12 @@ export default function PainelBucketsPivot() {
         setDadosPrintCidades(listaOcupacaoCidades);
       } catch (e) {
         console.error("Erro ao carregar dados do Axios:", e.message);
-        // Opcional: setDados([]) para evitar erros de renderização
       } finally {
         setLoading(false);
       }
     },
-    [CACHE_TIME, Url, dadosPrintCidades, organizarDados],
-  );
+    [CACHE_TIME, Url, organizarDados],
+  ); // Removido dadosPrintCidades das dependências
 
   useEffect(() => {
     fetchDados();
@@ -580,7 +582,6 @@ export default function PainelBucketsPivot() {
           </button>
         )}
       </section>
-      {console.log(alarmeFiltro)}
       {!!handleCotas ? (
         <DashboardAnalytics
           dados={dadosFiltrados}

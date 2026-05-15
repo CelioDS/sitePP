@@ -1,6 +1,10 @@
 import React, { useMemo } from "react";
 import ReactApexChart from "react-apexcharts";
 import Style from "./DashCotas.module.css";
+import logo from "../IMG/claroLogo.webp";
+import ClaroLogo from "../Item-Layout/ClaroLogo";
+
+import { BsCircleFill } from "react-icons/bs";
 
 export default function DashboardAnalytics({
   dados,
@@ -151,6 +155,60 @@ export default function DashboardAnalytics({
 
   return (
     <main className={Style.main} style={{ display: "grid", gap: "20px" }}>
+      <header
+        className={Style.cards}
+        style={{
+          display: "flex",
+          width: "100%",
+          justifyContent: "space-around",
+          textAlign: "center",
+          alignItems: "center",
+          fontSize: "11px",
+        }}
+      >
+        <aside>
+          <p style={{ color: "#4e4d4d", gap: "5px" }}>
+            Legenda graficos territorios
+          </p>
+
+          <span style={{ color: "#4e4d4d", gap: "15px" }}>
+            <BsCircleFill color="#E42B2D" /> CENTRAL
+          </span>
+          <span style={{ color: "#4e4d4d", gap: "15px" }}>
+            <BsCircleFill color="#E69138" />
+            OESTE
+          </span>
+          <span style={{ color: "#4e4d4d", gap: "15px" }}>
+            <BsCircleFill color="#F2C516" />
+            NOROESTE
+          </span>
+          <span style={{ color: "#4e4d4d", gap: "15px" }}>
+            <BsCircleFill color="#8A8381" />
+            SUDESTE
+          </span>
+        </aside>
+
+        <aside
+          style={{
+            display: "flex",
+            justifyContent: "space_around",
+            flexDirection: "row",
+            gap: "20px",
+            marginBottom: "10px",
+            fontSize: "10px",
+          }}
+        >
+          <div>
+            <h2>MAPA DE OCUPAÇAO COTAS</h2>
+            <span style={{ color: "#4e4d4d", fontSize: "12px" }}>
+              CLASSE 1 (Novos Domicílios)
+            </span>
+          </div>
+          <div>
+            <ClaroLogo size={50} logo={logo} />
+          </div>
+        </aside>
+      </header>
       <section className={Style.asidePrint}>
         <aside>
           <div>
@@ -210,7 +268,6 @@ export default function DashboardAnalytics({
             />
 
             <h6>Baixa Disponibilidade De Cotas (Saldo)</h6>
-            {console.log(rankingPiores)}
             <ReactApexChart
               type="bar"
               height={250}
@@ -319,30 +376,42 @@ export default function DashboardAnalytics({
               width={600}
               series={graficoOcupacaoCidades.series}
               options={{
+                // Função que busca a cor do território para cada cidade no eixo X
+                colors: [
+                  ({ dataPointIndex, w }) => {
+                    const nomeCidade =
+                      graficoOcupacaoCidades.categorias[dataPointIndex];
+                    // Procura nos seus dados originais qual o território dessa cidade
+                    const item = dados.find((d) => d.cidade === nomeCidade);
+                    return MAPA_CORES_TERRITORIO[item?.territorio] || "#ccc";
+                  },
+                ],
+                fill: {
+                  type: "solid",
+                  opacity: [1, 0.5], // D0 forte, D1 claro
+                },
+                plotOptions: {
+                  bar: { distributed: false },
+                },
                 xaxis: {
+                  // Correção: 'c' já é a string da cidade aqui
                   categories: graficoOcupacaoCidades.categorias.map((c) => {
-                    // Exemplo: Se tiver '|', divide em duas linhas
-                    if (c.cidade.includes("|")) {
-                      return c.cidade.split("|").map((s) => s.trim());
-                    }
-                    // Se o nome for muito grande, divide por espaços
-                    return c.cidade;
+                    return c.includes("|")
+                      ? c.split("|").map((s) => s.trim())
+                      : c;
                   }),
                   labels: {
                     rotate: -45,
                     style: { fontSize: "9px" },
-                    multiline: true, // Para evitar que nomes longos sumam
+                    multiline: true,
                   },
                 },
-                // Se quiser cores fixas para D0 e D1 para não quebrar:
-                colors: rankingMelhores.map(
-                  (c) => MAPA_CORES_TERRITORIO[c.territorio],
-                ),
+
                 plotOptions: {
                   bar: {
                     horizontal: false,
                     columnWidth: "70%",
-                    distributed: true, // Mantenha false para ver D0 e D1 lado a lado
+                    distributed: false, // Mantenha false para ver D0 e D1 lado a lado por cidade
                   },
                 },
                 dataLabels: {
@@ -351,10 +420,7 @@ export default function DashboardAnalytics({
                   style: { fontSize: "8px", colors: ["#000"] },
                 },
                 yaxis: { labels: { formatter: (val) => val + "%" } },
-                tooltip: {
-                  shared: true,
-                  intersect: false,
-                },
+                legend: { show: true, position: "top" },
               }}
             />
           </div>
