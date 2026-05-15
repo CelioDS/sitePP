@@ -136,7 +136,7 @@ export default function PainelBucketsPivot() {
 
       try {
         const res = await axios.get(`${Url}/neon/cotas-cop`);
-        const res2 = await axios.get(`${Url}/porcentagem_ocupacao`);
+        const res2 = await axios.get(`${Url}/neon/porcentagem_ocupacao`);
         const lista = Object.values(res.data || {});
 
         localStorage.setItem(
