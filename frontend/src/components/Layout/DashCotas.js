@@ -390,9 +390,7 @@ export default function DashboardAnalytics({
                   type: "solid",
                   opacity: [1, 0.5], // D0 forte, D1 claro
                 },
-                plotOptions: {
-                  bar: { distributed: false },
-                },
+
                 xaxis: {
                   // Correção: 'c' já é a string da cidade aqui
                   categories: graficoOcupacaoCidades.categorias.map((c) => {
