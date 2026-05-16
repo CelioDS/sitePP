@@ -10,6 +10,7 @@ import ptBR from "date-fns/locale/pt-BR";
 import GraficoLinhaPDU from "../Tools/GraficoLinhaPDU";
 import Loading from "../Item-Layout/Loading";
 import GraficoPDU from "../Item-Layout/GraficoPDU";
+import MIS from "./MIS";
 
 export default function Home() {
   const [data, setData] = useState([]);
@@ -146,7 +147,7 @@ export default function Home() {
     <Container className={Style.main}>
       <RenameTitle initialTitle={"P&P - Home"} />
 
-  
+        <MIS></MIS>
 
       <main style={styles.container}>
         {/* Barra de filtros */}
