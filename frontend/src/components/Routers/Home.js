@@ -147,7 +147,7 @@ export default function Home() {
     <Container className={Style.main}>
       <RenameTitle initialTitle={"P&P - Home"} />
 
-        <MIS></MIS>
+        <MIS/>
 
       <main style={styles.container}>
         {/* Barra de filtros */}
