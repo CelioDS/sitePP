@@ -563,7 +563,10 @@ export default function PainelBucketsPivot() {
     <main className={Style.main} ref={tableRef}>
       <section className={Style.sectionHeader}>
         <button
-         
+         onClick={() => {
+            setHandleCotas(false);
+            handleResetFilters();
+          }}
         >
           {handleCotas ? "Tabela" : "Relatorio"}
         </button>
