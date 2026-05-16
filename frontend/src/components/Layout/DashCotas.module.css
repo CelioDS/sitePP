@@ -9,6 +9,15 @@
 .main .asidePrint {
   display: flex;
 }
+
+.main .asidePrint {
+  display: flex;
+  background-color: #ffffff;
+}
+.main .asidePrint aside {
+  border: 1px solid #ccc;
+  padding: 5px;
+}
 .main .asidePrint .graficopizza {
   display: flex;
   flex-direction: column;
@@ -31,23 +40,60 @@
   display: flex;
   flex-direction: row;
   width: 100%;
+  height: 100%;
   justify-content: space-around;
   text-align: center;
   align-items: center;
-  font-size: 11px;
-  border: 1px solid #ccc;
+  font-size: 11px !important;
   background: #ffffff;
   filter: drop-shadow(3px 3px 3px #000000);
+  z-index: 9;
 }
-.main .cards > aside {
+
+.main .cards .logoFinal {
+  position: absolute;
+  right: 10px;
+}
+.main .cards > .legenda {
+  display: flex;
+  border: 1px solid #ccc;
+  width: 100%;
+  height: 100%;
+  flex-direction: column;
+  text-align: center;
+  justify-content: center;
+  align-self: center;
+}
+
+.main .cards > .legenda2 {
+  display: flex;
+  flex-direction: row;
+  border: 1px solid #ccc;
+  width: 100%;
+  height: 100% !important;
+  text-align: center;
+  justify-content: center;
+  align-self: center;
+}
+.main .cards > .legenda > div {
+  display: flex;
+  flex-direction: row;
+  gap: 5px;
+  text-align: center;
+  justify-content: center;
+  align-self: center;
+}
+.main .cards > .legenda2 > div {
   display: flex;
   flex-direction: column;
   text-align: center;
   justify-content: center;
   align-self: center;
 }
-.main .cards > aside > span {
+
+.main .cards > .legenda > div > span {
   display: flex;
+  flex-direction: row;
   gap: 5px;
   text-align: center;
   justify-content: center;

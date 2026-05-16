@@ -391,7 +391,7 @@ export const porcentagem_ocupacao = async (req, res) => {
         WHEN dia = 'D2' THEN 'D1' 
         ELSE dia 
     END AS dia,
-    NULLIF(SUM(cota_agenda) / SUM(cota_disp_est), 0) * 100 AS taxa_perc
+    NULLIF(SUM(cota_disp_est)/ SUM(cota_agenda) , 0) * 100 AS taxa_perc
 FROM cop_ocupacao
 WHERE data_ref = (
     SELECT MAX(data_ref)
@@ -426,7 +426,7 @@ export const porcentagem_ocupacao_cidades = async (req, res) => {
         WHEN dia = 'D2' THEN 'D1' 
         ELSE dia 
     END AS dia,
-    NULLIF(SUM(cota_agenda) / SUM(cota_disp_est), 0) * 100 AS taxa_perc
+    NULLIF(SUM(cota_disp_est)/ SUM(cota_agenda) , 0) * 100 AS taxa_perc
 FROM cop_ocupacao
 WHERE data_ref = (
     SELECT MAX(data_ref)
