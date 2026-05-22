@@ -245,6 +245,7 @@ export const importarCotasCopNeon = async (req = {}, res = null) => {
       return res.json({
         message: "Último lote sincronizado com sucesso no Neon",
         data_coleta: rows[0].data_coleta,
+        data_ref: rows[0].data_ref,
         total: rows.length,
       });
     }

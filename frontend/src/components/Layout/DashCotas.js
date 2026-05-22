@@ -1,10 +1,10 @@
+import { useEffect, useState } from "react";
 import React, { useMemo } from "react";
-import ReactApexChart from "react-apexcharts";
-import Style from "./DashCotas.module.css";
 import logo from "../IMG/claroLogo.webp";
+import Style from "./DashCotas.module.css";
+import ReactApexChart from "react-apexcharts";
 import ClaroLogo from "../Item-Layout/ClaroLogo";
-
-import { BsCircleFill } from "react-icons/bs";
+import { BsCircleFill, BsClock } from "react-icons/bs";
 
 export default function DashboardAnalytics({
   dados,
@@ -12,28 +12,71 @@ export default function DashboardAnalytics({
   rankingCidades,
   dadosPrint,
   dadosPrintCidades,
+  ultimaAtualizacao,
 }) {
   // 🔹 Cores da paleta
+  const STORAGE_KEY = "rankingCidadesSnapshot";
+  const [deveSalvarSnapshot, setDeveSalvarSnapshot] = useState(false);
   const MAPA_CORES_TERRITORIO = {
-    CENTRAL: "#E42B2D",
     OESTE: "#E69138",
-    NOROESTE: "#F2C516",
     SUDESTE: "#8A8381",
-    // Adicione todos os seus territórios aqui...
+    CENTRAL: "#E42B2D",
+    NOROESTE: "#F2C516",
   };
 
-  // 🔹 Função auxiliar para somar saldo de cotas
-  const somarSaldo = (diasObj) => {
-    if (!diasObj) return 0;
-    return Object.values(diasObj).reduce((total, d) => {
-      const val = Number(d?.saldo || 0);
-      return total + (isNaN(val) ? 0 : val);
-    }, 0);
+  const gerarSnapshot = (lista) => {
+    const map = {};
+
+    lista.forEach((c) => {
+      const diaEntry = Object.entries(c.alarme || {}).find(
+        ([_, a]) => Number(a.cotas) > 0,
+      );
+      const dia = diaEntry ? diaEntry[0] : null;
+      const valor = diaEntry ? Number(diaEntry[1].cotas) : 0;
+
+      map[c.cidade] = {
+        valor,
+        dia,
+      };
+    });
+
+    return map;
   };
+
+  const getSnapshotAnterior = () => {
+    try {
+      return JSON.parse(localStorage.getItem("snapshotAnterior")) || {};
+    } catch {
+      return {};
+    }
+  };
+
+  useEffect(() => {
+    const salvarSnapshot = (snapshot) => {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(snapshot));
+      localStorage.setItem(
+        "penultimaAtualizacao",
+        JSON.stringify(ultimaAtualizacao),
+      );
+    };
+
+    if (deveSalvarSnapshot && rankingCidades?.total?.length) {
+      salvarSnapshot(gerarSnapshot(rankingCidades.total));
+
+      setDeveSalvarSnapshot(false);
+    }
+  }, [
+    deveSalvarSnapshot,
+    rankingCidades,
+    setDeveSalvarSnapshot,
+    ultimaAtualizacao,
+  ]);
 
   // 🔹 Totais por dia (Gráfico de Linha)
+
   const totaisPorDia = useMemo(() => {
     const totais = {};
+
     dias.forEach((dia) => {
       totais[dia] = { cotas: 0, agendado: 0 };
     });
@@ -41,41 +84,135 @@ export default function DashboardAnalytics({
     dados.forEach((item) => {
       dias.forEach((dia) => {
         const d = item.dias?.[dia];
+
         if (d) {
           totais[dia].cotas += Number(d.saldo || 0);
+
           totais[dia].agendado += Number(d.qtd_os || 0);
         }
       });
     });
+
     return totais;
   }, [dados, dias]);
 
-  // 🔹 Rankings Ordenados por Quantidade de Cotas (Saldo)
+  // 🔹 Rankings Ordenados por Quantidade de Cotas do Alarme Ativo
   const rankingMelhores = useMemo(() => {
+    const snapshotAnterior = getSnapshotAnterior();
+
     return [...(rankingCidades?.melhores || [])]
-      .map((c) => ({ ...c, totalCotas: somarSaldo(c.dias) }))
-      .sort((a, b) => b.totalCotas - a.totalCotas)
+      .map((c) => {
+        const diaEntry = Object.entries(c.alarme || {}).find(
+          ([_, a]) => Number(a.cotas) > 0,
+        );
+
+        const diaAtual = diaEntry ? diaEntry[0] : null;
+        const valorAtual = diaEntry ? Number(diaEntry[1].cotas) : 0;
+        const prev = snapshotAnterior[c.cidade] || {};
+        const valorAnterior = prev.valor || 0;
+        const diaAnterior = prev.dia || null;
+        const delta = valorAtual - valorAnterior;
+
+        const categoriasEixoX =
+          c.cidade && c.cidade.includes("|")
+            ? c.cidade.split("|").map((item) => item.trim())
+            : [c.cidade];
+
+        return {
+          ...c,
+          valorCotaBarra: valorAtual,
+          delta,
+          diaAtual,
+          diaAnterior,
+          categoriasEixoX,
+        };
+      })
+      .sort((a, b) => b.valorCotaBarra - a.valorCotaBarra)
       .slice(0, 10);
   }, [rankingCidades.melhores]);
 
   const rankingPiores = useMemo(() => {
+    const snapshotAnterior = getSnapshotAnterior();
+
     return [...(rankingCidades?.piores || [])]
-      .map((c) => ({ ...c, totalCotas: somarSaldo(c.dias) }))
-      .sort((a, b) => a.totalCotas - b.totalCotas) // Menores saldos primeiro
+      .map((c) => {
+        const diaEntry = Object.entries(c.alarme || {}).find(
+          ([_, a]) => Number(a.cotas) > 0,
+        );
+
+        const diaAtual = diaEntry ? diaEntry[0] : null;
+        const valorAtual = diaEntry ? Number(diaEntry[1].cotas) : 0;
+
+        const prev = snapshotAnterior[c.cidade] || {};
+        const valorAnterior = prev.valor || 0;
+
+        const delta = valorAtual - valorAnterior;
+
+        const categoriasEixoX =
+          c.cidade && c.cidade.includes("|")
+            ? c.cidade.split("|").map((item) => item.trim())
+            : [c.cidade];
+
+        return {
+          ...c,
+          valorCotaBarra: valorAtual,
+          delta,
+          diaAtual,
+          categoriasEixoX,
+        };
+      })
+      .sort((a, b) => a.valorCotaBarra - b.valorCotaBarra)
       .slice(0, 10);
   }, [rankingCidades.piores]);
+
+  //resumo territorio
+
+  const resumoTerriotrios = useMemo(() => {
+    const map = {};
+
+    console.log(dadosPrint);
+
+    dadosPrint
+      ?.filter((item) => item.territorio) //ignora null
+      .forEach((item) => {
+        if (!map[item.territorio]) {
+          map[item.territorio] = {
+            cotas: 0,
+            agendamentos: 0,
+            cotas_dia1: 0,
+            agendamentos_dia1: 0,
+          };
+        }
+
+        if (item.dia === "D1") {
+          map[item.territorio].cotas += Number(item.cotas || 0);
+          map[item.territorio].agendamentos += Number(item.agendamentos || 0);
+        } else {
+          map[item.territorio].agendamentos_dia1 += Number(
+            item.agendamentos || 0,
+          );
+          map[item.territorio].cotas_dia1 += Number(item.cotas || 0);
+        }
+      });
+
+    return Object.entries(map).map(([territorio, valores]) => ({
+      territorio,
+      ...valores,
+    }));
+  }, [dadosPrint]);
 
   // 🔹 Preparação do Gráfico de Ocupação (D0 e D1 vindos da Query)
   const graficoOcupacao = useMemo(() => {
     const map = {};
 
     dadosPrint
+
       ?.filter((item) => item.territorio && item.taxa_perc != null)
+
       .forEach((item) => {
         if (!map[item.territorio]) {
           map[item.territorio] = { D0: 0, D1: 0 };
         }
-        // Usa a chave diretamente como vem da query (D0 ou D1)
         map[item.territorio][item.dia] = Number(item.taxa_perc);
       });
 
@@ -83,11 +220,14 @@ export default function DashboardAnalytics({
 
     return {
       categorias,
+
       series: [
         {
           name: "D0",
           data: categorias.map((t) => map[t]?.D0 || 0),
+          data2: categorias.map((t) => map[t]?.D0 || 0),
         },
+
         {
           name: "D1",
           data: categorias.map((t) => map[t]?.D1 || 0),
@@ -95,6 +235,36 @@ export default function DashboardAnalytics({
       ],
     };
   }, [dadosPrint]);
+
+  useEffect(() => {
+    if (!ultimaAtualizacao || !rankingCidades?.total?.length) return;
+
+    const ultimaSalva = localStorage.getItem("ultimaAtualizacao");
+
+    const snapshotAtual = gerarSnapshot(rankingCidades.total);
+
+    // ✅ primeira execução
+    if (!ultimaSalva) {
+      localStorage.setItem("snapshotAtual", JSON.stringify(snapshotAtual));
+      localStorage.setItem("ultimaAtualizacao", ultimaAtualizacao);
+      return;
+    }
+
+    // ✅ nova atualização
+    if (ultimaAtualizacao !== ultimaSalva) {
+      console.log("🔄 Nova atualização detectada");
+
+      const snapshotAnterior = localStorage.getItem("snapshotAtual");
+
+      if (snapshotAnterior) {
+        localStorage.setItem("snapshotAnterior", snapshotAnterior);
+      }
+
+      // ✅ salva novo como atual
+      localStorage.setItem("snapshotAtual", JSON.stringify(snapshotAtual));
+      localStorage.setItem("ultimaAtualizacao", ultimaAtualizacao);
+    }
+  }, [ultimaAtualizacao, rankingCidades]);
 
   const graficoOcupacaoCidades = useMemo(() => {
     const map = {};
@@ -105,7 +275,6 @@ export default function DashboardAnalytics({
         if (!map[item.cidade]) {
           map[item.cidade] = { D0: 0, D1: 0 };
         }
-        // Usa a chave diretamente como vem da query (D0 ou D1)
         map[item.cidade][item.dia] = Number(item.taxa_perc);
       });
 
@@ -113,11 +282,13 @@ export default function DashboardAnalytics({
 
     return {
       categorias,
+
       series: [
         {
           name: "D0",
           data: categorias.map((t) => map[t]?.D0 || 0),
         },
+
         {
           name: "D1",
           data: categorias.map((t) => map[t]?.D1 || 0),
@@ -127,8 +298,10 @@ export default function DashboardAnalytics({
   }, [dadosPrintCidades]);
 
   // 🔹 Dados Adicionais
+
   const seriesLinha = [
     { name: "Cotas", data: dias.map((d) => totaisPorDia[d]?.cotas || 0) },
+
     { name: "Agendado", data: dias.map((d) => totaisPorDia[d]?.agendado || 0) },
   ];
 
@@ -138,82 +311,105 @@ export default function DashboardAnalytics({
 
   const dddData = useMemo(() => {
     const map = {};
+
     dados.forEach((item) => {
       map[item.ddd] = (map[item.ddd] || 0) + Number(item.qtd || 0);
     });
+
     return map;
   }, [dados]);
 
+  // backlog por território para gráfico de pizza
   const territorioData = useMemo(() => {
     const map = {};
+
     dados.forEach((item) => {
       map[item.territorio] =
         (map[item.territorio] || 0) + Number(item.qtd || 0);
     });
+
     return map;
   }, [dados]);
 
+  const subtrairUmDia = (dataStr) => {
+    if (!dataStr) return "";
+
+    const [dataParte, horaParte] = dataStr.split(",");
+
+    const [dia, mes, ano] = dataParte.trim().split("/");
+
+    const data = new Date(
+      `${ano}-${mes}-${dia}T${horaParte?.trim() || "00:00:00"}`,
+    );
+
+    data.setDate(data.getDate() - 1);
+
+    const dataclear = data.toLocaleDateString("pt-BR").split(", ");
+
+    return dataclear[0];
+  };
+
   return (
-    <main className={Style.main} style={{ display: "grid", gap: "20px" }}>
+    <main className={Style.main} style={{ display: "grid" }}>
       <header
         className={Style.cards}
         style={{
           display: "flex",
           width: "100%",
-          justifyContent: "space-around",
+          justify: "space-around",
           textAlign: "center",
           alignItems: "center",
           fontSize: "11px",
         }}
       >
-        <aside>
-          <p style={{ color: "#4e4d4d", gap: "5px" }}>
+        <aside className={Style.legenda}>
+          <p style={{ color: "#5e5a5a", gap: "5px", fontWeight: "bold" }}>
             Legenda graficos territorios
           </p>
 
-          <span style={{ color: "#4e4d4d", gap: "15px" }}>
-            <BsCircleFill color="#E42B2D" /> CENTRAL
-          </span>
-          <span style={{ color: "#4e4d4d", gap: "15px" }}>
-            <BsCircleFill color="#E69138" />
-            OESTE
-          </span>
-          <span style={{ color: "#4e4d4d", gap: "15px" }}>
-            <BsCircleFill color="#F2C516" />
-            NOROESTE
-          </span>
-          <span style={{ color: "#4e4d4d", gap: "15px" }}>
-            <BsCircleFill color="#8A8381" />
-            SUDESTE
+          <div>
+            <span style={{ color: "#4e4d4d" }}>
+              <BsCircleFill color="#E42B2D" /> CENTRAL
+            </span>
+            <span style={{ color: "#4e4d4d" }}>
+              <BsCircleFill color="#E69138" /> OESTE
+            </span>
+            <span style={{ color: "#4e4d4d" }}>
+              <BsCircleFill color="#F2C516" /> NOROESTE
+            </span>
+            <span style={{ color: "#4e4d4d" }}>
+              <BsCircleFill color="#8A8381" /> SUDESTE
+            </span>
+          </div>
+          <span style={{ color: "#4e4d4d", gap: "5px" }}>
+            <BsClock />
+            Ultima atualização {ultimaAtualizacao}
           </span>
         </aside>
 
-        <aside
-          style={{
-            display: "flex",
-            justifyContent: "space_around",
-            flexDirection: "row",
-            gap: "20px",
-            marginBottom: "10px",
-            fontSize: "10px",
-          }}
-        >
+        <aside className={Style.legenda2}>
           <div>
-            <h2>MAPA DE OCUPAÇAO COTAS</h2>
-            <span style={{ color: "#4e4d4d", fontSize: "12px" }}>
+            <p style={{ color: "#5e5a5a", gap: "5px", fontWeight: "bold" }}>
+              Mapa de ocupação cotas
+            </p>
+            <span style={{ color: "#4e4d4d" }}>
               CLASSE 1 (Novos Domicílios)
             </span>
+            <span style={{ color: "#4e4d4d", gap: "5px" }}>
+              <BsClock />
+              Ultima janela do dia : {subtrairUmDia(ultimaAtualizacao)}
+            </span>
           </div>
-          <div>
+          <div className={Style.logoFinal}>
             <ClaroLogo size={50} logo={logo} />
           </div>
         </aside>
       </header>
+
       <section className={Style.asidePrint}>
         <aside>
           <div>
-            <h6>Alta Disponibilidade De Cotas (Saldo)</h6>
-
+            <h6>Alta Disponibilidade De Cotas (Alarme / Saldo)</h6>
             <ReactApexChart
               type="bar"
               height={250}
@@ -221,32 +417,31 @@ export default function DashboardAnalytics({
               series={[
                 {
                   name: "Cotas",
-                  data: rankingMelhores.map((c) => {
-                    // Procuramos dentro do objeto alarme qual dia tem cotas > 0
-                    const diaComDados = Object.values(c.alarme || {}).find(
-                      (a) => Number(a.cotas) > 0,
-                    );
-                    return diaComDados ? Number(diaComDados.cotas) : 0;
-                  }),
+                  data: rankingMelhores.map((c) => c.valorCotaBarra),
                 },
               ]}
               options={{
                 xaxis: {
-                  categories: rankingMelhores.map((c) => {
-                    // Exemplo: Se tiver '|', divide em duas linhas
-                    if (c.cidade.includes("|")) {
-                      return c.cidade.split("|").map((s) => s.trim());
-                    }
-                    // Se o nome for muito grande, divide por espaços
-                    return c.cidade;
-                  }),
+                  categories: rankingMelhores.map((c) =>
+                    (c.categoriasEixoX || []).map((nome) =>
+                      String(nome)
+                        .normalize("NFD")
+                        .replace(/[\u0300-\u036f]/g, "")
+                        .replace(/\bsao\b/gi, "S")
+                        .replace(/\bdo\b/gi, "D")
+                        .replace(/\bdos\b/gi, "D")
+                        .replace(/\brio\b/gi, "R")
+                        .replace(/\bjose\b/gi, "J"),
+                    ),
+                  ),
                   labels: {
-                    show: true,
                     rotate: -45,
+                    show: true,
+                    trim: true,
+                    hideOverlappingLabels: true,
                     rotateAlways: true,
-                    minHeight: 100, // Dá espaço para o texto rotacionado não sumir
                     style: {
-                      fontSize: "9px",
+                      fontSize: "8px",
                     },
                   },
                 },
@@ -255,19 +450,52 @@ export default function DashboardAnalytics({
                 ),
                 plotOptions: {
                   bar: {
-                    distributed: true, // Isso permite que cada barra tenha sua cor do array acima
+                    columnWidth: "45%", // ↓ diminui largura
+                    distributed: true,
+                    dataLabels: {
+                      position: "top",
+                    },
                   },
                 },
 
                 dataLabels: {
                   enabled: true,
-                  style: { fontSize: "10px", colors: ["#000"] },
+
+                  useHTML: true, // 🔥 obrigatório
+
+                  offsetY: -22,
+                  style: {
+                    fontSize: "9px",
+                    colors: rankingMelhores.map((c) => {
+                      if (c.delta > 0) return "#003b19";
+                      if (c.delta < 0) return "#3d0000";
+                      return "#000";
+                    }),
+                    fontWeight: "bold",
+                    background: "#ccc",
+                    borderWidth: "1px",
+                  },
+                  formatter: function (val, opts) {
+                    const i = opts.dataPointIndex;
+                    const item = rankingMelhores[i];
+                    const delta = item.delta;
+                    const dia = item.diaAtual || "";
+                    const seta = delta > 0 ? "" : delta < 0 ? "" : "";
+                    const sinal = delta > 0 ? "+" : "";
+
+                    if (delta === 0) {
+                      return `${dia} (${val})\n\n`;
+                    }
+
+                    return `${dia} (${val}) ${seta}${sinal}${delta}`;
+                  },
                 },
+
                 legend: { show: false },
               }}
             />
 
-            <h6>Baixa Disponibilidade De Cotas (Saldo)</h6>
+            <h6>Baixa Disponibilidade De Cotas (Alarme / Saldo)</h6>
             <ReactApexChart
               type="bar"
               height={250}
@@ -275,43 +503,82 @@ export default function DashboardAnalytics({
               series={[
                 {
                   name: "Cotas",
-                  data: rankingPiores.map((c) => {
-                    // Procuramos dentro do objeto alarme qual dia tem cotas > 0
-                    const diaComDados = Object.values(c.alarme || {}).find(
-                      (a) => Number(a.cotas) > 0,
-                    );
-                    return diaComDados ? Number(diaComDados.cotas) : 0;
-                  }),
+                  data: rankingPiores.map((c) => c.valorCotaBarra),
                 },
               ]}
               options={{
                 xaxis: {
-                  categories: rankingPiores.map((c) => {
-                    // Exemplo: Se tiver '|', divide em duas linhas
-                    if (c.cidade.includes("|")) {
-                      return c.cidade.split("|").map((s) => s.trim());
-                    }
-                    // Se o nome for muito grande, divide por espaços
-                    return c.cidade;
-                  }),
+                  categories: rankingPiores.map((c) =>
+                    (c.categoriasEixoX || []).map((nome) =>
+                      String(nome)
+                        .normalize("NFD")
+                        .replace(/[\u0300-\u036f]/g, "")
+                        .replace(/\bsao\b/gi, "S")
+                        .replace(/\bdo\b/gi, "D")
+                        .replace(/\bdos\b/gi, "D")
+                        .replace(/\brio\b/gi, "R")
+                        .replace(/\bjose\b/gi, "J"),
+                    ),
+                  ),
                   labels: {
+                  rotate: -45,
                     show: true,
-                    rotate: -45,
+                    trim: true,
+                    hideOverlappingLabels: true,
                     rotateAlways: true,
-                    minHeight: 100, // Dá espaço para o texto rotacionado não sumir
                     style: {
-                      fontSize: "9px",
+                      fontSize: "8px",
                     },
                   },
                 },
-                colors: rankingMelhores.map(
+                colors: rankingPiores.map(
                   (c) => MAPA_CORES_TERRITORIO[c.territorio],
                 ),
-                plotOptions: { bar: { distributed: true } },
+                plotOptions: {
+                  bar: {
+                    columnWidth: "45%", // ↓ diminui largura
+                    distributed: true,
+                    dataLabels: {
+                      position: "top",
+                    },
+                  },
+                },
+
                 dataLabels: {
                   enabled: true,
-                  style: { fontSize: "10px", colors: ["#000"] },
+                  useHTML: true,
+                  offsetY: -22,
+                  style: {
+                    fontSize: "9px",
+                    colors: rankingPiores.map((c) => {
+                      if (c.delta > 0) return "#003b19";
+                      if (c.delta < 0) return "#3d0000";
+                      return "#000";
+                    }),
+                    fontWeight: "bold",
+                    background: rankingPiores.map((c) => {
+                      if (c.delta > 0) return "#003b19";
+                      if (c.delta < 0) return "#3d0000";
+                      return "#000";
+                    }),
+                    borderWidth: "1px",
+                  },
+                  formatter: function (val, opts) {
+                    const i = opts.dataPointIndex;
+                    const item = rankingPiores[i];
+                    const delta = item.delta;
+                    const dia = item.diaAtual || "";
+                    const seta = delta > 0 ? "" : delta < 0 ? "" : "";
+                    const sinal = delta > 0 ? "+" : "";
+
+                    if (delta === 0) {
+                      return `${dia} (${val})\n\n`;
+                    }
+
+                    return `${dia} (${val}) ${seta}${sinal}${delta}`;
+                  },
                 },
+
                 legend: { show: false },
               }}
             />
@@ -319,47 +586,93 @@ export default function DashboardAnalytics({
         </aside>
 
         <aside className={Style.graficopizza}>
+          <h6>% Ocupação por Território (D0 vs D1)</h6>
+          <section className={Style.territorioDisplay}>
+            {resumoTerriotrios.map((item) => {
+              const taxaD0 = item.agendamentos
+                ? (item.cotas / item.agendamentos) * 100
+                : 0;
+
+              const taxaD1 = item.agendamentos_dia1
+                ? (item.cotas_dia1 / item.agendamentos_dia1) * 100
+                : 0;
+
+              const delta = taxaD1 - taxaD0;
+
+              const corStatus =
+                delta > 0 ? "#00C853" : delta < 0 ? "#D50000" : "#999";
+
+              return (
+                <aside
+                  key={item.territorio}
+                  style={{
+                    borderTop: `5px solid ${
+                      MAPA_CORES_TERRITORIO[item.territorio] || "#ccc"
+                    }`,
+                  }}
+                >
+                  {/* HEADER */}
+                  <div>
+                    <h5>{item.territorio}</h5>
+
+                    <span style={{ color: corStatus }}>
+                      {delta > 0
+                        ? `↑ +${delta.toFixed(1)}%`
+                        : delta < 0
+                          ? `↓ ${delta.toFixed(1)}%`
+                          : "-"}
+                    </span>
+                  </div>
+
+                  {/* COTAS */}
+                  <div>
+                    <span>📦 Cotas</span>
+                    <span>{item.cotas}</span>
+                    <span>→</span>
+                    <span>{item.cotas_dia1}</span>
+                  </div>
+
+                  {/* AGENDAMENTO */}
+                  <div>
+                    <span>📅 Agend</span>
+                    <span>{item.agendamentos}</span>
+                    <span>→</span>
+                    <span>{item.agendamentos_dia1}</span>
+                  </div>
+                </aside>
+              );
+            })}
+          </section>
           <div>
-            <h6>% Ocupação por Território (D0 vs D1)</h6>
             <ReactApexChart
               type="bar"
-              height={250}
+              height={200}
               width={600}
               series={graficoOcupacao.series}
               options={{
                 xaxis: { categories: graficoOcupacao.categorias },
-
                 fill: {
                   type: "solid",
-                  opacity: [1, 0.5], // D0 opacidade total, D1 fica 50% mais claro automaticamente
+                  opacity: [1, 1],
                 },
-                colors: [
-                  ({ value, seriesIndex, dataPointIndex, w }) => {
-                    const territorio =
-                      w.config.xaxis.categories[dataPointIndex];
-                    return MAPA_CORES_TERRITORIO[territorio] || "#ccc";
-                  },
-                ],
+                colors: ["#E42B2D", "#960002"],
                 plotOptions: {
                   bar: {
                     horizontal: false,
                     columnWidth: "55%",
-                    distributed: false, // Voltamos para false para agrupar D0 e D1
+                    distributed: false,
                   },
                 },
                 dataLabels: {
                   enabled: true,
                   formatter: (val) => val?.toFixed(1) + "%",
-                  style: { fontSize: "9px", colors: ["#333"] },
-                  offsetY: -20,
+                  style: { fontSize: "9px", colors: ["#ffffff"] },
+                  offsetY: -15,
                 },
                 yaxis: { labels: { formatter: (val) => val + "%" } },
                 legend: {
                   show: true,
                   position: "top",
-                  // Forçamos a legenda a mostrar D0 e D1 com cores neutras ou fixas
-                  // para não confundir, já que as barras mudam por território
-                  markers: { fillColors: ["#555", "#AAA"] },
                 },
                 tooltip: {
                   shared: true,
@@ -369,34 +682,23 @@ export default function DashboardAnalytics({
             />
           </div>
           <div>
-            <h6>% Ocupação por CIDADES (D0 vs D1)</h6>
+            <h6>% Ocupação por CIDADES (D0 vs D1) Top Cidade por DDD </h6>
             <ReactApexChart
               type="bar"
               height={250}
               width={600}
               series={graficoOcupacaoCidades.series}
               options={{
-                // Função que busca a cor do território para cada cidade no eixo X
-                colors: [
-                  ({ dataPointIndex, w }) => {
-                    const nomeCidade =
-                      graficoOcupacaoCidades.categorias[dataPointIndex];
-                    // Procura nos seus dados originais qual o território dessa cidade
-                    const item = dados.find((d) => d.cidade === nomeCidade);
-                    return MAPA_CORES_TERRITORIO[item?.territorio] || "#ccc";
-                  },
-                ],
+                colors: ["#E42B2D", "#960002"],
                 fill: {
                   type: "solid",
-                  opacity: [1, 0.5], // D0 forte, D1 claro
+                  opacity: [1, 1],
                 },
-
                 xaxis: {
-                  // Correção: 'c' já é a string da cidade aqui
                   categories: graficoOcupacaoCidades.categorias.map((c) => {
                     return c.includes("|")
                       ? c.split("|").map((s) => s.trim())
-                      : c;
+                      : c.trim();
                   }),
                   labels: {
                     rotate: -45,
@@ -404,18 +706,19 @@ export default function DashboardAnalytics({
                     multiline: true,
                   },
                 },
-
                 plotOptions: {
                   bar: {
                     horizontal: false,
-                    columnWidth: "70%",
-                    distributed: false, // Mantenha false para ver D0 e D1 lado a lado por cidade
+                    columnWidth: "85%",
+                    distributed: false,
                   },
                 },
+
                 dataLabels: {
                   enabled: true,
                   formatter: (val) => val?.toFixed(1) + "%",
-                  style: { fontSize: "8px", colors: ["#000"] },
+                  style: { fontSize: "8px", colors: ["#ffffff"] },
+                  offsetY: 5,
                 },
                 yaxis: { labels: { formatter: (val) => val + "%" } },
                 legend: { show: true, position: "top" },
@@ -425,7 +728,7 @@ export default function DashboardAnalytics({
         </aside>
       </section>
 
-      <section className={Style.elet}>
+      <section className={Style.backlog}>
         <div>
           <h3>Distribuição de backlog por Território</h3>
           <ReactApexChart
@@ -459,7 +762,13 @@ export default function DashboardAnalytics({
             width={1200}
             series={[{ data: topCidades.map((c) => c.qtd) }]}
             options={{
-              xaxis: { categories: topCidades.map((c) => c.cidade) },
+              xaxis: {
+                categories: topCidades.map((c) => {
+                  return c.cidade && c.cidade.includes("|")
+                    ? c.cidade.split("|").map((item) => item.trim())
+                    : c.cidade;
+                }),
+              },
               colors: rankingMelhores.map(
                 (c) => MAPA_CORES_TERRITORIO[c.territorio],
               ),

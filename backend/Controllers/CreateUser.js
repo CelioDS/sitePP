@@ -24,6 +24,7 @@ export const getDBLoginID = async (req, res) => {
   try {
     const query = "SELECT * FROM usuariosAgen WHERE id = ?";
     const [rows] = await dataBase.query(query, [req.params.id]);
+    
     return res.status(200).json(rows);
   } catch (err) {
     console.error("Erro getDBLoginID:", err);
@@ -159,7 +160,7 @@ export const deleteDBLogin = async (req, res) => {
     return res.status(500).json({ error: "Erro ao deletar usuário." });
   }
 };
-``;
+
 
 export const patchDBLogin = async (req, res) => {
   try {

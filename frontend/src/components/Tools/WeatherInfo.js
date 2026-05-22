@@ -4,7 +4,7 @@ import { fetchWeatherApi } from "openmeteo";
 export default function WeatherInfo({ cidade }) {
   const [clima, setClima] = useState(null);
 
-  const CACHE_TIME = 10 * 60 * 1000; // 10 minutos
+  const CACHE_TIME = 10 * 60 * 6000; // 10 minutos
 
   function weatherCodeToText(code) {
     const map = {

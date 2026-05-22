@@ -191,6 +191,16 @@ export default function NavBar({ setPermission, permission }) {
             </>
           )}
 
+          <li>
+            <Link
+              onClick={() => openMenu("HUB")}
+              style={linkAtivo === "HUB" ? { color: colorLink } : {}}
+              to="/HUB"
+            >
+              HUB
+            </Link>
+          </li>
+
           <li className={styleExt.submenu}>
             {/* O link principal que sempre fica visível */}
             <Link
@@ -226,10 +236,17 @@ export default function NavBar({ setPermission, permission }) {
               >
                 Cotas
               </Link>
+              <Link
+                style={linkAtivo === "pdu" ? { color: colorLink } : {}}
+                to={`/pdu`}
+                onClick={() => openMenu("pdu")}
+              >
+                PDU
+              </Link>
             </div>
           </li>
 
-          {   canal !== "regional" &&  permission && (
+          {canal !== "regional" && permission && (
             <li>
               <Link
                 className={styleExt.perfil}

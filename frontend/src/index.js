@@ -13,7 +13,8 @@ import Cotas from "./components/Layout/Cotas";
 import Carteira from "./components/Routers/Carteira";
 import Relatorio from "./components/Routers/Relatorio";
 import Visualizar from "./components/Routers/Visualizar";
-
+import Pdu from './components/Routers/Pdu'
+import HUB from './components/Routers/HUB'
 const router = createBrowserRouter([
   {
     path: "/",
@@ -45,12 +46,20 @@ const router = createBrowserRouter([
         element: <Perfil />,
       },
       {
+        path: "/HUB",
+        element: <HUB />,
+      },
+      {
         path: "/Cotas",
         element: <Cotas />,
       },
       {
         path: "/TodoList/:login",
         element: <TodoList />,
+      },
+       {
+        path: "/pdu",
+        element: <Pdu />,
       },
     ],
   },

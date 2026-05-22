@@ -8,10 +8,6 @@
 
 .main .asidePrint {
   display: flex;
-}
-
-.main .asidePrint {
-  display: flex;
   background-color: #ffffff;
 }
 .main .asidePrint aside {
@@ -22,15 +18,51 @@
   display: flex;
   flex-direction: column;
 }
+.main .asidePrint .graficopizza .territorioDisplay {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  justify-content: center;
+  flex-direction: row;
+  gap: 10px;
+}
 
-.main .elet {
+.main .asidePrint .graficopizza .territorioDisplay aside {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  flex-direction: column;
+  margin: 0 !important;
+  padding: 5px;
+}
+
+.main .asidePrint .graficopizza .territorioDisplay > aside > div {
+  display: flex;
+  align-items: center;
+  justify-content: center; /* ✅ centraliza */
+  gap: 6px; /* ✅ espaço controlado */
+  width: 100%; /* ✅ importante */
+}
+.main .asidePrint .graficopizza .territorioDisplay aside > div > span {
+  font-size: 12px !important;
+  
+}
+.main .asidePrint .graficopizza .territorioDisplay > aside > div > span {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  font-size: 14px;
+  color: #3f3e3e;
+}
+
+.main .backlog {
   display: flex;
   flex-direction: column;
   width: 100%;
   height: 100%;
 }
 
-.main .elet > div {
+.main .backlog > div {
   display: flex;
   flex-direction: column;
   width: 100%;
@@ -91,11 +123,30 @@
   align-self: center;
 }
 
-.main .cards > .legenda > div > span {
+.main .cards > .legenda >  span {
   display: flex;
   flex-direction: row;
   gap: 5px;
   text-align: center;
   justify-content: center;
-  align-self: start;
+  align-self: center;
+}
+.main .cards > .legenda2 > div > span {
+  display: flex;
+  flex-direction: row;
+  gap: 5px;
+  text-align: center;
+  justify-content: center;
+  align-self: center;
+}
+
+
+@media (max-width: 768px) {
+  .main  {
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+  height: 100%;
+}
+  
 }

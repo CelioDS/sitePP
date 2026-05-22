@@ -37,6 +37,7 @@ cron.schedule(
   async () => {
     console.log("[CRON] Importando cotas COP");
     await importarCotasCop();
+    
     await importarCotasCopNeon();
   },
   {

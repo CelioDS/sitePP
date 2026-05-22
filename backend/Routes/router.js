@@ -5,6 +5,7 @@ import {
   getCotasCop,
   porcentagem_ocupacao,
   porcentagem_ocupacao_cidades,
+  importarCotasPeriodo,
 } from "../Controllers/Cotas.js";
 
 import {
@@ -66,6 +67,12 @@ import {
   setExcelExclusivos,
 } from "../Controllers/ExcelUpload.js";
 
+import {
+  getSuporteComercial,
+  getSuporteComercialID,
+  setSuporteComercial,
+} from "../Controllers/HUB/ControllersHub.js";
+
 const router = express.Router();
 
 /*------------------ COTAS ------------------*/
@@ -73,6 +80,7 @@ router.get("/importar-cotas-cop", importarCotasCop);
 router.get("/cotas-cop", getCotasCop);
 router.get("/porcentagem_ocupacao", porcentagem_ocupacao);
 router.get("/porcentagem_ocupacao_cidades", porcentagem_ocupacao_cidades);
+router.get("/importarCotasPeriodo", importarCotasPeriodo);
 
 /*------------------ ROTAS RAIZ------------------*/
 
@@ -84,6 +92,14 @@ router.get("/lojapropria", getLP);
 router.get("/portaaporta", getPAP);
 router.get("/agenteautorizado", getAA);
 router.get("/exclusivos", getExclusivos);
+
+/*------------------ SUPORTE COMERCIAL ------------------*/
+
+router.get("/suportecomercial", getSuporteComercial);
+router.get("/suportecomercial/:id", getSuporteComercialID);
+router.post("/suportecomercial/add", setSuporteComercial);
+//router.patch("/suportecomercial/:id", patchSuporteComercial);
+//router.delete("/suportecomercial/:id", deleteSuporteComercial);
 
 /*------------------ ROTAS RAIZ ANALLITICAS ------------------*/
 

@@ -6,14 +6,14 @@ import React, {
   useMemo,
 } from "react";
 import axios from "axios";
+import { useRef } from "react";
 import Style from "./Cotas.module.css";
+import logo from "../IMG/claroLogo.webp";
+import Loading from "../Item-Layout/Loading";
+import DashboardAnalytics from "./DashCotas";
+import ClaroLogo from "../Item-Layout/ClaroLogo";
 import MiniSparkline from "../Tools/MiniSparkline";
 import { BsCircleFill, BsEyeFill, BsEyeSlashFill } from "react-icons/bs";
-import ClaroLogo from "../Item-Layout/ClaroLogo";
-import logo from "../IMG/claroLogo.webp";
-import { useRef } from "react";
-import DashboardAnalytics from "./DashCotas";
-import Loading from "../Item-Layout/Loading";
 
 // Lazy Load do Clima para performance
 const WeatherInfo = React.lazy(() => import("../Tools/WeatherInfo"));
@@ -30,14 +30,16 @@ export default function PainelBucketsPivot() {
   const [search, setSearch] = useState("");
   const [filtros, setFiltros] = useState(1);
   const [loading, setLoading] = useState(true);
+  const [dadosPrint, setDadosPrint] = useState([]);
   const [dddFiltro, setdddFiltro] = useState("TODOS");
   const [handleCotas, setHandleCotas] = useState(false);
   const [cidadeFiltro, setCidadeFiltro] = useState("TODAS");
   const [alarmeFiltro, setAlarmeFiltro] = useState("TODOS");
   const [clusterFiltro, setClusterFiltro] = useState("TODOS");
   const [segmentoFiltro, setSegmentoFiltro] = useState("TODOS");
+  const [dadosPrintCidades, setDadosPrintCidades] = useState([]);
   const [territorioFiltro, setTerritorioFiltro] = useState("TODAS");
-
+  const [todasCidades, setTodasCidades] = useState("TODAS");
 
   const Url = process.env.REACT_APP_API_URL || "http://localhost:8000";
 
@@ -128,13 +130,13 @@ export default function PainelBucketsPivot() {
       if (!forcarAtualizacao && cache) {
         try {
           // Adicionado dataPrintCidades na desestruturação
-          const { timestamp, data } =
+          const { timestamp, data, dataPrint, dataPrintCidades } =
             JSON.parse(cache);
 
           if (Date.now() - timestamp < CACHE_TIME) {
             organizarDados(data);
-            //setDadosPrint(dataPrint || []);
-            //setDadosPrintCidades(dataPrintCidades || []); // Agora a variável existe
+            setDadosPrint(dataPrint || []);
+            setDadosPrintCidades(dataPrintCidades || []); // Agora a variável existe
             setLoading(false);
             return;
           }
@@ -144,26 +146,46 @@ export default function PainelBucketsPivot() {
       }
 
       try {
-        const [resCotas] = await Promise.all([
+        const ORDEM_TERRITORIO = ["CENTRAL", "OESTE", "SUDESTE", "NOROESTE"];
+
+        const [resCotas, resOcupacao, resOcupacaoCidades] = await Promise.all([
           axios.get(`${Url}/neon/cotas-cop`),
-         
+          axios.get(`${Url}/porcentagem_ocupacao`),
+          axios.get(`${Url}/porcentagem_ocupacao_cidades`),
         ]);
 
         const lista = Object.values(resCotas.data || {});
-     
+        const listaOcupacao = resOcupacao.data || [];
+        const listaOcupacaoCidades = resOcupacaoCidades.data || [];
+
+        // ✅ Ordena por TERRITÓRIO
+        const listaOcupacaoOrdenada = [...listaOcupacao].sort(
+          (a, b) =>
+            ORDEM_TERRITORIO.indexOf(a.territorio) -
+            ORDEM_TERRITORIO.indexOf(b.territorio),
+        );
+
+        const listaOcupacaoCidadesOrdenada = [...listaOcupacaoCidades].sort(
+          (a, b) =>
+            ORDEM_TERRITORIO.indexOf(a.territorio) -
+            ORDEM_TERRITORIO.indexOf(b.territorio),
+        );
 
         localStorage.setItem(
           CACHE_KEY,
           JSON.stringify({
             timestamp: Date.now(),
             data: lista,
-       
+            dataPrint: listaOcupacaoOrdenada,
+            dataPrintCidades: listaOcupacaoCidadesOrdenada,
           }),
         );
 
         organizarDados(lista);
-  
+        setDadosPrint(listaOcupacaoOrdenada);
+        setDadosPrintCidades(listaOcupacaoCidadesOrdenada);
       } catch (e) {
+
         console.error("Erro ao carregar dados do Axios:", e.message);
       } finally {
         setLoading(false);
@@ -185,24 +207,55 @@ export default function PainelBucketsPivot() {
     }
 
     const alarme = {
-      D1: { label: "24H", qtd: 0, taxa: 0, cotas: 0 },
-      D2: { label: "24H", qtd: 0, taxa: 0, cotas: 0 },
-      D3: { label: "48H", qtd: 0, taxa: 0, cotas: 0 },
-      D4: { label: "72H", qtd: 0, taxa: 0, cotas: 0 },
-      D5: { label: "96H", qtd: 0, taxa: 0, cotas: 0 },
-      D6: { label: ">96H", qtd: 0, taxa: 0, cotas: 0 },
+      "24H": { label: "24H", qtd: 0, taxa: 0, cotas: 0 },
+      "48H": { label: "48H", qtd: 0, taxa: 0, cotas: 0 },
+      "72H": { label: "72H", qtd: 0, taxa: 0, cotas: 0 },
+      "96H": { label: "96H", qtd: 0, taxa: 0, cotas: 0 },
+      ">96H": { label: ">96H", qtd: 0, taxa: 0, cotas: 0 },
+    };
+
+    const mapaLabel = {
+      D1: "24H",
+      D2: "24H",
+      D3: "48H",
+      D4: "72H",
+      D5: "96H",
+      D6: ">96H",
     };
 
     let status = ">96H";
 
     for (const dia of listaDiasOrdenados) {
-      if (diasData[dia]?.saldo > 1 && alarme[dia]) {
-        alarme[dia].qtd += 1;
-        alarme[dia].taxa = diasData[dia].taxa_ocupacao;
-        alarme[dia].cotas = diasData[dia].saldo;
+      const dataDia = diasData[dia];
+      const dataDia1 = diasData["D1"];
+      const dataDia2 = diasData["D2"];
+      const label = mapaLabel[dia];
 
-        status = alarme[dia].label;
-        break;
+      if (dataDia && label) {
+        const saldo = Number(dataDia.saldo || 0);
+        //const taxa = Number(dataDia.taxa_ocupacao || 0);
+
+        if (saldo > 0) {
+          // ✅ SOMA CORRETA
+          alarme[label].qtd += 1;
+          alarme[label].cotas += saldo;
+
+          // mantém última taxa (ou pode fazer média depois)
+          if (alarme[label] === "24H") {
+            alarme[label].taxa =
+              ((Number(dataDia1.cota_disp_est) +
+                Number(dataDia2.cota_disp_est)) /
+                (Number(dataDia1.cota_agenda) + Number(dataDia2.cota_agenda))) *
+              100;
+          } else {
+            alarme[label].taxa = Number(dataDia.taxa_ocupacao || 0);
+          }
+
+          // define status pelo primeiro válido
+          if (status === ">96H") {
+            status = label;
+          }
+        }
       }
     }
 
@@ -265,17 +318,19 @@ export default function PainelBucketsPivot() {
     return total;
   }, [dadosFiltrados, dias]);
 
-  const pesoAlarme = {
-    "24H": 1,
-    "48H": 2,
-    "72H": 3,
-    "96H": 4,
-    ">96H": 5,
-  };
-
   const rankingCidades = useMemo(() => {
-    // ordenador por ocupacao
-    // remover cidades com escala intercalada
+    const pesoAlarme = {
+      "24H": 1,
+      "48H": 2,
+      "72H": 3,
+      "96H": 4,
+      ">96H": 5,
+    };
+
+    const getTotalCotas = (alarme, status) => {
+      return Number(alarme?.[status]?.cotas || 0);
+    };
+
     const lista = dadosFiltrados
       .filter((item) => item.escala_tecnica === "DIÁRIO")
       .map((item) => {
@@ -285,26 +340,32 @@ export default function PainelBucketsPivot() {
           ...item,
           status,
           alarme,
-          peso: pesoAlarme[status] ?? 999,
+          totalCotas: getTotalCotas(alarme, status), // ✅ DINÂMICO
+          peso: pesoAlarme[status] ?? 999, // ✅ PRIORIDADE
         };
       });
 
-    // Ordena do melhor para pior
-    const ordenado = [...lista].sort((a, b) => {
-      // 1. Primeiro pelo peso
-      if (a.peso !== b.peso) return a.peso - b.peso;
+    const ordenadoBase = [...lista].sort((a, b) => {
+      // ✅ 1. PRIORIDADE (mantém ordem correta)
+      if (a.peso !== b.peso) {
+        return a.peso - b.peso;
+      }
 
-      // 2. Critério de desempate → cotas menor é melhor
-      // para melhores
+      // ✅ 2. VOLUME DENTRO DO MESMO GRUPO
+      if (a.totalCotas !== b.totalCotas) {
+        return b.totalCotas - a.totalCotas;
+      }
 
-      // 2. Critério de desempate → backlog menor é melhor
-      return a.qtd - b.qtd;
+      // ✅ 3. BACKLOG (opcional, só pra estabilidade)
+      return 0;
     });
+
+
     return {
-      melhores: ordenado.slice(0, 10),
-      piores: ordenado.slice(-10).reverse(),
+      melhores: ordenadoBase.slice(0, 10),
+      piores: ordenadoBase.slice(-10).reverse(),
+      total : ordenadoBase
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dadosFiltrados, dias]);
 
   const cidadesFiltradas = React.useMemo(() => {
@@ -563,8 +624,8 @@ export default function PainelBucketsPivot() {
     <main className={Style.main} ref={tableRef}>
       <section className={Style.sectionHeader}>
         <button
-         onClick={() => {
-            setHandleCotas(false);
+          onClick={() => {
+            setHandleCotas((prev) => !prev);
             handleResetFilters();
           }}
         >
@@ -582,7 +643,9 @@ export default function PainelBucketsPivot() {
           dados={dadosFiltrados}
           dias={dias}
           rankingCidades={rankingCidades}
-      
+          dadosPrint={dadosPrint}
+          dadosPrintCidades={dadosPrintCidades}
+          ultimaAtualizacao={ultimaAtualizacao}
         />
       ) : (
         <>
@@ -617,7 +680,7 @@ export default function PainelBucketsPivot() {
                 />
               </div>
               <div>
-                <label>Territorio </label>
+                <label>Territorio {territoriosFiltrados.length} </label>
                 <select
                   value={territorioFiltro}
                   onChange={(e) => setTerritorioFiltro(e.target.value)}
@@ -631,7 +694,7 @@ export default function PainelBucketsPivot() {
                 </select>
               </div>
               <div>
-                <label>Mercado </label>
+                <label>Mercado {segmentosFiltrados.length}</label>
                 <select
                   value={segmentoFiltro}
                   onChange={(e) => setSegmentoFiltro(e.target.value)}
@@ -645,7 +708,7 @@ export default function PainelBucketsPivot() {
                 </select>
               </div>
               <div>
-                <label>DDD </label>
+                <label>DDD {dddFiltrados.length} </label>
                 <select
                   value={dddFiltro}
                   onChange={(e) => setdddFiltro(e.target.value)}
@@ -659,7 +722,7 @@ export default function PainelBucketsPivot() {
                 </select>
               </div>
               <div>
-                <label>Cluster </label>
+                <label>Cluster {clusterFiltrados.length} </label>
                 <select
                   value={clusterFiltro}
                   onChange={(e) => setClusterFiltro(e.target.value)}

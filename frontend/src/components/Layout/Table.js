@@ -1,24 +1,24 @@
-import Style from "./Table.module.css";
-import LoadingSvg from "../Item-Layout/Loading";
 import axios from "axios";
-import { toast } from "react-toastify";
-import { useState, useMemo, useEffect, useRef } from "react";
-import { format } from "date-fns";
-import { fromZonedTime } from "date-fns-tz";
 import * as XLSX from "xlsx";
+import { format } from "date-fns";
 import { saveAs } from "file-saver";
-import FiltrosSelecao from "./../Tools/FiltrosSelecao";
+import { toast } from "react-toastify";
+import Style from "./Table.module.css";
 import { FiDownload } from "react-icons/fi";
+import { fromZonedTime } from "date-fns-tz";
 import Loading from "../Item-Layout/Loading";
+import LoadingSvg from "../Item-Layout/Loading";
+import FiltrosSelecao from "./../Tools/FiltrosSelecao";
+import { useState, useMemo, useEffect, useRef } from "react";
 
 export default function Table({ canal, login, admin, Url }) {
-  const [search, setSearch] = useState("");
-  const [start, setStart] = useState("");
-  const [end, setEnd] = useState("");
-  const [latest, setLatest] = useState(true);
   const lastReqId = useRef(0);
-  const [isLoading, setIsLoading] = useState(false);
+  const [end, setEnd] = useState("");
+  const [start, setStart] = useState("");
+  const [search, setSearch] = useState("");
+  const [latest, setLatest] = useState(true);
   const [dataBase, setDatabase] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
   const [changeCarteira, setChangeCarteira] = useState(false);
 
   const apiCache = useRef(new Map()); // Cache para armazenar os dados por rota

@@ -1,6 +1,9 @@
 import axios from "axios";
 import * as cheerio from "cheerio";
 import { dataBase } from "../DataBase/dataBase.js";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 const MAPA_TABELAS = {
   Cotas: "Cotas",
@@ -51,14 +54,11 @@ export const importarCotasCop = async (req = {}, res = null) => {
     // ===============================
     // 1️⃣ BUSCA PAINEL COP
     // ===============================
-    const response = await axios.get(
-      "http://10.35.0.39/painelocupacaocop/inicio",
-      {
-        headers: {
-          Cookie: "JSESSIONID=xxxx",
-        },
+    const response = await axios.get(`${process.env.BACKEND_URL_COP}/inicio`, {
+      headers: {
+        Cookie: "JSESSIONID=xxxx",
       },
-    );
+    });
 
     const payload = JSON.parse(response.data);
 
@@ -273,6 +273,116 @@ SET
   }
 };
 
+export const importarCotasPeriodo = async (req = {}, res = null) => {
+  try {
+    const buckets = [
+      "ADT_Todas_Areas_Desc_Inst_Manut_Mdu",
+    ]
+
+    const payload = {
+      buckets,
+      consulta: "online",
+      classes: ["CLASSE1"],
+    };
+
+    const { data } = await axios.post("http://10.35.0.39/buckets", payload, {
+      headers: { "Content-Type": "application/json" },
+      timeout: 50000,
+    });
+
+    const dados = typeof data === "string" ? JSON.parse(data) : data;
+    const items = dados?.items || [];
+    console.log(dados.data);
+    const resultado = [];
+
+    const hoje = new Date();
+    hoje.setHours(0, 0, 0, 0);
+
+    for (const item of items) {
+      for (const bucket of item?.buckets || []) {
+        const cidade = bucket.label;
+
+        for (const category of bucket?.categories || []) {
+          if (category.label !== "CLASSE1") continue;
+
+          for (const dateObj of category?.date || []) {
+            const dataItem = new Date(dateObj.label);
+            dataItem.setHours(0, 0, 0, 0);
+
+            // diferença em dias (D1 = hoje)
+            const diff = (dataItem.getTime() - hoje.getTime()) / 86400000;
+
+            if (diff < 0 || diff > 16) continue;
+
+            const dia = `D${Math.floor(diff) + 1}`;
+
+            for (const timeSlot of dateObj?.timeSlot || []) {
+              resultado.push([
+                dateObj.label, // data_ref
+                dia,
+                dateObj.label, // data_dia
+                cidade,
+                timeSlot.label,
+                timeSlot.bookedActivities || 0,
+              ]);
+            }
+          }
+        }
+      }
+    }
+
+    // ✅ ordena corretamente D1, D2...
+    resultado.sort((a, b) => {
+      return Number(a[1].slice(1)) - Number(b[1].slice(1));
+    });
+
+    console.log("TOTAL:", resultado.length);
+
+    if (!resultado.length) {
+      return res?.json({ message: "⚠️ Nenhum dado encontrado" });
+    }
+
+    // ✅ INSERT EM LOTE (performance MUITO melhor)
+    const CHUNK_SIZE = 2000;
+
+    for (let i = 0; i < resultado.length; i += CHUNK_SIZE) {
+      const chunk = resultado.slice(i, i + CHUNK_SIZE);
+
+      const values = chunk.map(() => "(?, ?, ?, ?, ?, ?)").join(",");
+
+      await dataBase.query(
+        `
+        INSERT INTO periodo (
+          data_ref,
+          dia,
+          data_dia,
+          cidade,
+          periodo,
+          cotas_periodo
+        )
+        VALUES ${values}
+        ON DUPLICATE KEY UPDATE
+          cotas_periodo = VALUES(cotas_periodo),
+          dia = VALUES(dia)
+        `,
+        chunk.flat(),
+      );
+    }
+
+    return res?.json({
+      message: "✅ Importação concluída",
+      total: resultado.length,
+    });
+  } catch (error) {
+    console.error("❌ Erro:", error);
+
+    return res?.status(500).json({
+      erro: "Erro na importação",
+      detalhe: error.message,
+    });
+  }
+};
+
 export const getCotasCop = async (req, res) => {
   try {
     let {
@@ -384,8 +494,10 @@ export const getCotasCop = async (req, res) => {
 export const porcentagem_ocupacao = async (req, res) => {
   try {
     const query = `
-    SELECT
+ SELECT
     territorio, 
+    sum(saldo) as cotas,
+    sum(qtd_os) as agendamentos,
     CASE 
         WHEN dia = 'D1' THEN 'D0' 
         WHEN dia = 'D2' THEN 'D1' 
@@ -393,11 +505,26 @@ export const porcentagem_ocupacao = async (req, res) => {
     END AS dia,
     NULLIF(SUM(cota_disp_est)/ SUM(cota_agenda) , 0) * 100 AS taxa_perc
 FROM cop_ocupacao
-WHERE data_ref = (
-    SELECT MAX(data_ref)
-    FROM cop_ocupacao
-    WHERE DATE(STR_TO_DATE(data_ref, '%d/%m/%Y, %H:%i:%s')) 
-          = DATE_SUB(CURDATE(), INTERVAL 1 DAY)
+WHERE STR_TO_DATE(data_ref, '%d/%m/%Y, %H:%i:%s') = (
+
+    -- ✅ pega o MAX do dia anterior ao último dia disponível
+    SELECT MAX(dt)
+    FROM (
+        SELECT STR_TO_DATE(data_ref, '%d/%m/%Y, %H:%i:%s') AS dt
+        FROM cop_ocupacao
+    ) t
+    WHERE DATE(dt) = (
+
+        -- ✅ pega o último dia do banco - 1
+        SELECT DATE(
+            DATE_SUB(
+                MAX(STR_TO_DATE(data_ref, '%d/%m/%Y, %H:%i:%s')),
+                INTERVAL 1 DAY
+            )
+        )
+        FROM cop_ocupacao
+
+    )
 )
 AND dia IN ('D1', 'D2')
 GROUP BY territorio, dia
@@ -418,25 +545,46 @@ ORDER BY territorio DESC, dia DESC;
 export const porcentagem_ocupacao_cidades = async (req, res) => {
   try {
     const query = `
-     SELECT
+    SELECT
     cidade,
-     territorio, 
-    CASE 
-        WHEN dia = 'D1' THEN 'D0' 
-        WHEN dia = 'D2' THEN 'D1' 
-        ELSE dia 
+    territorio,
+    ddd,
+    sum(saldo) as cotas,
+    sum(qtd_os) as agendamentos,
+    CASE
+        WHEN dia = 'D1' THEN 'D0'
+        WHEN dia = 'D2' THEN 'D1'
+        ELSE dia
     END AS dia,
-    NULLIF(SUM(cota_disp_est)/ SUM(cota_agenda) , 0) * 100 AS taxa_perc
+    (SUM(cota_disp_est) / NULLIF(SUM(cota_agenda), 0)) * 100 AS taxa_perc
+
 FROM cop_ocupacao
-WHERE data_ref = (
-    SELECT MAX(data_ref)
-    FROM cop_ocupacao
-    WHERE DATE(STR_TO_DATE(data_ref, '%d/%m/%Y, %H:%i:%s')) 
-          = DATE_SUB(CURDATE(), INTERVAL 1 DAY)
+
+WHERE STR_TO_DATE(data_ref, '%d/%m/%Y, %H:%i:%s') = (
+
+    -- ✅ pega o MAX do dia anterior ao último dia disponível
+    SELECT MAX(dt)
+    FROM (
+        SELECT STR_TO_DATE(data_ref, '%d/%m/%Y, %H:%i:%s') AS dt
+        FROM cop_ocupacao
+    ) t
+    WHERE DATE(dt) = (
+
+        -- ✅ pega o último dia do banco - 1
+        SELECT DATE(
+            DATE_SUB(
+                MAX(STR_TO_DATE(data_ref, '%d/%m/%Y, %H:%i:%s')),
+                INTERVAL 1 DAY
+            )
+        )
+        FROM cop_ocupacao
+
+    )
 )
+
 AND dia IN ('D1', 'D2')
 and cidade in ('ARACATUBA','BAURU','CAMPINAS', 'SOROCABA','SANTOS', 'MIRASSOL | SAO JOSE DO RIO PRETO', 'SAO JOSE DOS CAMPOS','RIBEIRAO PRETO')
-GROUP BY cidade, territorio,  dia
+GROUP BY cidade, territorio, dia
 ORDER BY cidade DESC, territorio DESC, dia DESC;
     `;
 
