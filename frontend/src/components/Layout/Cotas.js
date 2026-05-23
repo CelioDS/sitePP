@@ -145,46 +145,28 @@ export default function PainelBucketsPivot() {
       }
 
       try {
-        //const ORDEM_TERRITORIO = ["CENTRAL", "OESTE", "SUDESTE", "NOROESTE"];
+        
 
-        const [resCotas, 
-        //  resOcupacao, resOcupacaoCidades
+        const [resCotas
         ] = await Promise.all([
-          axios.get(`${Url}/neon/cotas-cop`),
-         // axios.get(`${Url}/neon/porcentagem_ocupacao`),
-         // axios.get(`${Url}/neon/porcentagem_ocupacao_cidades`),
+          axios.get(`${Url}/cotas-cop`),
         ]);
 
         const lista = Object.values(resCotas.data || {});
-       // const listaOcupacao = resOcupacao.data || [];
-       // const listaOcupacaoCidades = resOcupacaoCidades.data || [];
-
-        // ✅ Ordena por TERRITÓRIO
-       /* const listaOcupacaoOrdenada = [...listaOcupacao].sort(
-          (a, b) =>
-            ORDEM_TERRITORIO.indexOf(a.territorio) -
-            ORDEM_TERRITORIO.indexOf(b.territorio),
-        );
-
-        const listaOcupacaoCidadesOrdenada = [...listaOcupacaoCidades].sort(
-          (a, b) =>
-            ORDEM_TERRITORIO.indexOf(a.territorio) -
-            ORDEM_TERRITORIO.indexOf(b.territorio),
-        );*/
+     
+       
 
         localStorage.setItem(
           CACHE_KEY,
           JSON.stringify({
             timestamp: Date.now(),
             data: lista,
-           // dataPrint: listaOcupacaoOrdenada,
-           // dataPrintCidades: listaOcupacaoCidadesOrdenada,
+            
           }),
         );
 
         organizarDados(lista);
-        //setDadosPrint(listaOcupacaoOrdenada);
-        //setDadosPrintCidades(listaOcupacaoCidadesOrdenada);
+       
       } catch (e) {
 
         console.error("Erro ao carregar dados do Axios:", e.message);
