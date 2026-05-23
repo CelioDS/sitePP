@@ -77,6 +77,7 @@ export default function Home() {
 
   useEffect(() => {
     getDataBase();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // ✅ SALVAR

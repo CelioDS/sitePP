@@ -39,7 +39,6 @@ export default function PainelBucketsPivot() {
   const [segmentoFiltro, setSegmentoFiltro] = useState("TODOS");
   const [dadosPrintCidades, setDadosPrintCidades] = useState([]);
   const [territorioFiltro, setTerritorioFiltro] = useState("TODAS");
-  const [todasCidades, setTodasCidades] = useState("TODAS");
 
   const Url = process.env.REACT_APP_API_URL || "http://localhost:8000";
 
