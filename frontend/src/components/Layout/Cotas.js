@@ -149,7 +149,7 @@ export default function PainelBucketsPivot() {
 
         const [resCotas
         ] = await Promise.all([
-          axios.get(`${Url}/cotas-cop`),
+          axios.get(`${Url}/neon/cotas-cop`),
         ]);
 
         const lista = Object.values(resCotas.data || {});
