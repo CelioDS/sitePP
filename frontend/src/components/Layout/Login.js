@@ -36,7 +36,7 @@ export default function Login({ setPermission, setLoginBD }) {
 
     try {
       setText("Entrando...");
-      const response = await axios.post(`${Url}/auth/login`, {
+      const response = await axios.post(`${Url}/neon/auth/login`, {
         login,
         senha,
       });

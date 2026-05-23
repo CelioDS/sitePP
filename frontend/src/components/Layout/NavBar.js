@@ -219,7 +219,7 @@ export default function NavBar({ setPermission, permission }) {
 
             {/* O container que "surge" ao passar o mouse */}
             <div className={styleExt.submenuItem}>
-              {mis && (
+              {!!mis && (
                 <Link
                   style={linkAtivo === "TodoList" ? { color: colorLink } : {}}
                   to={`/TodoList/${login}`}

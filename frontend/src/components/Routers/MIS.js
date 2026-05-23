@@ -131,7 +131,7 @@ export default function MIS() {
 
       <main className={styles.main}>
         <header className={styles.header}>
-          {mis &&  (
+          {!!mis &&  (
             <div className={styles.buttonArea}>
               <LinkButton to={`/TodoList/${login}`} text="Abrir Todo List" />
             </div>

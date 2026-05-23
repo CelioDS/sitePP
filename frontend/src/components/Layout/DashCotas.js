@@ -5,6 +5,7 @@ import Style from "./DashCotas.module.css";
 import ReactApexChart from "react-apexcharts";
 import ClaroLogo from "../Item-Layout/ClaroLogo";
 import { BsCircleFill, BsClock } from "react-icons/bs";
+import ValidarToken from "../Tools/ValidarToken";
 
 export default function DashboardAnalytics({
   dados,
@@ -16,6 +17,9 @@ export default function DashboardAnalytics({
 }) {
   // 🔹 Cores da paleta
   const STORAGE_KEY = "rankingCidadesSnapshot";
+  const [userData, setUserData] = useState();
+  const admin = userData?.admin;
+
   const [deveSalvarSnapshot, setDeveSalvarSnapshot] = useState(false);
   const MAPA_CORES_TERRITORIO = {
     OESTE: "#E69138",
@@ -50,6 +54,26 @@ export default function DashboardAnalytics({
       return {};
     }
   };
+
+  // ✅ BUSCA USER
+  useEffect(() => {
+    let isMounted = true;
+
+    async function fetchUserData() {
+      try {
+        const data = await ValidarToken();
+        if (isMounted && data) setUserData(data);
+      } catch (error) {
+        console.error("Erro ao validar token:", error);
+      }
+    }
+
+    fetchUserData();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   useEffect(() => {
     const salvarSnapshot = (snapshot) => {
@@ -521,7 +545,7 @@ export default function DashboardAnalytics({
                     ),
                   ),
                   labels: {
-                  rotate: -45,
+                    rotate: -45,
                     show: true,
                     trim: true,
                     hideOverlappingLabels: true,
@@ -728,71 +752,73 @@ export default function DashboardAnalytics({
         </aside>
       </section>
 
-      <section className={Style.backlog}>
-        <div>
-          <h3>Distribuição de backlog por Território</h3>
-          <ReactApexChart
-            type="donut"
-            height={250}
-            series={Object.values(territorioData)}
-            options={{ labels: Object.keys(territorioData) }}
-          />
-        </div>
+        { admin &&
+        <section className={Style.backlog}>
+          <div>
+            <h3>Distribuição de backlog por Território</h3>
+            <ReactApexChart
+              type="donut"
+              height={250}
+              series={Object.values(territorioData)}
+              options={{ labels: Object.keys(territorioData) }}
+            />
+          </div>
 
-        <div>
-          <h3>Cotas vs Agendado por Dia</h3>
-          <ReactApexChart
-            type="line"
-            height={300}
-            width={1200}
-            series={seriesLinha}
-            options={{
-              xaxis: { categories: dias },
-              colors: ["#A1343C", "#595A4A"],
-              chart: { toolbar: { show: false } },
-            }}
-          />
-        </div>
+          <div>
+            <h3>Cotas vs Agendado por Dia</h3>
+            <ReactApexChart
+              type="line"
+              height={300}
+              width={1200}
+              series={seriesLinha}
+              options={{
+                xaxis: { categories: dias },
+                colors: ["#A1343C", "#595A4A"],
+                chart: { toolbar: { show: false } },
+              }}
+            />
+          </div>
 
-        <div>
-          <h3>Top 10 Cidades (Backlog)</h3>
-          <ReactApexChart
-            type="bar"
-            height={300}
-            width={1200}
-            series={[{ data: topCidades.map((c) => c.qtd) }]}
-            options={{
-              xaxis: {
-                categories: topCidades.map((c) => {
-                  return c.cidade && c.cidade.includes("|")
-                    ? c.cidade.split("|").map((item) => item.trim())
-                    : c.cidade;
-                }),
-              },
-              colors: rankingMelhores.map(
-                (c) => MAPA_CORES_TERRITORIO[c.territorio],
-              ),
-              plotOptions: { bar: { distributed: true } },
-            }}
-          />
-        </div>
+          <div>
+            <h3>Top 10 Cidades (Backlog)</h3>
+            <ReactApexChart
+              type="bar"
+              height={300}
+              width={1200}
+              series={[{ data: topCidades.map((c) => c.qtd) }]}
+              options={{
+                xaxis: {
+                  categories: topCidades.map((c) => {
+                    return c.cidade && c.cidade.includes("|")
+                      ? c.cidade.split("|").map((item) => item.trim())
+                      : c.cidade;
+                  }),
+                },
+                colors: rankingMelhores.map(
+                  (c) => MAPA_CORES_TERRITORIO[c.territorio],
+                ),
+                plotOptions: { bar: { distributed: true } },
+              }}
+            />
+          </div>
 
-        <div>
-          <h3>Distribuição por DDD</h3>
-          <ReactApexChart
-            type="bar"
-            height={300}
-            series={[{ data: Object.values(dddData) }]}
-            options={{
-              xaxis: { categories: Object.keys(dddData) },
-              colors: rankingMelhores.map(
-                (c) => MAPA_CORES_TERRITORIO[c.territorio],
-              ),
-              plotOptions: { bar: { distributed: true } },
-            }}
-          />
-        </div>
-      </section>
+          <div>
+            <h3>Distribuição por DDD</h3>
+            <ReactApexChart
+              type="bar"
+              height={300}
+              series={[{ data: Object.values(dddData) }]}
+              options={{
+                xaxis: { categories: Object.keys(dddData) },
+                colors: rankingMelhores.map(
+                  (c) => MAPA_CORES_TERRITORIO[c.territorio],
+                ),
+                plotOptions: { bar: { distributed: true } },
+              }}
+            />
+          </div>
+        </section>
+      }
     </main>
   );
 }
