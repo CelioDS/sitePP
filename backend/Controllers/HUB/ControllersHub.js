@@ -47,8 +47,8 @@ export const setSuporteComercial = async (req, res) => {
 
     const query = `
       INSERT INTO suporte_comercial 
-      (status_iw, status_solicitacao, observacao, anexo, responsavel)
-      VALUES (?, ?, ?, ?, ?)
+      (status_iw, status_solicitacao, observacao, anexo, responsavel, assumiu)
+      VALUES (?, ?, ?, ?, ?, ?)
     `;
 
     const values = [
@@ -57,6 +57,7 @@ export const setSuporteComercial = async (req, res) => {
       observacao,
       anexo,
       responsavel,
+      assumiu,
     ];
 
     const [result] = await dataBase.query(query, values);
@@ -83,7 +84,7 @@ export const patchSuporteComercial = async (req, res) => {
 
     const query = `
       UPDATE suporte_comercial 
-      SET status_iw = ?, status_solicitacao = ?, observacao = ?, anexo = ?, responsavel = ?
+      SET status_iw = ?, status_solicitacao = ?, observacao = ?, anexo = ?, responsavel = ?, assumiu = ?
       WHERE id = ?
     `;
 
@@ -93,7 +94,7 @@ export const patchSuporteComercial = async (req, res) => {
       observacao,
       anexo,
       responsavel,
-      id,
+      assumiu,
     ];
 
     await dataBase.query(query, values);
@@ -103,7 +104,9 @@ export const patchSuporteComercial = async (req, res) => {
     });
   } catch (err) {
     console.error("Erro patchSuporteComercial:", err);
-
+    return res.status(404).json({
+      msg: "Não autorizado ❌",
+    });
     return res.status(500).json({
       error: "Erro ao atualizar",
     });

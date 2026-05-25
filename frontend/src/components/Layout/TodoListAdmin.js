@@ -40,7 +40,7 @@ export default function TodoListAdmin() {
         setDataBase(ordenado.filter((item) => item.ocultar === 0));
         setTarefasOrdenadas(ordenado.filter((item) => item.ocultar === 0));
       } catch (err) {
-        console.error(err);
+        console.error(err.message, 'todolistadmin');
         toast.error("Erro ao carregar dados.");
       }
     }
@@ -85,7 +85,7 @@ export default function TodoListAdmin() {
       setUserSearch(responsavelValor);
       setFilterUser(responsavelValor || "");
     } catch (err) {
-      console.error(err);
+      console.error(err.message, 'handlesearch');
     }
   }
 

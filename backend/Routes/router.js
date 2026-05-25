@@ -69,8 +69,10 @@ import {
 
 import {
   getSuporteComercial,
-  getSuporteComercialID,
   setSuporteComercial,
+  patchSuporteComercial,
+  getSuporteComercialID,
+  deleteSuporteComercial,
 } from "../Controllers/HUB/ControllersHub.js";
 
 const router = express.Router();
@@ -98,8 +100,8 @@ router.get("/exclusivos", getExclusivos);
 router.get("/suportecomercial", getSuporteComercial);
 router.get("/suportecomercial/:id", getSuporteComercialID);
 router.post("/suportecomercial/add", setSuporteComercial);
-//router.patch("/suportecomercial/:id", patchSuporteComercial);
-//router.delete("/suportecomercial/:id", deleteSuporteComercial);
+router.patch("/suportecomercial/:id", patchSuporteComercial);
+router.delete("/suportecomercial/:id", deleteSuporteComercial);
 
 /*------------------ ROTAS RAIZ ANALLITICAS ------------------*/
 

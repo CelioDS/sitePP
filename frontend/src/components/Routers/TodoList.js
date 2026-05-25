@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import ValidarToken from "../Tools/ValidarToken";
 import TodoListUser from "../Layout/TodoListUser.js";
 import TodoListAdmin from "../Layout/TodoListAdmin.js";
+import RenameTitle from "../Tools/RenameTitle.js";
 
 export default function TodoList() {
   const [userData, setUserData] = useState();
@@ -37,6 +38,8 @@ export default function TodoList() {
 
   return (
     <Container>
+      <RenameTitle initialTitle="P&P - MIS" />
+
       <main>
         {login === "admin" && (
           <button onClick={() => setView((prev) => (prev = !prev))}>

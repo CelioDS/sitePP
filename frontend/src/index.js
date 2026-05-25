@@ -13,6 +13,7 @@ import Cotas from "./components/Layout/Cotas";
 import Carteira from "./components/Routers/Carteira";
 import Relatorio from "./components/Routers/Relatorio";
 import Visualizar from "./components/Routers/Visualizar";
+import SuporteComercial from "./components/Routers/SuporteComercial";
 import Pdu from './components/Routers/Pdu'
 import HUB from './components/Routers/HUB'
 const router = createBrowserRouter([
@@ -48,6 +49,14 @@ const router = createBrowserRouter([
       {
         path: "/HUB",
         element: <HUB />,
+      },
+      {
+        path: "/HUB/:id",
+        element: <HUB />,
+      },
+      {
+        path: "/SuporteComercial",
+        element: <SuporteComercial />,
       },
       {
         path: "/Cotas",

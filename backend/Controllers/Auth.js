@@ -77,7 +77,7 @@ export const LoginDB = async (req, res) => {
       },
     });
   } catch (err) {
-    console.error(err);
+    console.error(err.message, 'LoginDB');
     return res.status(500).json({ success: false, message: "Erro no login" });
   }
 };

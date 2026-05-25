@@ -113,7 +113,7 @@ export default function Home() {
   if (loading) {
     return (
       <Container className={Style.main}>
-        <RenameTitle initialTitle={"P&P - Home"} />
+        <RenameTitle initialTitle="P&P - MIS" />
         <div style={styles.loading}>Carregando...</div>
       </Container>
     );
@@ -122,7 +122,7 @@ export default function Home() {
   if (!row) {
     return (
       <Container className={Style.main}>
-        <RenameTitle initialTitle={"P&P - Home"} />
+        <RenameTitle initialTitle="P&P - MIS" />
 
         <div style={styles.empty}>
           <Loading text={"Sem dados para exibir."} />
@@ -144,9 +144,6 @@ export default function Home() {
 
   return (
     <Container className={Style.main}>
-
-      <RenameTitle initialTitle={"P&P - Pdu"} />
-
       <main style={styles.container}>
         {/* Barra de filtros */}
         <section style={filters.row}>

@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import ValidarToken from "../Tools/ValidarToken";
 import TableAdmin from "../Layout/TableAdmin";
 
-export default function Depara() {
+export default function Caretira() {
   const [dataBase, setDataBase] = useState(null);
   const [userData, setUserData] = useState(null);
   const Url = process.env.REACT_APP_API_URL || "http://localhost:8000";

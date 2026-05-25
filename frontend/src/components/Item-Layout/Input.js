@@ -7,6 +7,7 @@ export default function Input({
   placeholder,
   value,
   className,
+  autoComplete,
   onChange,
 }) {
   return (
@@ -19,6 +20,7 @@ export default function Input({
         placeholder={placeholder}
         value={value || ""}
         className={className}
+        autoComplete={autoComplete} // ✅ AQUI
         onChange={onChange || (() => {})}
       />
     </main>
