@@ -3,7 +3,7 @@ import axios from "axios";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
-import Style from "./HUB.module.css";
+import Style from "./SuporteComercial.module.css";
 import RenameTitle from "../Tools/RenameTitle";
 import Container from "../Layout/Container";
 import { AiOutlineGlobal, AiFillPlayCircle } from "react-icons/ai";
@@ -323,7 +323,6 @@ export default function Home() {
               </div>
 
               <br />
-
 
               <p>dados do usuário de cadastro</p>
 
