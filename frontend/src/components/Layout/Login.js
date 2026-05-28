@@ -59,7 +59,7 @@ export default function Login({ setPermission, setLoginBD }) {
         setText("Entrar");
       }
     } catch (err) {
-      console.error(err);
+      console.error(err.message, "login");
       if (err.response) {
         toast.error(err.response.data.message || "Login ou senha inválida!");
       } else {
@@ -80,35 +80,39 @@ export default function Login({ setPermission, setLoginBD }) {
   return (
     <main className={Style.main}>
       <section onKeyDown={handleKeyPress}>
-        <Logoclaro className={Style.Logo} />
-        <Input
-          text={"Login"}
-          type={"text"}
-          name={"Login"}
-          placeholder={"Digite seu login aqui..."}
-          value={login}
-          onChange={(e) => {
-            setLogin(e.target.value.toLowerCase());
-          }}
-        />
-        <Input
-          text={"Senha"}
-          type={"password"}
-          name={"Senha"}
-          placeholder={"Digite seu Senha aqui..."}
-          value={senha}
-          onChange={(e) => {
-            setSenha(e.target.value);
-          }}
-        />
-        <Button
-          text={Text}
-       
-          className={Style.btn}
-          onClick={() => {
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
             handleLogin();
           }}
-        />
+        >
+          <Logoclaro className={Style.Logo} />
+          <Input
+            text="Login"
+            type="text"
+            name="Login"
+            placeholder="Digite seu login aqui..."
+            value={login}
+            autoComplete="username" // ✅ AQUI
+            onChange={(e) => setLogin(e.target.value.toLowerCase())}
+          />
+          <Input
+            text="Senha"
+            type="password"
+            name="Senha"
+            placeholder="Digite sua senha..."
+            value={senha}
+            autoComplete="current-password" // ✅ AQUI
+            onChange={(e) => setSenha(e.target.value)}
+          />
+          <Button
+            text={Text}
+            className={Style.btn}
+            onClick={() => {
+              handleLogin();
+            }}
+          />
+        </form>
       </section>
     </main>
   );

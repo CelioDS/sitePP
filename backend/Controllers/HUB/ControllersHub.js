@@ -1,22 +1,22 @@
 import { dataBase } from "../../DataBase/dataBase.js";
 import dotenv from "dotenv";
 
+import multer from "multer";
+import path from "path";
+import fs from "fs";
+
 dotenv.config();
 
 // ✅ GET TODOS
 export const getSuporteComercial = async (req, res) => {
   try {
-    const query = `SELECT * FROM suporte_comercial`;
-
-    const [rows] = await dataBase.query(query);
-
+    const [rows] = await dataBase.query(
+      `SELECT * FROM suporte_comercial ORDER BY id DESC`,
+    );
     return res.status(200).json(rows);
   } catch (err) {
-    console.error("Erro getSuporteComercial:", err);
-
-    return res.status(500).json({
-      error: "Erro ao buscar Suporte comercial",
-    });
+    console.error("Erro get:", err);
+    return res.status(500).json({ error: "Erro ao buscar dados" });
   }
 };
 
@@ -25,39 +25,92 @@ export const getSuporteComercialID = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const query = `SELECT * FROM suporte_comercial WHERE id = ?`;
-
-    const [rows] = await dataBase.query(query, [id]);
+    const [rows] = await dataBase.query(
+      `SELECT * FROM suporte_comercial WHERE id = ?`,
+      [id],
+    );
 
     return res.status(200).json(rows);
   } catch (err) {
-    console.error("Erro getSuporteComercialID:", err);
-
-    return res.status(500).json({
-      error: "Erro ao buscar por ID",
-    });
+    console.error("Erro getById:", err);
+    return res.status(500).json({ error: "Erro ao buscar ID" });
   }
 };
 
-// ✅ INSERT
+// ✅ INSERT COM ANEXO
+/*------------------ INSERT COM ANEXO ------------------*/
+
 export const setSuporteComercial = async (req, res) => {
   try {
-    const { status_iw, status_solicitacao, observacao, anexo, responsavel } =
-      req.body;
+    const {
+      tipoSolicitacao,
+      canal,
+      sistema,
+      numeroProposta,
+      numeroContrato,
+      numeroPedido,
+      descricao,
+      cnpj,
+      razaoSocial,
+      nome,
+      email,
+      loginUsuario,
+      login_usuario,
+      observacao,
+      responsavel,
+      HPCliente,
+      enderecoCliente,
+      cpfCliente,
+      nomeCliente,
+    } = req.body;
+
+    const anexo = req.file ? `suporte-comercial/${req.file.filename}` : null;
 
     const query = `
-      INSERT INTO suporte_comercial 
-      (status_iw, status_solicitacao, observacao, anexo, responsavel, assumiu)
-      VALUES (?, ?, ?, ?, ?, ?)
+      INSERT INTO suporte_comercial (
+        tipo_solicitacao,
+        canal,
+        sistema,
+        descricao,
+        numero_proposta,
+        numero_contrato,
+        numero_pedido,
+        cnpj,
+        razao_social,
+        nome,
+        email,
+        login_usuario,
+        observacao,
+        responsavel,
+        nome_cliente,
+        hp_cliente,
+        endereco_cliente,
+        cpf_cliente,
+        anexo
+      )
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
 
     const values = [
-      status_iw,
-      status_solicitacao,
-      observacao,
+      tipoSolicitacao || null,
+      canal || null,
+      sistema || null,
+      descricao || null,
+      numeroProposta || null,
+      numeroContrato || null,
+      numeroPedido || null,
+      cnpj || null,
+      razaoSocial || null,
+      nome || null,
+      email || null,
+      loginUsuario || login_usuario || null,
+      observacao || null,
+      responsavel || null,
+      nomeCliente || null,
+      HPCliente || null,
+      enderecoCliente || null,
+      cpfCliente || null,
       anexo,
-      responsavel,
-      assumiu,
     ];
 
     const [result] = await dataBase.query(query, values);
@@ -65,36 +118,141 @@ export const setSuporteComercial = async (req, res) => {
     return res.status(201).json({
       id: result.insertId,
       msg: "Criado com sucesso ✅",
+      anexo,
     });
   } catch (err) {
-    console.error("Erro setSuporteComercial:", err);
-
-    return res.status(500).json({
-      error: "Erro ao inserir dados",
-    });
+    console.error("Erro insert:", err);
+    return res.status(500).json({ error: "Erro ao inserir dados" });
   }
 };
 
-// ✅ UPDATE (PATCH)
-export const patchSuporteComercial = async (req, res) => {
+/*------------------ CONFIG UPLOAD SUPORTE COMERCIAL ------------------*/
+
+const uploadDirSuporte = "uploads/suporte-comercial";
+
+if (!fs.existsSync(uploadDirSuporte)) {
+  fs.mkdirSync(uploadDirSuporte, { recursive: true });
+}
+
+const storageSuporte = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, uploadDirSuporte);
+  },
+
+  filename: function (req, file, cb) {
+    const ext = path.extname(file.originalname);
+
+    const nomeOriginal = path
+      .basename(file.originalname, ext)
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/\s+/g, "_")
+      .replace(/[^\w.-]/g, "");
+
+    const nomeArquivo = `${Date.now()}_${nomeOriginal}${ext}`;
+
+    cb(null, nomeArquivo);
+  },
+});
+
+const fileFilterSuporte = function (req, file, cb) {
+  const tiposPermitidos = [
+    "image/jpeg",
+    "image/jpg",
+    "image/png",
+    "image/webp",
+    "application/pdf",
+    "application/msword",
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    "application/vnd.ms-excel",
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    "text/plain",
+  ];
+
+  if (tiposPermitidos.includes(file.mimetype)) {
+    cb(null, true);
+  } else {
+    cb(new Error("Tipo de arquivo não permitido"), false);
+  }
+};
+
+export const uploadSuporte = multer({
+  storage: storageSuporte,
+  fileFilter: fileFilterSuporte,
+  limits: {
+    fileSize: 10 * 1024 * 1024,
+  },
+});
+
+// ✅ UPDATE
+export const updateSuporteComercial = async (req, res) => {
   try {
     const { id } = req.params;
-    const { status_iw, status_solicitacao, observacao, anexo, responsavel } =
-      req.body;
+
+    const {
+      tipoSolicitacao,
+      canal,
+      sistema,
+      descricao,
+      numeroProposta,
+      numeroContrato,
+      numeroPedido,
+      cnpj,
+      razaoSocial,
+      nome,
+      email,
+      login_usuario,
+      observacao,
+      responsavel,
+      HPCliente,
+      enderecoCliente,
+      cpfCliente,
+      nomeCliente,
+    } = req.body;
 
     const query = `
-      UPDATE suporte_comercial 
-      SET status_iw = ?, status_solicitacao = ?, observacao = ?, anexo = ?, responsavel = ?, assumiu = ?
+      UPDATE suporte_comercial SET
+        tipo_solicitacao = ?,
+        canal = ?,
+        sistema = ?,
+        descricao = ?,
+        numero_proposta = ?,
+        numero_contrato = ?,
+        numero_pedido = ?,
+        cnpj = ?,
+        razao_social = ?,
+        nome = ?,
+        email = ?,
+        login_usuario = ?,
+        observacao = ?,
+        responsavel = ?,
+        nome_cliente = ?,
+        hp_cliente = ?,
+        endereco_cliente = ?,
+        cpf_cliente = ?
       WHERE id = ?
     `;
 
     const values = [
-      status_iw,
-      status_solicitacao,
+      tipoSolicitacao,
+      canal,
+      sistema,
+      descricao,
+      numeroProposta,
+      numeroContrato,
+      numeroPedido,
+      cnpj,
+      razaoSocial,
+      nome,
+      email,
+      loginUsuario,
       observacao,
-      anexo,
       responsavel,
-      assumiu,
+      HPCliente,
+      enderecoCliente,
+      cpfCliente,
+      nomeCliente,
+      id,
     ];
 
     await dataBase.query(query, values);
@@ -103,13 +261,46 @@ export const patchSuporteComercial = async (req, res) => {
       msg: "Atualizado com sucesso ✅",
     });
   } catch (err) {
-    console.error("Erro patchSuporteComercial:", err);
-    return res.status(404).json({
-      msg: "Não autorizado ❌",
+    console.error("Erro update:", err);
+    return res.status(500).json({ error: "Erro ao atualizar" });
+  }
+};
+
+//PATCH
+
+export const patchSuporteComercial = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const data = req.body;
+
+    // ✅ remove campos vazios
+    const entries = Object.entries(data).filter(
+      ([_, value]) => value !== undefined && value !== null,
+    );
+
+    if (!entries.length) {
+      return res.status(400).json({ error: "Nada para atualizar" });
+    }
+
+    // ✅ monta query dinâmica
+    const fields = entries.map(([key]) => `${key} = ?`).join(", ");
+    const values = entries.map(([_, value]) => value);
+
+    const query = `
+      UPDATE suporte_comercial
+      SET ${fields}
+      WHERE id = ?
+    `;
+
+    await dataBase.query(query, [...values, id]);
+
+    return res.status(200).json({
+      msg: "Atualizado parcialmente ✅",
     });
-    return res.status(500).json({
-      error: "Erro ao atualizar",
-    });
+  } catch (err) {
+    console.error("Erro PATCH:", err);
+    return res.status(500).json({ error: "Erro ao atualizar" });
   }
 };
 
@@ -118,18 +309,13 @@ export const deleteSuporteComercial = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const query = `DELETE FROM suporte_comercial WHERE id = ?`;
-
-    await dataBase.query(query, [id]);
+    await dataBase.query(`DELETE FROM suporte_comercial WHERE id = ?`, [id]);
 
     return res.status(200).json({
       msg: "Deletado com sucesso ✅",
     });
   } catch (err) {
-    console.error("Erro deleteSuporteComercial:", err);
-
-    return res.status(500).json({
-      error: "Erro ao deletar",
-    });
+    console.error("Erro delete:", err);
+    return res.status(500).json({ error: "Erro ao deletar" });
   }
 };

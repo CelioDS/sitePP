@@ -218,28 +218,28 @@ export default function Home() {
                   <label>CANAL</label>
                   <select value={statusSolicitacao}>
                     <option value="">Selecione</option>
+                    <option value="PME">PME</option>
+                    <option value="VAREJO">VAREJO</option>
+                    <option value="PREMIUM">PREMIUM</option>
+                    <option value="LOJA PROPRIA">LOJA PROPRIA</option>
+                    <option value="DISTRIBUIÇÃO">DISTRIBUIÇÃO</option>
                     <option value="AGENTE AUTORIZADO">AGENTE AUTORIZADO</option>
                     <option value="PORTA PORTA INDIRETO">
                       PORTA PORTA INDIRETO
                     </option>
-                    <option value="DISTRIBUIÇÃO">DISTRIBUIÇÃO</option>
-                    <option value="VAREJO">VAREJO</option>
-                    <option value="PME">PME</option>
-                    <option value="LOJA PROPRIA">LOJA PROPRIA</option>
-                    <option value="PREMIUM">PREMIUM</option>
                   </select>
                 </div>
                 <div className={Style.field}>
                   <label>SISTEMAS</label>
                   <select value={statusSolicitacao}>
                     <option value="">Selecione</option>
+                    <option value="IW">IW</option>
                     <option value="SOLAR">SOLAR</option>
-                    <option value="NETSALES">NETSALES</option>
                     <option value="NETSMS">NETSMS</option>
                     <option value="CONEXAO">CONEXAO</option>
-                    <option value="PARCEIRO ONLINE">PARCEIRO ONLINE</option>
-                    <option value="IW">IW</option>
+                    <option value="NETSALES">NETSALES</option>
                     <option value="GED(Biometria)">GED(biometria)</option>
+                    <option value="PARCEIRO ONLINE">PARCEIRO ONLINE</option>
                   </select>
                 </div>
                 {/* REGRA DE PEDIDO CONDICIONAIS*/}

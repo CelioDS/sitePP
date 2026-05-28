@@ -13,9 +13,10 @@ import Cotas from "./components/Layout/Cotas";
 import Carteira from "./components/Routers/Carteira";
 import Relatorio from "./components/Routers/Relatorio";
 import Visualizar from "./components/Routers/Visualizar";
-import SuporteComercial from "./components/Routers/SuporteComercial";
-import Pdu from './components/Routers/Pdu'
-import HUB from './components/Routers/HUB'
+import SuporteComercial from "./components/Layout/SuporteComercial";
+import SuporteComercialVisualizar from "./components/Layout/SuporteComercialVisualizar";
+import Pdu from "./components/Routers/Pdu";
+import HUB from "./components/Routers/HUB";
 const router = createBrowserRouter([
   {
     path: "/",
@@ -59,6 +60,10 @@ const router = createBrowserRouter([
         element: <SuporteComercial />,
       },
       {
+        path: "/SuporteComercialVisualizar/:id",
+        element: <SuporteComercialVisualizar />,
+      },
+      {
         path: "/Cotas",
         element: <Cotas />,
       },
@@ -66,7 +71,7 @@ const router = createBrowserRouter([
         path: "/TodoList/:login",
         element: <TodoList />,
       },
-       {
+      {
         path: "/pdu",
         element: <Pdu />,
       },
