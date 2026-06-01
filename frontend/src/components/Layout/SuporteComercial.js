@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
-import { toast, ToastContainer } from "react-toastify";
+import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-
+import { useSearchParams } from "react-router-dom";
 import Style from "./SuporteComercial.module.css";
 import RenameTitle from "../Tools/RenameTitle";
 import Container from "./Container";
@@ -10,7 +10,7 @@ import { AiOutlineGlobal, AiFillPlayCircle } from "react-icons/ai";
 import ValidarToken from "../Tools/ValidarToken";
 import LinkButton from "../Item-Layout/LinkButton";
 
-export default function Home() {
+export default function SuporteComercial({ pagina }) {
   const Url = process.env.REACT_APP_API_URL || "http://localhost:8000";
 
   const [userData, setUserData] = useState();
@@ -38,7 +38,12 @@ export default function Home() {
   const [numeroProposta, setNumeroProposta] = useState("");
   const [enderecoCliente, setEnderecoCliente] = useState("");
 
-  const [handleTeste, setHandleTeste] = useState(true);
+  const [searchParams] = useSearchParams();
+  const aba = searchParams.get("aba");
+  const [handlePagina, setHandlePagina] = useState(() => {
+    if (aba === "tabelas") return false;
+    return pagina ?? true;
+  });
   useEffect(() => {
     async function fetchTable() {
       try {
@@ -49,10 +54,12 @@ export default function Home() {
       }
     }
 
-    if (!handleTeste) {
+    if (!handlePagina) {
       fetchTable();
     }
-  }, [Url, handleTeste]);
+  }, [Url, handlePagina]);
+
+  //verificar se e para voltar na tabela
 
   // ✅ USER
   useEffect(() => {
@@ -129,6 +136,7 @@ export default function Home() {
         enderecoCliente,
         cpfCliente,
         nomeCliente,
+        anexo,
         responsavel: userData.login,
       });
 
@@ -144,7 +152,7 @@ export default function Home() {
       setCnpj("");
       setRazaoSocial("");
       setNome("");
-      setEmail("");
+      setAnexo("");
       setloginUsuario("");
       setObservacao("");
     } catch (err) {
@@ -172,14 +180,20 @@ export default function Home() {
     <Container>
       <RenameTitle initialTitle={"P&P - HUB"} />
 
-      {handleTeste ? (
-        <button onClick={() => setHandleTeste(false)}>
-          Ver minhas solicitações
-        </button>
-      ) : (
-        <button onClick={() => setHandleTeste(true)}>Nova solicitação</button>
-      )}
-      {handleTeste ? (
+      
+
+      <nav className={Style.nav}>
+        {handlePagina ? (
+          <button onClick={() => setHandlePagina(false)}>
+            Ver minhas solicitações
+          </button>
+        ) : (
+          <button onClick={() => setHandlePagina(true)}>
+            Nova solicitação
+          </button>
+        )}
+      </nav>
+      {handlePagina ? (
         <main className={Style.main}>
           {/* HEADER */}
           <header className={Style.header}>
@@ -418,7 +432,11 @@ export default function Home() {
             {/* ANEXO */}
             <div className={Style.field}>
               <label>Anexo</label>
-              <input type="file" />
+              <input
+                type="file"
+                name="anexo"
+                onChange={(e) => setAnexo(e.target.files[0])}
+              />
             </div>
 
             {/* FOOTER */}
@@ -480,7 +498,7 @@ export default function Home() {
                         <td>{item.cnpj}</td>
                         <td>{item.nome}</td>
                         <td>{item.status_iw}</td>
-                        <td>{item.responsavel}</td>
+                        <td>{item.assumiu}</td>
                         <td>
                           <button
                             onClick={() => {

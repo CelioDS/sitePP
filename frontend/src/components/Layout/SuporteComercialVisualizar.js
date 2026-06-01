@@ -3,26 +3,30 @@ import axios from "axios";
 import { useParams } from "react-router-dom";
 import "react-toastify/dist/ReactToastify.css";
 
+import ValidarToken from "../Tools/ValidarToken";
+import LinkButton from "../Item-Layout/LinkButton";
 import RenameTitle from "../Tools/RenameTitle";
 import Container from "./Container";
 
-export default function Home() {
-  const Url = process.env.REACT_APP_API_URL || "http://localhost:8000";
+import styles from "./SuporteComercialVisualizar.module.css";
 
+export default function SuporteComercialVisualizar() {
+  const Url = process.env.REACT_APP_API_URL || "http://localhost:8000";
   const { id } = useParams();
 
   const [dataBase, setDataBase] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [status, setStatus] = useState();
-  const [numeroChamado, setNumeroChamado] = useState();
-  const [descricao, setDescricao] = useState();
+  const [status, setStatus] = useState("");
+  const [numeroChamado, setNumeroChamado] = useState("");
+  const [descricao, setDescricao] = useState("");
+  const [userData, setUserData] = useState(null);
 
+  const hub_admin = userData?.hub_admin;
   const dados = dataBase?.[0];
 
-  // objeto de controle de inputs regra
   const camposPorSistema = {
     FINALIZADO: ["numeroChamado", "descricao"],
-    TRATAMENTO: ["numeroChamado", "descricao"],
+    "EM TRATAMENTO": ["numeroChamado", "descricao"],
     IMPROCEDENTE: ["numeroChamado", "descricao"],
   };
 
@@ -31,15 +35,28 @@ export default function Home() {
   };
 
   useEffect(() => {
+    async function fetchUser() {
+      try {
+        const data = await ValidarToken();
+        setUserData(data);
+      } catch (err) {
+        console.error("Erro ao validar token:", err);
+      }
+    }
+
+    fetchUser();
+  }, []);
+
+  useEffect(() => {
     async function fetchTable() {
       try {
         setLoading(true);
 
         const res = await axios.get(`${Url}/suportecomercial/${id}`);
 
-        setDataBase(res.data);
+        setDataBase(res.data || []);
       } catch (err) {
-        console.error("Erro ao buscar tabela", err);
+        console.error("Erro ao buscar tabela:", err);
       } finally {
         setLoading(false);
       }
@@ -50,271 +67,327 @@ export default function Home() {
     }
   }, [Url, id]);
 
+  if (loading) {
+    return (
+      <Container>
+        <RenameTitle initialTitle="P&P - HUB" />
+        <p className={styles.message}>Carregando solicitação...</p>
+      </Container>
+    );
+  }
+
+  if (!dados) {
+    return (
+      <Container>
+        <RenameTitle initialTitle="P&P - HUB" />
+        <p className={styles.message}>Nenhum dado encontrado.</p>
+      </Container>
+    );
+  }
+
   return (
     <Container>
-      <RenameTitle initialTitle={"P&P - HUB"} />
+      <RenameTitle initialTitle="P&P - HUB" />
 
-      {loading && <p>Carregando solicitação...</p>}
+      <nav className={styles.navigation}>
+        <LinkButton to="/suportecomercial?aba=tabelas" text="Voltar" />
+        <LinkButton to="/suportecomercial" text="nova solicitação" />
+      </nav>
 
-      {!loading && !dados && <p>Nenhum dado encontrado.</p>}
+      <main className={styles.main}>
+        <section className={styles.card}>
+          <h2>Dados da Solicitação</h2>
 
-      {!loading && dados && (
-        <main
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            gap: "24px",
-            padding: "20px",
-          }}
-        >
-          <section
-            style={{
-              border: "1px solid #ddd",
-              borderRadius: "12px",
-              padding: "20px",
-              background: "#fff",
-            }}
-          >
-            <h2>Dados da Solicitação</h2>
+          <fieldset className={styles.grid}>
+            <legend className={styles.legend}>
+              Informações da solicitação
+            </legend>
 
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(3, 1fr)",
-                gap: "16px",
-              }}
-            >
-              <Campo label="ID" value={dados.id} />
-              <Campo label="Tipo Solicitação" value={dados.tipo_solicitacao} />
-              <Campo label="Canal" value={dados.canal} />
-              <Campo label="Sistema" value={dados.sistema} />
-              <Campo
-                label="Status Solicitação"
-                value={dados.status_solicitacao}
+            <div className={styles.field}>
+              <label htmlFor="id">ID</label>
+              <input id="id" value={dados.id || ""} readOnly />
+            </div>
+
+            <div className={styles.field}>
+              <label htmlFor="tipo_solicitacao">Tipo Solicitação</label>
+              <input
+                id="tipo_solicitacao"
+                value={dados.tipo_solicitacao || ""}
+                readOnly
               />
-              <Campo label="Responsável" value={dados.responsavel} />
-              <Campo label="Assumiu" value={dados.assumiu} />
             </div>
-          </section>
 
-          <section
-            style={{
-              border: "1px solid #ddd",
-              borderRadius: "12px",
-              padding: "20px",
-              background: "#fff",
-            }}
-          >
-            <h2>Dados do Cliente</h2>
-
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(3, 1fr)",
-                gap: "16px",
-              }}
-            >
-              <Campo label="Nome" value={dados.nome} />
-              <Campo label="Nome Cliente" value={dados.nome_cliente} />
-              <Campo label="CPF Cliente" value={dados.cpf_cliente} />
-              <Campo label="CNPJ" value={dados.cnpj} />
-              <Campo label="Razão Social" value={dados.razao_social} />
-              <Campo label="E-mail" value={dados.email} />
-              <Campo label="Endereço Cliente" value={dados.endereco_cliente} />
-              <Campo label="HP Cliente" value={dados.hp_cliente} />
+            <div className={styles.field}>
+              <label htmlFor="canal">Canal</label>
+              <input id="canal" value={dados.canal || ""} readOnly />
             </div>
-          </section>
 
-          <section
-            style={{
-              border: "1px solid #ddd",
-              borderRadius: "12px",
-              padding: "20px",
-              background: "#fff",
-            }}
-          >
-            <h2>Dados Comerciais</h2>
-
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(3, 1fr)",
-                gap: "16px",
-              }}
-            >
-              <Campo label="Número Contrato" value={dados.numero_contrato} />
-              <Campo label="Número Pedido" value={dados.numero_pedido} />
-              <Campo label="Número Proposta" value={dados.numero_proposta} />
-              <Campo label="Login Usuário" value={dados.login_usuario} />
+            <div className={styles.field}>
+              <label htmlFor="sistema">Sistema</label>
+              <input id="sistema" value={dados.sistema || ""} readOnly />
             </div>
-          </section>
 
-          <section
-            style={{
-              border: "1px solid #ddd",
-              borderRadius: "12px",
-              padding: "20px",
-              background: "#fff",
-            }}
-          >
-            <h2>Observações</h2>
-
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "1fr",
-                gap: "16px",
-              }}
-            >
-              <CampoArea label="Observação" value={dados.observacao} />
-              <CampoArea label="Descrição" value={dados.descricao} />
+            <div className={styles.field}>
+              <label htmlFor="status_solicitacao">Status Solicitação</label>
+              <input
+                id="status_solicitacao"
+                value={dados.status_solicitacao || ""}
+                readOnly
+              />
             </div>
-          </section>
 
-          <section
-            style={{
-              border: "1px solid #ddd",
-              borderRadius: "12px",
-              padding: "20px",
-              background: "#fff",
-            }}
-          >
-            <h2>Datas e Anexos</h2>
+            <div className={styles.field}>
+              <label htmlFor="responsavel">Responsável</label>
+              <input
+                id="responsavel"
+                value={dados.responsavel || ""}
+                readOnly
+              />
+            </div>
 
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(3, 1fr)",
-                gap: "16px",
-              }}
-            >
-              <Campo
-                label="Data Criação"
+            <div className={styles.field}>
+              <label htmlFor="assumiu">Assumiu</label>
+              <input id="assumiu" value={dados.assumiu || ""} readOnly />
+            </div>
+          </fieldset>
+        </section>
+
+        <section className={styles.card}>
+          <h2>Dados do Cliente</h2>
+
+          <fieldset className={styles.grid}>
+            <legend className={styles.legend}>Informações do cliente</legend>
+
+            <div className={styles.field}>
+              <label htmlFor="nome">Nome</label>
+              <input id="nome" value={dados.nome || ""} readOnly />
+            </div>
+
+            <div className={styles.field}>
+              <label htmlFor="nome_cliente">Nome Cliente</label>
+              <input
+                id="nome_cliente"
+                value={dados.nome_cliente || ""}
+                readOnly
+              />
+            </div>
+
+            <div className={styles.field}>
+              <label htmlFor="cpf_cliente">CPF Cliente</label>
+              <input
+                id="cpf_cliente"
+                value={dados.cpf_cliente || ""}
+                readOnly
+              />
+            </div>
+
+            <div className={styles.field}>
+              <label htmlFor="cnpj">CNPJ</label>
+              <input id="cnpj" value={dados.cnpj || ""} readOnly />
+            </div>
+
+            <div className={styles.field}>
+              <label htmlFor="razao_social">Razão Social</label>
+              <input
+                id="razao_social"
+                value={dados.razao_social || ""}
+                readOnly
+              />
+            </div>
+
+            <div className={styles.field}>
+              <label htmlFor="email">E-mail</label>
+              <input id="email" value={dados.email || ""} readOnly />
+            </div>
+
+            <div className={styles.field}>
+              <label htmlFor="endereco_cliente">Endereço Cliente</label>
+              <input
+                id="endereco_cliente"
+                value={dados.endereco_cliente || ""}
+                readOnly
+              />
+            </div>
+
+            <div className={styles.field}>
+              <label htmlFor="hp_cliente">HP Cliente</label>
+              <input id="hp_cliente" value={dados.hp_cliente || ""} readOnly />
+            </div>
+          </fieldset>
+        </section>
+
+        <section className={styles.card}>
+          <h2>Dados Comerciais</h2>
+
+          <fieldset className={styles.grid}>
+            <legend className={styles.legend}>Informações comerciais</legend>
+
+            <div className={styles.field}>
+              <label htmlFor="numero_contrato">Número Contrato</label>
+              <input
+                id="numero_contrato"
+                value={dados.numero_contrato || ""}
+                readOnly
+              />
+            </div>
+
+            <div className={styles.field}>
+              <label htmlFor="numero_pedido">Número Pedido</label>
+              <input
+                id="numero_pedido"
+                value={dados.numero_pedido || ""}
+                readOnly
+              />
+            </div>
+
+            <div className={styles.field}>
+              <label htmlFor="numero_proposta">Número Proposta</label>
+              <input
+                id="numero_proposta"
+                value={dados.numero_proposta || ""}
+                readOnly
+              />
+            </div>
+
+            <div className={styles.field}>
+              <label htmlFor="login_usuario">Login Usuário</label>
+              <input
+                id="login_usuario"
+                value={dados.login_usuario || ""}
+                readOnly
+              />
+            </div>
+          </fieldset>
+        </section>
+
+        <section className={styles.card}>
+          <h2>Observações</h2>
+
+          <fieldset className={styles.gridOne}>
+            <legend className={styles.legend}>
+              Observações da solicitação
+            </legend>
+
+            <div className={styles.field}>
+              <label htmlFor="observacao">Observação</label>
+              <textarea
+                id="observacao"
+                value={dados.observacao || ""}
+                readOnly
+                rows={4}
+              />
+            </div>
+
+            <div className={styles.field}>
+              <label htmlFor="descricao_atual">Descrição</label>
+              <textarea
+                id="descricao_atual"
+                value={dados.descricao || ""}
+                readOnly
+                rows={4}
+              />
+            </div>
+          </fieldset>
+        </section>
+
+        <section className={styles.card}>
+          <h2>Datas e Anexos</h2>
+
+          <fieldset className={styles.grid}>
+            <legend className={styles.legend}>
+              Informações de data e anexo
+            </legend>
+
+            <div className={styles.field}>
+              <label htmlFor="data_criacao">Data Criação</label>
+              <input
+                id="data_criacao"
                 value={
                   dados.data_criacao
                     ? new Date(dados.data_criacao).toLocaleString("pt-BR")
                     : ""
                 }
+                readOnly
               />
+            </div>
 
-              <Campo
-                label="Data Atualização"
+            <div className={styles.field}>
+              <label htmlFor="data_atualizacao">Data Atualização</label>
+              <input
+                id="data_atualizacao"
                 value={
                   dados.data_atualizacao
                     ? new Date(dados.data_atualizacao).toLocaleString("pt-BR")
                     : ""
                 }
+                readOnly
               />
-
-              <Campo label="Anexo" value={dados.anexo} />
             </div>
+
+            <div className={styles.field}>
+              <label htmlFor="anexo">Anexo</label>
+              <input id="anexo" value={dados.anexo || ""} readOnly />
+            </div>
+          </fieldset>
+        </section>
+
+        {!hub_admin && (
+          <section className={styles.card}>
+            <h2>Atualizar Solicitação</h2>
+
+            <form className={styles.form} onSubmit={(e) => e.preventDefault()}>
+              <fieldset className={styles.grid}>
+                <legend className={styles.legend}>
+                  Tratativa administrativa
+                </legend>
+
+                <div className={styles.field}>
+                  <label htmlFor="status">Status</label>
+
+                  <select
+                    id="status"
+                    value={status}
+                    onChange={(e) => setStatus(e.target.value)}
+                  >
+                    <option value="">Selecione</option>
+                    <option value="FINALIZADO">FINALIZADO</option>
+                    <option value="IMPROCEDENTE">IMPROCEDENTE</option>
+                    <option value="EM TRATAMENTO">EM TRATAMENTO</option>
+                  </select>
+                </div>
+
+                {mostrarCampo("numeroChamado") && (
+                  <div className={styles.field}>
+                    <label htmlFor="numero_chamado">Número Chamado</label>
+
+                    <input
+                      id="numero_chamado"
+                      value={numeroChamado}
+                      onChange={(e) => setNumeroChamado(e.target.value)}
+                    />
+                  </div>
+                )}
+
+                {mostrarCampo("descricao") && (
+                  <div className={styles.field}>
+                    <label htmlFor="descricao">Descrição</label>
+
+                    <input
+                      id="descricao"
+                      value={descricao}
+                      onChange={(e) => setDescricao(e.target.value)}
+                    />
+                  </div>
+                )}
+              </fieldset>
+
+              <div className={styles.actions}>
+                <button type="submit">Salvar</button>
+              </div>
+            </form>
           </section>
-
-          <form
-            action="
-          
-          
-          "
-          >
-            <div>
-              <label>STATUS</label>
-              <select onChange={(e) => setStatus(e.target.value)}>
-                <option value={status}>Selecione</option>
-                <option>FINALIZADO</option>
-                <option>IMPROCEDENTE</option>
-                <option>EM TRATAMENTO</option>
-              </select>
-            </div>
-
-            {mostrarCampo("numeroChamado") && (
-              <div>
-                <label>NUMERO CHAMADO</label>
-                <input
-                  value={numeroChamado}
-                  onChange={(e) => {
-                    setNumeroChamado(e.target.value);
-                  }}
-                ></input>
-              </div>
-            )}
-
-            {mostrarCampo("descricao") && (
-              <div>
-                <label>descricao</label>
-                <input
-                  value={descricao}
-                  onChange={(e) => {
-                    setDescricao(e.target.value);
-                  }}
-                ></input>
-              </div>
-            )}
-          </form>
-        </main>
-      )}
+        )}
+      </main>
     </Container>
-  );
-}
-
-function Campo({ label, value }) {
-  return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-      <label
-        style={{
-          fontSize: "12px",
-          fontWeight: "600",
-          color: "#555",
-          textTransform: "uppercase",
-        }}
-      >
-        {label}
-      </label>
-
-      <input
-        value={value || ""}
-        readOnly
-        style={{
-          width: "100%",
-          height: "38px",
-          padding: "8px 10px",
-          border: "1px solid #ccc",
-          borderRadius: "8px",
-          background: "#f8f8f8",
-          color: "#222",
-        }}
-      />
-    </div>
-  );
-}
-
-function CampoArea({ label, value }) {
-  return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-      <label
-        style={{
-          fontSize: "12px",
-          fontWeight: "600",
-          color: "#555",
-          textTransform: "uppercase",
-        }}
-      >
-        {label}
-      </label>
-
-      <textarea
-        value={value || ""}
-        readOnly
-        rows={4}
-        style={{
-          width: "100%",
-          padding: "10px",
-          border: "1px solid #ccc",
-          borderRadius: "8px",
-          background: "#f8f8f8",
-          color: "#222",
-          resize: "none",
-        }}
-      />
-    </div>
   );
 }

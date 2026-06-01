@@ -1,0 +1,169 @@
+.main {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding: 20px;
+}
+
+.navigation {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.navigation a {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  width: 120px;
+  height: 35px;
+  color: #928e8e;
+  text-decoration: none;
+  justify-content: center;
+  border-bottom: 1px solid transparent;
+  border-image: linear-gradient(to right, transparent, gray, transparent) 1;
+}
+.navigation a:hover {
+  opacity: 0.8;
+}
+
+.message {
+  padding: 20px;
+  font-size: 15px;
+  color: #444;
+}
+
+.card {
+  border: 1px solid #ddd;
+  border-radius: 12px;
+  padding: 20px;
+  background: #fff;
+}
+
+.card h2 {
+  margin: 0 0 18px;
+  font-size: 20px;
+  color: #222;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  border: 0;
+  padding: 0;
+  margin: 0;
+}
+
+.gridOne {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+  border: 0;
+  padding: 0;
+  margin: 0;
+}
+
+.legend {
+  width: 1px;
+  height: 1px;
+  position: absolute;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.field label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #555;
+  text-transform: uppercase;
+}
+
+.field input,
+.field select,
+.field textarea {
+  width: 100%;
+  min-height: 38px;
+  padding: 8px 10px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  background: #fff;
+  color: #222;
+  font-size: 14px;
+  outline: none;
+}
+
+.field input[readonly],
+.field textarea[readonly] {
+  background: #f8f8f8;
+}
+
+.field textarea {
+  resize: none;
+  min-height: 90px;
+}
+
+.field input:focus,
+.field select:focus,
+.field textarea:focus {
+  border-color: #d71920;
+  box-shadow: 0 0 0 2px rgba(215, 25, 32, 0.12);
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.actions button {
+  min-width: 120px;
+  height: 38px;
+  border: 0;
+  border-radius: 8px;
+  background: #d71920;
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.actions button:hover {
+  background: #b9151b;
+}
+
+@media (max-width: 900px) {
+  .grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .main {
+    padding: 12px;
+  }
+
+  .navigation {
+    padding: 12px 12px 0;
+  }
+
+  .grid {
+    grid-template-columns: 1fr;
+  }
+
+  .card {
+    padding: 16px;
+  }
+}

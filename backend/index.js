@@ -1,10 +1,11 @@
 import cors from "cors";
-import express from "express";
+import path from "path";
 import helmet from "helmet";
+import dotenv from "dotenv";
+import express from "express";
 import rateLimit from "express-rate-limit";
 import userRoutes from "./Routes/router.js";
 import userRoutesNeon from "./Routes/routerNeon.js";
-import dotenv from "dotenv";
 
 dotenv.config();
 
@@ -65,6 +66,8 @@ app.use(
 // ----------------------
 // 📌 Rotas
 // ----------------------
+
+app.use("/uploads", express.static(path.resolve("uploads")));
 app.use("/", userRoutes);
 app.use("/neon", userRoutesNeon);
 

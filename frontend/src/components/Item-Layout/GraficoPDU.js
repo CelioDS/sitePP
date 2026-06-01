@@ -7,7 +7,7 @@ import { format } from "date-fns";
 import { toZonedTime } from "date-fns-tz";
 import ptBR from "date-fns/locale/pt-BR";
 
-export default function GraficoPDU({ year, Url, referencia }) {
+export default function GraficoPDU({ year, Url, referencia  }) {
   const [dataFULL, setDataFULL] = useState(null);
 
   const tz = "America/Sao_Paulo";
@@ -17,10 +17,11 @@ export default function GraficoPDU({ year, Url, referencia }) {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const { resp } = await axios.get(`${Url}/neon/PduFullGrafico`);
+    
+        const resp = await axios.get(`${Url}/PduFullGrafico`);
         setDataFULL(resp.data || []);
       } catch (err) {
-        console.error("Erro ao carregar dados: GraficoPDU");
+        console.error("Erro ao carregar dados:", err);
         setDataFULL([]);
       }
     };
@@ -100,7 +101,7 @@ export default function GraficoPDU({ year, Url, referencia }) {
 
                 {/* Conector com Seta (aparece a partir do segundo item) */}
                 {index > 0 && (
-                  <div className={styles.connectorWrapper}>
+                  <div className={styles.connectorWrapper} >
                     <div className={styles.connectorLine}>
                       <div className={styles.percentBadge}>
                         {percentChange > 0 ? "+" : ""}
@@ -121,10 +122,8 @@ export default function GraficoPDU({ year, Url, referencia }) {
                     className={styles.bar}
                     style={{
                       height: `${barHeight}%`,
-                      backgroundColor:
-                        Number(tituloMes) === item.anomes
-                          ? "#D35F65"
-                          : "#A9A9A9",
+                      backgroundColor: Number(tituloMes) === item.anomes ? "#D35F65" : "#A9A9A9",
+                      color: Number(tituloMes) === item.anomes ? "#D35F65" : "#A9A9A9",
                     }}
                   />
                   <span className={styles.barLabel}>

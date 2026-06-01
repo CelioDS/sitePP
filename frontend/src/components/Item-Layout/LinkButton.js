@@ -12,4 +12,5 @@ export default function LinkButton({ to, text, onClick, img, className }) {
 LinkButton.defaultProps = {
   //valores padroa
   className: style.btn,
+  
 };

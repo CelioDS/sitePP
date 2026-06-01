@@ -14,6 +14,7 @@ import DashboardAnalytics from "./DashCotas";
 import ClaroLogo from "../Item-Layout/ClaroLogo";
 import MiniSparkline from "../Tools/MiniSparkline";
 import { BsCircleFill, BsEyeFill, BsEyeSlashFill } from "react-icons/bs";
+import RenameTitle from "../Tools/RenameTitle";
 
 // Lazy Load do Clima para performance
 const WeatherInfo = React.lazy(() => import("../Tools/WeatherInfo"));
@@ -22,7 +23,7 @@ const WeatherInfo = React.lazy(() => import("../Tools/WeatherInfo"));
 //  () => import("../Tools/WeatherInfoFeatures"),
 //);
 
-export default function PainelBucketsPivot() {
+export default function Cotas() {
   const tableRef = useRef(null);
   const [dias, setDias] = useState([]);
   const [dados, setDados] = useState([]);
@@ -145,30 +146,45 @@ export default function PainelBucketsPivot() {
       }
 
       try {
-        
+        const ORDEM_TERRITORIO = ["CENTRAL", "OESTE", "SUDESTE", "NOROESTE"];
 
-        const [resCotas
-        ] = await Promise.all([
+        const [resCotas, resOcupacao, resOcupacaoCidades] = await Promise.all([
           axios.get(`${Url}/neon/cotas-cop`),
+          axios.get(`${Url}/porcentagem_ocupacao`),
+          axios.get(`${Url}/porcentagem_ocupacao_cidades`),
         ]);
 
         const lista = Object.values(resCotas.data || {});
-     
-       
+        const listaOcupacao = resOcupacao.data || [];
+        const listaOcupacaoCidades = resOcupacaoCidades.data || [];
+
+        // ✅ Ordena por TERRITÓRIO
+        const listaOcupacaoOrdenada = [...listaOcupacao].sort(
+          (a, b) =>
+            ORDEM_TERRITORIO.indexOf(a.territorio) -
+            ORDEM_TERRITORIO.indexOf(b.territorio),
+        );
+
+        const listaOcupacaoCidadesOrdenada = [...listaOcupacaoCidades].sort(
+          (a, b) =>
+            ORDEM_TERRITORIO.indexOf(a.territorio) -
+            ORDEM_TERRITORIO.indexOf(b.territorio),
+        );
 
         localStorage.setItem(
           CACHE_KEY,
           JSON.stringify({
             timestamp: Date.now(),
             data: lista,
-            
+            dataPrint: listaOcupacaoOrdenada,
+            dataPrintCidades: listaOcupacaoCidadesOrdenada,
           }),
         );
 
         organizarDados(lista);
-       
+        setDadosPrint(listaOcupacaoOrdenada);
+        setDadosPrintCidades(listaOcupacaoCidadesOrdenada);
       } catch (e) {
-
         console.error("Erro ao carregar dados do Axios:", e.message);
       } finally {
         setLoading(false);
@@ -343,11 +359,10 @@ export default function PainelBucketsPivot() {
       return 0;
     });
 
-
     return {
       melhores: ordenadoBase.slice(0, 10),
       piores: ordenadoBase.slice(-10).reverse(),
-      total : ordenadoBase
+      total: ordenadoBase,
     };
   }, [dadosFiltrados, dias]);
 
@@ -605,6 +620,8 @@ export default function PainelBucketsPivot() {
 
   return (
     <main className={Style.main} ref={tableRef}>
+      <RenameTitle initialTitle="P&P - MIS" />
+
       <section className={Style.sectionHeader}>
         <button
           onClick={() => {

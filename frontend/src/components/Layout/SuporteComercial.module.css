@@ -1,3 +1,21 @@
+.nav button {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  width: 120px;
+  height: 35px;
+  color: #928e8e;
+  text-decoration: none;
+  justify-content: center;
+  border-bottom: 1px solid transparent;
+  border-image: linear-gradient(to right, transparent, gray, transparent) 1;
+  cursor: pointer;
+}
+
+.nav button:hover {
+  opacity: 0.9;
+}
+
 .main {
   display: flex;
   flex-direction: column;
@@ -58,9 +76,9 @@
   padding: 15px;
 }
 
-.main .form .grid .dados  .field {
+.main .form .grid .dados .field {
   display: flex;
   align-items: start;
   text-align: start;
-  flex-direction: column ;
+  flex-direction: column;
 }

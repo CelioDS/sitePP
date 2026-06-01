@@ -445,6 +445,19 @@ export default function DashboardAnalytics({
                 },
               ]}
               options={{
+                chart: {
+                  toolbar: {
+                    show: true,
+                    offsetX: 0,
+                    offsetY: -10,
+                  },
+                },
+                yaxis: {
+                  //min: 0,
+                  //max:
+                  //  Math.max(...rankingMelhores.map((c) => c.valorCotaBarra)) + 10,
+                  //forceNiceScale: false,
+                },
                 xaxis: {
                   categories: rankingMelhores.map((c) =>
                     (c.categoriasEixoX || []).map((nome) =>
@@ -484,37 +497,65 @@ export default function DashboardAnalytics({
 
                 dataLabels: {
                   enabled: true,
-
-                  useHTML: true, // 🔥 obrigatório
-
                   offsetY: -22,
                   style: {
                     fontSize: "9px",
-                    colors: rankingMelhores.map((c) => {
-                      if (c.delta > 0) return "#003b19";
-                      if (c.delta < 0) return "#3d0000";
-                      return "#000";
-                    }),
                     fontWeight: "bold",
-                    background: "#ccc",
-                    borderWidth: "1px",
+                    colors: ["#000000"], // texto principal preto
+                  },
+                  background: {
+                    enabled: false,
                   },
                   formatter: function (val, opts) {
                     const i = opts.dataPointIndex;
                     const item = rankingMelhores[i];
-                    const delta = item.delta;
-                    const dia = item.diaAtual || "";
-                    const seta = delta > 0 ? "" : delta < 0 ? "" : "";
-                    const sinal = delta > 0 ? "+" : "";
+                    const dia = item?.diaAtual || "";
 
-                    if (delta === 0) {
-                      return `${dia} (${val})\n\n`;
-                    }
-
-                    return `${dia} (${val}) ${seta}${sinal}${delta}`;
+                    return `${dia} (${val})`;
                   },
                 },
+                annotations: {
+                  points: rankingMelhores
+                    .map((c, index) => {
+                      const delta = Number(c.delta || 0);
 
+                      if (delta === 0) return null;
+
+                      const categoria = (c.categoriasEixoX || [])
+                        .map((nome) =>
+                          String(nome)
+                            .normalize("NFD")
+                            .replace(/[\u0300-\u036f]/g, "")
+                            .replace(/\bsao\b/gi, "S")
+                            .replace(/\bdo\b/gi, "D")
+                            .replace(/\bdos\b/gi, "D")
+                            .replace(/\brio\b/gi, "R")
+                            .replace(/\bjose\b/gi, "J"),
+                        )
+                        .join(" ");
+
+                      return {
+                        x: categoria,
+                        y: c.valorCotaBarra,
+                        marker: {
+                          size: 0,
+                        },
+                        label: {
+                          text: delta > 0 ? `+${delta}` : `${delta}`,
+                          offsetX: 20,
+                          offsetY: -16,
+                          borderColor: "transparent",
+                          style: {
+                            color: delta > 0 ? "#008000" : "#D50000",
+                            background: "rgba(255,255,255,0)",
+                            fontSize: "8px",
+                            fontWeight: 700,
+                          },
+                        },
+                      };
+                    })
+                    .filter(Boolean),
+                },
                 legend: { show: false },
               }}
             />
@@ -531,6 +572,19 @@ export default function DashboardAnalytics({
                 },
               ]}
               options={{
+                chart: {
+                  toolbar: {
+                    show: true,
+                    offsetX: 0,
+                    offsetY: -10,
+                  },
+                },
+                yaxis: {
+                  min: 0,
+                  max:
+                    Math.max(...rankingPiores.map((c) => c.valorCotaBarra)) + 1,
+                  forceNiceScale: false,
+                },
                 xaxis: {
                   categories: rankingPiores.map((c) =>
                     (c.categoriasEixoX || []).map((nome) =>
@@ -570,37 +624,64 @@ export default function DashboardAnalytics({
 
                 dataLabels: {
                   enabled: true,
-                  useHTML: true,
                   offsetY: -22,
                   style: {
                     fontSize: "9px",
-                    colors: rankingPiores.map((c) => {
-                      if (c.delta > 0) return "#003b19";
-                      if (c.delta < 0) return "#3d0000";
-                      return "#000";
-                    }),
                     fontWeight: "bold",
-                    background: rankingPiores.map((c) => {
-                      if (c.delta > 0) return "#003b19";
-                      if (c.delta < 0) return "#3d0000";
-                      return "#000";
-                    }),
-                    borderWidth: "1px",
+                    colors: ["#000000"], // texto principal preto
+                  },
+                  background: {
+                    enabled: false,
                   },
                   formatter: function (val, opts) {
                     const i = opts.dataPointIndex;
                     const item = rankingPiores[i];
-                    const delta = item.delta;
-                    const dia = item.diaAtual || "";
-                    const seta = delta > 0 ? "" : delta < 0 ? "" : "";
-                    const sinal = delta > 0 ? "+" : "";
+                    const dia = item?.diaAtual || "";
 
-                    if (delta === 0) {
-                      return `${dia} (${val})\n\n`;
-                    }
-
-                    return `${dia} (${val}) ${seta}${sinal}${delta}`;
+                    return `${dia} (${val})`;
                   },
+                },
+                annotations: {
+                  points: rankingPiores
+                    .map((c, index) => {
+                      const delta = Number(c.delta || 0);
+
+                      if (delta === 0) return null;
+
+                      const categoria = (c.categoriasEixoX || [])
+                        .map((nome) =>
+                          String(nome)
+                            .normalize("NFD")
+                            .replace(/[\u0300-\u036f]/g, "")
+                            .replace(/\bsao\b/gi, "S")
+                            .replace(/\bdo\b/gi, "D")
+                            .replace(/\bdos\b/gi, "D")
+                            .replace(/\brio\b/gi, "R")
+                            .replace(/\bjose\b/gi, "J"),
+                        )
+                        .join(" ");
+
+                      return {
+                        x: categoria,
+                        y: c.valorCotaBarra,
+                        marker: {
+                          size: 0,
+                        },
+                        label: {
+                          text: delta > 0 ? `+${delta}` : `${delta}`,
+                         offsetX: 20,
+                          offsetY: -16,
+                          borderColor: "transparent",
+                          style: {
+                            color: delta > 0 ? "#008000" : "#D50000",
+                            background: "rgba(145, 76, 76, 0)",
+                            fontSize: "9px",
+                            fontWeight: 700,
+                          },
+                        },
+                      };
+                    })
+                    .filter(Boolean),
                 },
 
                 legend: { show: false },
@@ -721,9 +802,18 @@ export default function DashboardAnalytics({
                 xaxis: {
                   categories: graficoOcupacaoCidades.categorias.map((c) => {
                     return c.includes("|")
-                      ? c.split("|").map((s) => s.trim())
+                      ? c.split("|").map((s) =>
+                          s
+                            .trim()
+                            .normalize("NFD")
+                            .replace(/[\u0300-\u036f]/g, "")
+                            .replace(/\bdo\b/gi, "D")
+                            .replace(/\bdos\b/gi, "D")
+                            .replace(/\bjose\b/gi, "J"),
+                        )
                       : c.trim();
                   }),
+
                   labels: {
                     rotate: -45,
                     style: { fontSize: "9px" },
@@ -752,7 +842,7 @@ export default function DashboardAnalytics({
         </aside>
       </section>
 
-        { admin &&
+      {admin && (
         <section className={Style.backlog}>
           <div>
             <h3>Distribuição de backlog por Território</h3>
@@ -818,7 +908,7 @@ export default function DashboardAnalytics({
             />
           </div>
         </section>
-      }
+      )}
     </main>
   );
 }

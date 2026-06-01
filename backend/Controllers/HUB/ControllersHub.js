@@ -39,7 +39,6 @@ export const getSuporteComercialID = async (req, res) => {
 
 // ✅ INSERT COM ANEXO
 /*------------------ INSERT COM ANEXO ------------------*/
-
 export const setSuporteComercial = async (req, res) => {
   try {
     const {
@@ -64,7 +63,12 @@ export const setSuporteComercial = async (req, res) => {
       nomeCliente,
     } = req.body;
 
-    const anexo = req.file ? `suporte-comercial/${req.file.filename}` : null;
+    console.log("BODY:", req.body);
+    console.log("FILE:", req.file);
+
+    const anexo = req.file
+      ? `/uploads/suporte-comercial/${req.file.filename}`
+      : null;
 
     const query = `
       INSERT INTO suporte_comercial (
@@ -112,6 +116,9 @@ export const setSuporteComercial = async (req, res) => {
       cpfCliente || null,
       anexo,
     ];
+    (console.log("HEADERS:", req.headers["content-type"]),
+      console.log("BODY:", req.body),
+      console.log("FILE:", req.file));
 
     const [result] = await dataBase.query(query, values);
 
@@ -122,7 +129,10 @@ export const setSuporteComercial = async (req, res) => {
     });
   } catch (err) {
     console.error("Erro insert:", err);
-    return res.status(500).json({ error: "Erro ao inserir dados" });
+    return res.status(500).json({
+      error: "Erro ao inserir dados",
+      detalhe: err.message,
+    });
   }
 };
 
