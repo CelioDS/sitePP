@@ -73,7 +73,7 @@ import {
   patchSuporteComercial,
   getSuporteComercialID,
   deleteSuporteComercial,
-  uploadSuporte,
+  /*uploadSuporte,*/
 } from "../Controllers/HUB/ControllersHub.js";
 
 const router = express.Router();
