@@ -137,6 +137,7 @@ export const setSuporteComercial = async (req, res) => {
 };
 
 /*------------------ CONFIG UPLOAD SUPORTE COMERCIAL ------------------*/
+/*
 
 const uploadDirSuporte = "uploads/suporte-comercial";
 
@@ -193,7 +194,7 @@ export const uploadSuporte = multer({
     fileSize: 10 * 1024 * 1024,
   },
 });
-
+*/
 // ✅ UPDATE
 export const updateSuporteComercial = async (req, res) => {
   try {
