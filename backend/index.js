@@ -11,84 +11,81 @@ dotenv.config();
 
 const app = express();
 
+//cotas
+
+// ✅ ESSENCIAL
+app.use(express.urlencoded({ extended: true }));
+
 // ----------------------
 // 🔐 Segurança
 // ----------------------
 app.use(helmet());
 
-// ----------------------
-// 🔧 Body parser
-// ----------------------
-app.use(express.urlencoded({ extended: true }));
-app.use(express.json({ limit: "10kb" }));
-
-// ----------------------
-// 🌐 CORS LIBERADO TOTAL (SEM ERRO)
-// ----------------------
-app.use(cors());
-
-// ✅ garante preflight (SEM usar app.options "*")
-app.use((req, res, next) => {
-  res.header("Access-Control-Allow-Origin", "*");
-  res.header(
-    "Access-Control-Allow-Methods",
-    "GET, POST, PUT, PATCH, DELETE, OPTIONS"
-  );
-  res.header(
-    "Access-Control-Allow-Headers",
-    "Content-Type, Authorization, login"
-  );
-
-  // intercepta preflight
-  if (req.method === "OPTIONS") {
-    return res.sendStatus(200);
-  }
-
-  next();
-});
-
-// ----------------------
-// 🚫 Rate limit
-// ----------------------
+// Rate limiting (100 reqs por 15 min por IP)
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 100,
   message: "Muitas requisições deste IP, tente novamente mais tarde.",
 });
-
 app.use("/login", limiter);
 app.use("/neon/login", limiter);
 
 // ----------------------
-// 📂 Arquivos estáticos
+// 🔧 Middlewares essenciais
 // ----------------------
-app.use("/uploads", express.static(path.resolve("uploads")));
+app.use(express.json({ limit: "10kb" }));
+
+// ----------------------
+// 🌐 CORS seguro
+// ----------------------
+const allowedOrigins = [
+  "http://localhost:3000",
+  "https://ppspi.netlify.app",
+  ...(process.env.BACKEND_URL?.split(",") || []),
+];
+
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      if (!origin) return callback(null, true);
+
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+
+      console.error("CORS bloqueado:", origin);
+
+      return callback(new Error("CORS bloqueado: origem não permitida"), false);
+    },
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
+    allowedHeaders: ["Content-Type", "Authorization", "login"],
+  }),
+);
 
 // ----------------------
 // 📌 Rotas
 // ----------------------
+
+app.use("/uploads", express.static(path.resolve("uploads")));
 app.use("/", userRoutes);
 app.use("/neon", userRoutesNeon);
 
-// ----------------------
-// ⚙️ Jobs (apenas local)
-// ----------------------
 if (process.env.NODE_ENV !== "production") {
   await import("./jobs/importCotasCopAutomatico.job.js");
 }
+// ----------------------
+// 🚀 Servidor
+// ----------------------
+const PORT = process.env.PORT || 8000;
 
-// ----------------------
-// 🚀 Export (Vercel)
-// ----------------------
+// 1. REGRA DA VERCEL: Exportar o app em vez de usar listen diretamente
 export default app;
 
-// ----------------------
-// 🖥️ Server local
-// ----------------------
+// 2. REGRA LOCAL: Só ativa o app.listen se não estiver na Vercel (produção)
 if (process.env.NODE_ENV !== "production") {
   const PORT = process.env.PORT || 8000;
-
   app.listen(PORT, "0.0.0.0", () => {
-    console.log(`Servidor rodando na porta ${PORT}`);
+    console.log(`Servidor rodando localmente na porta ${PORT}`);
   });
 }
