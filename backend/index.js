@@ -39,8 +39,11 @@ app.use(express.json({ limit: "10kb" }));
 // 🌐 CORS seguro
 // ----------------------
 const allowedOrigins = [
-  ...(process.env.BACKEND_URL || "").split(",").map((o) => o.trim()),
+  "http://localhost:3000",
+  "https://ppspi.netlify.app",
+  ...(process.env.BACKEND_URL?.split(",") || []),
 ];
+
 app.use(
   cors({
     origin: (origin, callback) => {
@@ -64,6 +67,7 @@ app.use(
 // 📌 Rotas
 // ----------------------
 
+app.use("/uploads", express.static(path.resolve("uploads")));
 app.use("/", userRoutes);
 app.use("/neon", userRoutesNeon);
 

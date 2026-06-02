@@ -1,84 +1,752 @@
+/* ===============================
+   BASE / VARIÁVEIS
+================================ */
+:root {
+  --primary: #d71920;
+  --primary-dark: #a90f15;
+  --text-main: #2f2f2f;
+  --text-muted: #777;
+  --border: #e4e4e4;
+  --bg-page: #f7f8fa;
+  --bg-card: #ffffff;
+  --shadow-card: 0 8px 24px rgba(0, 0, 0, 0.07);
+  --shadow-soft: 0 4px 14px rgba(0, 0, 0, 0.06);
+  --radius: 14px;
+}
+
+/* ===============================
+   NAV
+================================ */
+.nav {
+  width: 100%;
+  display: flex;
+  justify-content: flex-end;
+  padding: 18px 24px 0;
+}
+
 .nav button {
+  min-width: 180px;
+  height: 38px;
+  padding: 0 18px;
+
   display: flex;
   align-items: center;
-  text-align: center;
-  width: 120px;
-  height: 35px;
-  color: #928e8e;
-  text-decoration: none;
   justify-content: center;
-  border-bottom: 1px solid transparent;
-  border-image: linear-gradient(to right, transparent, gray, transparent) 1;
+
+  border: none;
+  border-radius: 999px;
+
+  background: linear-gradient(135deg, #d71920, #a90f15);
+  color: #fff;
+
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+
   cursor: pointer;
+  transition: all 0.25s ease;
+  box-shadow: 0 6px 16px rgba(215, 25, 32, 0.25);
 }
 
 .nav button:hover {
-  opacity: 0.9;
+  transform: translateY(-1px);
+  box-shadow: 0 9px 22px rgba(215, 25, 32, 0.32);
+  opacity: 0.95;
 }
 
+.nav button:active {
+  transform: translateY(0);
+}
+
+/* ===============================
+   MAIN
+================================ */
 .main {
+  width: 100%;
+  min-height: 100%;
+  padding: 24px;
+
   display: flex;
   flex-direction: column;
-  justify-content: center;
   align-items: center;
-  text-align: center;
-  width: 100%;
-  height: 100%;
+
+  background: linear-gradient(180deg, #fafafa 0%, #f4f5f7 100%);
 }
 
+/* ===============================
+   HEADER
+================================ */
 .main .header {
+  width: 100%;
+  max-width: 1280px;
+
   display: flex;
-  flex-direction: row;
-  justify-content: start;
   align-items: center;
-  text-align: start;
-  width: 100%;
-  height: 100%;
-  margin: 30px;
-  color: #3f3f3f;
+  gap: 14px;
+
+  margin: 10px 0 22px;
+  padding: 18px 22px;
+
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-soft);
+
+  color: var(--text-main);
 }
 
+.main .header .icon {
+  width: 52px;
+  height: 52px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 14px;
+  background: rgba(215, 25, 32, 0.08);
+}
+
+.main .header h2 {
+  margin: 0;
+  color: #262626;
+
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+}
+
+.main .header span {
+  display: block;
+  margin-top: 4px;
+
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 1.2px;
+}
+
+/* ===============================
+   FORM
+================================ */
 .main .form {
-  display: flex;
-  flex-direction: column;
-  justify-content: start;
-  align-items: start;
-  text-align: start;
   width: 100%;
-  height: 100%;
-}
+  max-width: 1280px;
 
-.main .form .grid .dados {
   display: flex;
-  align-items: start;
   flex-direction: column;
-  text-align: start;
-  border-bottom: 1px solid #7c7b7bcc;
-  padding: 5px;
-  margin-bottom: 5px;
+  gap: 18px;
+
+  padding: 0;
 }
 
+/* ===============================
+   GRID
+================================ */
+.main .form .grid {
+  width: 100%;
+
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+/* ===============================
+   CARD DAS SEÇÕES
+================================ */
+.main .form .grid .dados {
+  width: 100%;
+
+  display: flex;
+  flex-direction: column;
+
+  padding: 18px;
+  margin: 0;
+
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-card);
+
+  transition: all 0.25s ease;
+}
+
+.main .form .grid .dados:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.09);
+}
+
+/* Título da seção */
 .main .form .grid .dados > h3 {
   display: flex;
+  align-items: center;
+  gap: 8px;
+
+  margin: 0 0 16px;
+  padding-bottom: 12px;
+
+  border-bottom: 1px solid #eeeeee;
+
   color: #2e2e2e;
-  align-items: center;
-  text-align: start;
-  justify-content: start;
-  font-weight: normal;
+  font-size: 15px;
+  font-weight: 700;
 }
 
+.main .form .grid .dados > h3 span {
+  line-height: 1;
+}
+
+/* Conteúdo interno */
 .main .form .grid .dados aside {
-  display: flex;
-  align-items: center;
-  text-align: start;
-  justify-content: start;
-  gap: 10px;
-  padding: 15px;
+  width: 100%;
+
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+
+  padding: 0;
 }
 
-.main .form .grid .dados .field {
+/* ===============================
+   CAMPOS
+================================ */
+.main .form .grid .dados .field,
+.main .form > .field {
+  width: 100%;
+
   display: flex;
-  align-items: start;
-  text-align: start;
   flex-direction: column;
+  gap: 6px;
+}
+
+.main .form > .field {
+  max-width: 1280px;
+
+  padding: 18px;
+
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-soft);
+}
+
+.field label {
+  color: #555;
+
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.field input,
+.field select {
+  width: 100%;
+  min-height: 39px;
+
+  padding: 9px 11px;
+
+  border: 1px solid #d7d7d7;
+  border-radius: 10px;
+
+  background-color: #fff;
+  color: #333;
+
+  font-size: 13px;
+  outline: none;
+
+  transition: all 0.2s ease;
+}
+
+.field input:hover,
+.field select:hover {
+  border-color: #b8b8b8;
+}
+
+.field input:focus,
+.field select:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(215, 25, 32, 0.12);
+}
+
+.field input::placeholder {
+  color: #aaa;
+}
+
+.field select {
+  cursor: pointer;
+}
+
+/* Input file */
+.field input[type="file"] {
+  padding: 8px;
+  cursor: pointer;
+  background: #fafafa;
+}
+
+.field input[type="file"]::file-selector-button {
+  margin-right: 12px;
+  padding: 8px 14px;
+
+  border: none;
+  border-radius: 8px;
+
+  background: #333;
+  color: #fff;
+
+  font-size: 12px;
+  font-weight: 600;
+
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.field input[type="file"]::file-selector-button:hover {
+  background: var(--primary);
+}
+
+/* ===============================
+   FOOTER
+================================ */
+.footer {
+  width: 100%;
+  max-width: 1280px;
+
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 12px;
+
+  padding: 18px;
+
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-soft);
+}
+
+.footer button {
+  min-width: 120px;
+  height: 40px;
+
+  border: none;
+  border-radius: 10px;
+
+  font-size: 13px;
+  font-weight: 700;
+
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.cancel {
+  background: #f0f0f0;
+  color: #555;
+}
+
+.cancel:hover {
+  background: #e1e1e1;
+}
+
+.save {
+  background: linear-gradient(135deg, #d71920, #a90f15);
+  color: #fff;
+  box-shadow: 0 6px 16px rgba(215, 25, 32, 0.25);
+}
+
+.save:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 9px 22px rgba(215, 25, 32, 0.32);
+}
+
+.save:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ===============================
+   TABELAS GLOBAIS
+   Como suas tabelas não têm className,
+   uso :global para funcionar no CSS Module
+================================ */
+.main :global(main table) {
+  width: 100%;
+  border-collapse: separate !important;
+  border-spacing: 0;
+  overflow: hidden;
+
+  background: #fff;
+  border: 1px solid #e4e4e4 !important;
+  border-radius: 14px;
+
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.07);
+}
+
+.main :global(main table thead) {
+  background: linear-gradient(135deg, #2f2f2f, #1f1f1f);
+}
+
+.main :global(main table th) {
+  padding: 12px 14px;
+
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  text-align: left;
+  letter-spacing: 0.3px;
+
+  border: none !important;
+  white-space: nowrap;
+}
+
+.main :global(main table td) {
+  padding: 11px 14px;
+
+  color: #444;
+  font-size: 12px;
+
+  border: none !important;
+  border-bottom: 1px solid #eeeeee !important;
+  vertical-align: middle;
+}
+
+.main :global(main table tbody tr) {
+  transition: background 0.2s ease;
+}
+
+.main :global(main table tbody tr:hover) {
+  background: #fff4f4;
+}
+
+.main :global(main table tbody tr:last-child td) {
+  border-bottom: none !important;
+}
+
+.main :global(main table button) {
+  min-width: 82px;
+  height: 31px;
+
+  border: none;
+  border-radius: 8px;
+
+  background: #d71920;
+  color: #fff;
+
+  font-size: 12px;
+  font-weight: 700;
+
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.main :global(main table button:hover) {
+  background: #a90f15;
+  transform: translateY(-1px);
+}
+
+/* Links dentro da tabela */
+.main :global(main table a) {
+  color: #d71920;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.main :global(main table a:hover) {
+  text-decoration: underline;
+}
+
+/* ===============================
+   MAIN TABELA
+================================ */
+.mainTabela {
+  width: 100%;
+  min-height: 100%;
+  padding: 24px;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  background: linear-gradient(180deg, #fafafa 0%, #f4f5f7 100%);
+}
+
+/* Pega a div interna que está com style inline */
+.mainTabela > div {
+  width: 100% !important;
+  max-width: 1280px;
+
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+
+  padding: 0 !important;
+}
+
+/* ===============================
+   CARD ENVOLVENDO CADA TABELA
+   Como a tabela está direta dentro da div,
+   aplicamos o visual nela mesma
+================================ */
+.mainTabela table {
+  width: 100% !important;
+
+  border-collapse: separate !important;
+  border-spacing: 0;
+
+  margin-top: 0 !important;
+
+  background: #ffffff;
+
+  border: 1px solid #e4e4e4 !important;
+  border-radius: 14px;
+
+  overflow: hidden;
+
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.07);
+}
+
+/* ===============================
+   CABEÇALHO DA TABELA
+================================ */
+.mainTabela table thead {
+  background: linear-gradient(135deg, #2f2f2f, #1f1f1f);
+}
+
+.mainTabela table thead tr {
+  height: 46px;
+}
+
+.mainTabela table th {
+  padding: 13px 14px;
+
+  color: #ffffff;
+
+  font-size: 12px;
+  font-weight: 700;
+  text-align: left;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+
+  border: none !important;
+  white-space: nowrap;
+}
+
+/* ===============================
+   CORPO DA TABELA
+================================ */
+.mainTabela table td {
+  padding: 12px 14px;
+
+  color: #444444;
+
+  font-size: 12px;
+  font-weight: 500;
+  text-align: left;
+
+  border: none !important;
+  border-bottom: 1px solid #eeeeee !important;
+
+  vertical-align: middle;
+}
+
+/* Linhas */
+.mainTabela table tbody tr {
+  background: #ffffff;
+  transition: all 0.2s ease;
+}
+
+.mainTabela table tbody tr:hover {
+  background: #fff4f4;
+}
+
+/* Remove borda da última linha */
+.mainTabela table tbody tr:last-child td {
+  border-bottom: none !important;
+}
+
+/* Zebra opcional */
+.mainTabela table tbody tr:nth-child(even) {
+  background: #fafafa;
+}
+
+.mainTabela table tbody tr:nth-child(even):hover {
+  background: #fff4f4;
+}
+
+/* ===============================
+   BOTÃO ASSUMIR
+================================ */
+.mainTabela table button {
+  min-width: 88px;
+  height: 32px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  border: none;
+  border-radius: 9px;
+
+  background: linear-gradient(135deg, #d71920, #a90f15);
+  color: #ffffff;
+
+  font-size: 12px;
+  font-weight: 700;
+
+  cursor: pointer;
+
+  box-shadow: 0 5px 14px rgba(215, 25, 32, 0.25);
+  transition: all 0.2s ease;
+}
+
+.mainTabela table button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 20px rgba(215, 25, 32, 0.35);
+}
+
+.mainTabela table button:active {
+  transform: translateY(0);
+}
+
+/* ===============================
+   LINKBUTTON DENTRO DA TABELA
+================================ */
+.mainTabela table a {
+  color: #d71920;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.mainTabela table a:hover {
+  text-decoration: underline;
+}
+
+/* ===============================
+   AJUSTES DE COLUNAS
+================================ */
+.mainTabela table td:nth-child(1),
+.mainTabela table th:nth-child(1) {
+  min-width: 190px;
+}
+
+.mainTabela table td:nth-child(4),
+.mainTabela table th:nth-child(4) {
+  min-width: 110px;
+}
+
+.mainTabela table td:nth-child(5),
+.mainTabela table th:nth-child(5) {
+  min-width: 130px;
+}
+
+.mainTabela table td:nth-child(6),
+.mainTabela table th:nth-child(6) {
+  min-width: 150px;
+}
+
+/* ===============================
+   RESPONSIVO
+================================ */
+@media (max-width: 900px) {
+  .mainTabela {
+    padding: 14px;
+  }
+
+  .mainTabela > div {
+    overflow-x: auto;
+  }
+
+  .mainTabela table {
+    min-width: 900px;
+  }
+}
+
+@media (max-width: 600px) {
+  .mainTabela {
+    padding: 10px;
+  }
+
+  .mainTabela table th,
+  .mainTabela table td {
+    padding: 10px 12px;
+    font-size: 11px;
+  }
+
+  .mainTabela table button {
+    min-width: 78px;
+    height: 30px;
+    font-size: 11px;
+  }
+}
+
+/* ===============================
+   RESPONSIVO
+================================ */
+@media (max-width: 1100px) {
+  .main .form .grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 720px) {
+  .main {
+    padding: 14px;
+  }
+
+  .nav {
+    justify-content: center;
+    padding: 14px;
+  }
+
+  .nav button {
+    width: 100%;
+    max-width: 320px;
+  }
+
+  .main .header {
+    align-items: flex-start;
+    padding: 16px;
+  }
+
+  .main .header h2 {
+    font-size: 18px;
+  }
+
+  .main .form .grid .dados {
+    padding: 15px;
+  }
+
+  .main .form .grid .dados aside {
+    grid-template-columns: 1fr;
+  }
+
+  .footer {
+    flex-direction: column-reverse;
+  }
+
+  .footer button {
+    width: 100%;
+  }
+
+  .main :global(main table) {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+}
+
+@media (max-width: 480px) {
+  .main .header {
+    flex-direction: column;
+  }
+
+  .main .header .icon {
+    width: 46px;
+    height: 46px;
+  }
+
+  .field input,
+  .field select {
+    font-size: 12px;
+  }
 }

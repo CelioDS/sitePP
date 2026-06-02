@@ -469,7 +469,7 @@ export default function SuporteComercial({ pagina }) {
           </form>
         </main>
       ) : (
-        <main>
+        <main className={Style.mainTabela}>
           <div style={{ padding: "20px", width: "100%" }}>
             <table border="1" width="100%" style={{ marginTop: "15px" }}>
               <thead>
