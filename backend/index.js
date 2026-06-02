@@ -39,11 +39,8 @@ app.use(express.json({ limit: "10kb" }));
 // 🌐 CORS seguro
 // ----------------------
 const allowedOrigins = [
-  "http://localhost:3000",
-  "https://ppspi.netlify.app",
-  ...(process.env.BACKEND_URL?.split(",") || []),
+  ...(process.env.BACKEND_URL || "").split(",").map((o) => o.trim()),
 ];
-
 app.use(
   cors({
     origin: (origin, callback) => {
