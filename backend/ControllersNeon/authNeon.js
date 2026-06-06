@@ -17,7 +17,7 @@ export const LoginDBNeon = async (req, res) => {
 
     // 1) Busca pelo login (Postgres usa $1 e os dados vêm em result.rows)
     const query = `
-      SELECT id, login, nome, senha AS senha_hash, admin, canal, mis, mis_admin 
+      SELECT id, login, nome, senha AS senha_hash,  admin, canal, mis, mis_admin, hub, hub_admin 
       FROM usuariosagen 
       WHERE login = $1 
       LIMIT 1
@@ -57,6 +57,8 @@ export const LoginDBNeon = async (req, res) => {
         admin: user.admin,
         canal: user.canal,
         mis_admin: user.mis_admin,
+        hub: user.hub,
+        hub_admin: user.hub_admin,
       },
       process.env.JWT_SECRET,
       { expiresIn: "1h" }
@@ -74,6 +76,8 @@ export const LoginDBNeon = async (req, res) => {
         mis: user.mis,
         canal: user.canal,
         mis_admin: user.mis_admin,
+        hub: user.hub,
+        hub_admin: user.hub_admin,
       },
     });
   } catch (err) {
