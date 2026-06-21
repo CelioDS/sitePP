@@ -8,7 +8,7 @@ import LinkButton from "../Item-Layout/LinkButton";
 import RenameTitle from "../Tools/RenameTitle";
 import Container from "./Container";
 
-import styles from "./neon/SuporteComercialVisualizar.module.css";
+import styles from "./SuporteComercialVisualizar.module.css";
 
 export default function SuporteComercialVisualizar() {
   const Url = process.env.REACT_APP_API_URL || "http://localhost:8000";
@@ -45,7 +45,7 @@ export default function SuporteComercialVisualizar() {
   const fetchTable = async () => {
     try {
       setLoading(true);
-      const res = await axios.get(`${Url}/neon/suportecomercial/${id}`);
+      const res = await axios.get(`${Url}/suportecomercial/${id}`);
       setDataBase(res.data || []);
     } catch (err) {
       console.error("Erro ao buscar tabela:", err);
@@ -128,7 +128,7 @@ export default function SuporteComercialVisualizar() {
         formData.append("responsavel_anexo", anexo);
       }
 
-      await axios.patch(`${Url}/neon/suportecomercial/${id}`, formData, {
+      await axios.patch(`${Url}/suportecomercial/${id}`, formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
@@ -214,9 +214,9 @@ export default function SuporteComercialVisualizar() {
       <RenameTitle initialTitle="P&P - HUB" />
 
       <nav className={styles.navigation}>
-        <LinkButton to="/neon/suportecomercial?aba=tabelas" text="Voltar" />
+        <LinkButton to="/suportecomercial?aba=tabelas" text="Voltar" />
 
-        {hub && <LinkButton to="/neon/suportecomercial" text="nova solicitação" />}
+        {hub && <LinkButton to="/suportecomercial" text="nova solicitação" />}
       </nav>
 
       <main className={styles.main}>
