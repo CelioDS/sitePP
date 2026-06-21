@@ -25,6 +25,8 @@ export default function NavBar({ setPermission, permission }) {
   const mis = userData?.mis;
   const canal = userData?.canal;
   const login = userData?.login;
+  const hub = userData?.hub;
+  const hub_admin = userData?.hub_admin;
 
   // REMOVIDO: const [iconMenu, setIconMenu]...
   const [menuUp, setMenuUp] = useState(false);
@@ -191,15 +193,17 @@ export default function NavBar({ setPermission, permission }) {
             </>
           )}
 
-          <li>
-            <Link
-              onClick={() => openMenu("HUB")}
-              style={linkAtivo === "HUB" ? { color: colorLink } : {}}
-              to="/HUB"
-            >
-              HUB
-            </Link>
-          </li>
+          {(hub || hub_admin) && (
+            <li>
+              <Link
+                onClick={() => openMenu("HUB")}
+                style={linkAtivo === "HUB" ? { color: colorLink } : {}}
+                to="/HUB"
+              >
+                HUB
+              </Link>
+            </li>
+          )}
 
           <li className={styleExt.submenu}>
             {/* O link principal que sempre fica visível */}

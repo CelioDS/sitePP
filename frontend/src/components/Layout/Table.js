@@ -386,46 +386,47 @@ export default function Table({ canal, login, admin, Url }) {
                     <th>STATUS</th>
                   </>
                 )}
-                {canal === "PAP" && !!changeCarteira ? (
-                  <>
-                    <th>ANOMES </th>
-                    <th>CANAL </th>
-                    <th>ESTRUTURA </th>
-                    <th>IBGE </th>
-                    <th>CNPJ </th>
-                    <th>PARCEIRO_LOJA </th>
-                    <th>CLASSIFICACAO </th>
-                    <th>SEGMENTO </th>
-                    <th>LOGIN_NET </th>
-                    <th>LOGIN_CLARO </th>
-                    <th>NOME </th>
-                    <th>DATA_CADASTRO_VENDEDOR </th>
-                    <th>SITUACAO </th>
-                    <th>EXECUTIVO </th>
-                    <th>FILIAL_COORDENADOR </th>
-                  </>
-                ) : (
-                  <>
-                    <th>ANOMES</th>
-                    <th>REGIONAL</th>
-                    <th>MAT BCC</th>
-                    <th>MAT REVOLUTION</th>
-                    <th>FUNCIONÁRIO</th>
-                    <th>CARGO</th>
-                    <th>GESTOR 1</th>
-                    <th>GESTOR 2</th>
-                    <th>GESTOR 3</th>
-                    <th>CIDADE</th>
-                    <th>STATUS</th>
-                    <th>ADMISSÃO</th>
-                    <th>LOGIN NET</th>
-                    <th>CANAL</th>
-                    <th>CHAVE</th>
-                    <th>MATRICULA EXECUTIVO</th>
-                    <th>EXECUTIVO</th>
-                    <th>FILIAL_COORDENADOR</th>
-                  </>
-                )}
+                {canal === "PAP" &&
+                  (!!changeCarteira ? (
+                    <>
+                      <th>ANOMES </th>
+                      <th>CANAL </th>
+                      <th>ESTRUTURA </th>
+                      <th>IBGE </th>
+                      <th>CNPJ </th>
+                      <th>PARCEIRO_LOJA </th>
+                      <th>CLASSIFICACAO </th>
+                      <th>SEGMENTO </th>
+                      <th>LOGIN_NET </th>
+                      <th>LOGIN_CLARO </th>
+                      <th>NOME </th>
+                      <th>DATA_CADASTRO_VENDEDOR </th>
+                      <th>SITUACAO </th>
+                      <th>EXECUTIVO </th>
+                      <th>FILIAL_COORDENADOR </th>
+                    </>
+                  ) : (
+                    <>
+                      <th>ANOMES</th>
+                      <th>REGIONAL</th>
+                      <th>MAT BCC</th>
+                      <th>MAT REVOLUTION</th>
+                      <th>FUNCIONÁRIO</th>
+                      <th>CARGO</th>
+                      <th>GESTOR 1</th>
+                      <th>GESTOR 2</th>
+                      <th>GESTOR 3</th>
+                      <th>CIDADE</th>
+                      <th>STATUS</th>
+                      <th>ADMISSÃO</th>
+                      <th>LOGIN NET</th>
+                      <th>CANAL</th>
+                      <th>CHAVE</th>
+                      <th>MATRICULA EXECUTIVO</th>
+                      <th>EXECUTIVO</th>
+                      <th>FILIAL_COORDENADOR</th>
+                    </>
+                  ))}
                 {canal === "PME" && (
                   <>
                     <th>ANOMES</th>
@@ -545,46 +546,47 @@ export default function Table({ canal, login, admin, Url }) {
                         <td>{item.TIME}</td>
                       </>
                     )}
-                    {canal === "PAP" && !!changeCarteira ? (
-                      <>
-                        <td>{item.ANOMES}</td>
-                        <td>{item.CANAL}</td>
-                        <td>{item.ESTRUTURA}</td>
-                        <td>{item.IBGE}</td>
-                        <td>{item.CNPJ}</td>
-                        <td>{item.PARCEIRO_LOJA}</td>
-                        <td>{item.CLASSIFICACAO}</td>
-                        <td>{item.SEGMENTO}</td>
-                        <td>{item.LOGIN_NET}</td>
-                        <td>{item.LOGIN_CLARO}</td>
-                        <td>{item.NOME}</td>
-                        <td>{item.DATA_CADASTRO_VENDEDOR}</td>
-                        <td>{item.SITUACAO}</td>
-                        <td>{item.EXECUTIVO}</td>
-                        <td>{item.FILIAL_COORDENADOR}</td>
-                      </>
-                    ) : (
-                      <>
-                        <td>{item.ANOMES}</td>
-                        <td>{item.REGIONAL}</td>
-                        <td>{item.MAT_BCC}</td>
-                        <td>{item.MAT_REVOLUTION}</td>
-                        <td>{item.FUNCIONARIO}</td>
-                        <td>{item.CARGO}</td>
-                        <td>{item.GESTOR_1}</td>
-                        <td>{item.GESTOR_2}</td>
-                        <td>{item.GESTOR_3}</td>
-                        <td>{item.CIDADE}</td>
-                        <td>{item.STATUS}</td>
-                        <td>{item.ADMISSAO}</td>
-                        <td>{item.LOGIN_NET}</td>
-                        <td>{item.CANAL}</td>
-                        <td>{item.CHAVE}</td>
-                        <td>{item.MATRICULA_EXECUTIVO}</td>
-                        <td>{item.EXECUTIVO}</td>
-                        <td>{item.FILIAL_COORDENADOR}</td>
-                      </>
-                    )}
+                    {canal === "PAP" &&
+                      (!!changeCarteira ? (
+                        <>
+                          <td>{item.ANOMES}</td>
+                          <td>{item.CANAL}</td>
+                          <td>{item.ESTRUTURA}</td>
+                          <td>{item.IBGE}</td>
+                          <td>{item.CNPJ}</td>
+                          <td>{item.PARCEIRO_LOJA}</td>
+                          <td>{item.CLASSIFICACAO}</td>
+                          <td>{item.SEGMENTO}</td>
+                          <td>{item.LOGIN_NET}</td>
+                          <td>{item.LOGIN_CLARO}</td>
+                          <td>{item.NOME}</td>
+                          <td>{item.DATA_CADASTRO_VENDEDOR}</td>
+                          <td>{item.SITUACAO}</td>
+                          <td>{item.EXECUTIVO}</td>
+                          <td>{item.FILIAL_COORDENADOR}</td>
+                        </>
+                      ) : (
+                        <>
+                          <td>{item.ANOMES}</td>
+                          <td>{item.REGIONAL}</td>
+                          <td>{item.MAT_BCC}</td>
+                          <td>{item.MAT_REVOLUTION}</td>
+                          <td>{item.FUNCIONARIO}</td>
+                          <td>{item.CARGO}</td>
+                          <td>{item.GESTOR_1}</td>
+                          <td>{item.GESTOR_2}</td>
+                          <td>{item.GESTOR_3}</td>
+                          <td>{item.CIDADE}</td>
+                          <td>{item.STATUS}</td>
+                          <td>{item.ADMISSAO}</td>
+                          <td>{item.LOGIN_NET}</td>
+                          <td>{item.CANAL}</td>
+                          <td>{item.CHAVE}</td>
+                          <td>{item.MATRICULA_EXECUTIVO}</td>
+                          <td>{item.EXECUTIVO}</td>
+                          <td>{item.FILIAL_COORDENADOR}</td>
+                        </>
+                      ))}
                     {canal === "Varejo" && (
                       <>
                         <td>{item.ANOMES}</td>

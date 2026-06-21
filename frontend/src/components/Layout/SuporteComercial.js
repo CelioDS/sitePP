@@ -1,22 +1,26 @@
-import { useState, useEffect } from "react";
 import axios from "axios";
+import Container from "./Container";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { useSearchParams } from "react-router-dom";
-import Style from "./SuporteComercial.module.css";
 import RenameTitle from "../Tools/RenameTitle";
-import Container from "./Container";
-import { AiOutlineGlobal, AiFillPlayCircle } from "react-icons/ai";
 import ValidarToken from "../Tools/ValidarToken";
+import Style from "./SuporteComercial.module.css";
 import LinkButton from "../Item-Layout/LinkButton";
+import { useSearchParams } from "react-router-dom";
+import { useState, useEffect, useMemo, useRef } from "react";
+import { AiOutlineGlobal, AiFillPlayCircle } from "react-icons/ai";
 
 export default function SuporteComercial({ pagina }) {
   const Url = process.env.REACT_APP_API_URL || "http://localhost:8000";
 
   const [userData, setUserData] = useState();
+  const hub = userData?.hub;
   const login = userData?.login;
+  const inputAnexoRef = useRef(null);
+  const hub_admin = userData?.hub_admin;
   const [loading, setLoading] = useState(false);
   const [dataBase, setDataBase] = useState([]);
+  const [abaTabela, setAbaTabela] = useState("PENDENTES");
 
   // ✅ STATES SEPARADOS
   const [tipoSolicitacao, setTipoSolicitacao] = useState("");
@@ -26,8 +30,8 @@ export default function SuporteComercial({ pagina }) {
   const [canal, setCanal] = useState("");
   const [anexo, setAnexo] = useState(null);
   const [sistema, setSistema] = useState("");
+  const [descricaoSolicitacao, setDescricaoSolicitacao] = useState("");
   const [HPCliente, setHPCliente] = useState("");
-  const [descricao, setDescricao] = useState("");
   const [cpfCliente, setCpfCliente] = useState("");
   const [observacao, setObservacao] = useState("");
   const [razaoSocial, setRazaoSocial] = useState("");
@@ -44,11 +48,16 @@ export default function SuporteComercial({ pagina }) {
     if (aba === "tabelas") return false;
     return pagina ?? true;
   });
+
   useEffect(() => {
     async function fetchTable() {
       try {
         const res = await axios.get(`${Url}/suportecomercial`);
-        setDataBase(res.data);
+
+        const ordenado = res.data.sort(
+          (a, b) => new Date(a.data_criacao) - new Date(b.data_criacao),
+        );
+        setDataBase(ordenado);
       } catch (err) {
         console.error("Erro ao buscar tabela", err);
       }
@@ -59,7 +68,87 @@ export default function SuporteComercial({ pagina }) {
     }
   }, [Url, handlePagina]);
 
-  //verificar se e para voltar na tabela
+  //Dados contadores
+  const contadores = useMemo(() => {
+    let pendente = 0;
+    let tratamento = 0;
+    let finalizado = 0;
+
+    if (hub) {
+      if (!Array.isArray(dataBase))
+        return { pendente: 0, tratamento: 0, finalizado: 0 };
+
+      pendente = dataBase.filter(
+        (item) =>
+          (!item.responsavel || item.status_solicitacao === "PENDENTeE") &&
+          item.criado_por === login,
+      ).length;
+      tratamento = dataBase.filter(
+        (item) =>
+          item.status_solicitacao === "TRATAMENTO" && item.criado_por === login,
+      ).length;
+      finalizado = dataBase.filter(
+        (item) =>
+          item.status_solicitacao === "FINALIZADO" && item.criado_por === login,
+      ).length;
+    }
+    if (hub_admin) {
+      if (!Array.isArray(dataBase))
+        return { pendente: 0, tratamento: 0, finalizado: 0 };
+
+      pendente = dataBase.filter(
+        (item) => !item.responsavel || item.status_solicitacao === "PENDENTeE",
+      ).length;
+      tratamento = dataBase.filter(
+        (item) =>
+          item.status_solicitacao === "TRATAMENTO" &&
+          item.responsavel === login,
+      ).length;
+      finalizado = dataBase.filter(
+        (item) =>
+          item.status_solicitacao === "FINALIZADO" &&
+          item.responsavel === login,
+      ).length;
+    }
+    return { pendente, tratamento, finalizado };
+  }, [dataBase, hub, hub_admin, login]);
+
+  // dados filtrados para tabela
+  const dadosFiltrados = useMemo(() => {
+    if (!Array.isArray(dataBase)) return [];
+
+    return dataBase.filter((item) => {
+      const status = String(item.status_solicitacao || "").toUpperCase();
+      const responsavel = item.responsavel;
+      const criado_por = item.criado_por;
+
+      if (hub_admin) {
+        if (abaTabela === "PENDENTES") {
+          return !responsavel || status === "PENDENTE";
+        }
+        if (abaTabela === "TRATAMENTOS") {
+          return status === "TRATAMENTO" && responsavel === login;
+        }
+        if (abaTabela === "FINALIZADOS") {
+          return status === "FINALIZADO" && responsavel === login;
+        }
+      }
+      if (hub) {
+        if (abaTabela === "PENDENTES") {
+          return (
+            (!responsavel || status === "PENDENTE") && criado_por === login
+          );
+        }
+        if (abaTabela === "TRATAMENTOS") {
+          return status === "TRATAMENTO" && criado_por === login;
+        }
+        if (abaTabela === "FINALIZADOS") {
+          return status === "FINALIZADO" && criado_por === login;
+        }
+      }
+      return true;
+    });
+  }, [dataBase, hub_admin, hub, abaTabela, login]);
 
   // ✅ USER
   useEffect(() => {
@@ -74,16 +163,26 @@ export default function SuporteComercial({ pagina }) {
     fetchUser();
   }, []);
 
+  useEffect(() => {
+    if (userData?.hub_admin) {
+      setHandlePagina(false); // vai direto para tabela
+    }
+  }, [userData]);
+
+  //assumir demanda
   const handleAssumir = async (id) => {
     try {
       const item = dataBase.find((i) => i.id === id);
-      if (item?.assumiu) {
-        toast.warning(`Demanda já assumida por outro usuario ${item?.assumiu}`);
+      if (item?.responsavel) {
+        toast.warning(
+          `Demanda já assumida por outro usuario ${item?.responsavel}`,
+        );
         return;
       }
 
-      await axios.patch(`${Url}/suportecomercial/${id}`, {
-        assumiu: userData?.login,
+      await axios.patch(`${Url}/neon/suportecomercial/${id}`, {
+        responsavel: userData?.login,
+        status_solicitacao: "TRATAMENTO",
       });
 
       setDataBase((prev) =>
@@ -91,7 +190,8 @@ export default function SuporteComercial({ pagina }) {
           info.id === id
             ? {
                 ...info,
-                assumiu: userData?.login,
+                responsavel: userData?.login,
+                status_solicitacao: "TRATAMENTO",
               }
             : info,
         ),
@@ -101,6 +201,82 @@ export default function SuporteComercial({ pagina }) {
     } catch (err) {
       console.error(err.message, "handleassumir");
       toast.error("Erro ao assumir ❌");
+    }
+  };
+
+  //verficar foto
+  const tiposImagemPermitidos = [
+    "image/jpeg",
+    "image/jpg",
+    "image/png",
+    "image/webp",
+    "image/heic",
+    "image/heif",
+  ];
+
+  const handleAnexoChange = (e) => {
+    const file = e.target.files?.[0];
+
+    if (!file) {
+      setAnexo(null);
+      return;
+    }
+
+    if (!tiposImagemPermitidos.includes(file.type)) {
+      toast.warning(
+        "Anexo permitido somente em formato de foto: JPG, PNG, WEBP ou HEIC ⚠️",
+      );
+      e.target.value = "";
+      setAnexo(null);
+      return;
+    }
+
+    const tamanhoMaximoMB = 5;
+    const tamanhoMaximoBytes = tamanhoMaximoMB * 1024 * 1024;
+
+    if (file.size > tamanhoMaximoBytes) {
+      toast.warning(`A foto deve ter no máximo ${tamanhoMaximoMB}MB ⚠️`);
+      e.target.value = "";
+      setAnexo(null);
+      return;
+    }
+
+    setAnexo(file);
+  };
+
+  const sla = (data) => {
+    try {
+      if (!data) return null;
+
+      const agora = new Date();
+      const dataInput = new Date(data);
+
+      // valida data
+      if (isNaN(dataInput.getTime())) {
+        throw new Error("Data inválida");
+      }
+
+      // diferença em ms
+      const diffMs = agora - dataInput;
+
+      // converter para horas
+      const diffHoras = diffMs / (1000 * 60 * 60);
+      console.log(agora, dataInput, diffHoras);
+      // regra SLA
+      if (diffHoras <= 24) {
+        return {
+          status: "verde",
+          horas: diffHoras.toFixed(2),
+        };
+      } else {
+        return {
+          status: "vermelho",
+          horas: diffHoras.toFixed(2),
+        };
+      }
+    } catch (error) {
+      console.error("Erro no SLA:", error.message);
+      return null;
     }
   };
 
@@ -119,30 +295,40 @@ export default function SuporteComercial({ pagina }) {
     try {
       setLoading(true);
 
-      await axios.post(`${Url}/suportecomercial/add`, {
-        tipoSolicitacao,
-        canal,
-        sistema,
-        numeroProposta,
-        numeroContrato,
-        numeroPedido,
-        cnpj,
-        razaoSocial,
-        nome,
-        email,
-        loginUsuario,
-        observacao,
-        HPCliente,
-        enderecoCliente,
-        cpfCliente,
-        nomeCliente,
-        anexo,
-        responsavel: userData.login,
+      const formData = new FormData();
+
+      formData.append("tipoSolicitacao", tipoSolicitacao);
+      formData.append("canal", canal);
+      formData.append("sistema", sistema);
+      formData.append("numeroProposta", numeroProposta);
+      formData.append("numeroContrato", numeroContrato);
+      formData.append("numeroPedido", numeroPedido);
+      formData.append("cnpj", cnpj);
+      formData.append("razaoSocial", razaoSocial);
+      formData.append("nome", nome);
+      formData.append("email", email);
+      formData.append("loginUsuario", loginUsuario);
+      formData.append("status_solicitacao", "PENDENTE");
+      formData.append("observacao", observacao);
+      formData.append("descricaoSolicitacao", descricaoSolicitacao);
+      formData.append("HPCliente", HPCliente);
+      formData.append("enderecoCliente", enderecoCliente);
+      formData.append("cpfCliente", cpfCliente);
+      formData.append("nomeCliente", nomeCliente);
+      formData.append("criado_por", userData.login);
+
+      if (anexo) {
+        formData.append("anexo", anexo);
+      }
+
+      await axios.post(`${Url}/neon/suportecomercial/add`, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
       });
 
       toast.success("Salvo com sucesso ✅");
 
-      // reset
       setTipoSolicitacao("");
       setCanal("");
       setSistema("");
@@ -152,17 +338,32 @@ export default function SuporteComercial({ pagina }) {
       setCnpj("");
       setRazaoSocial("");
       setNome("");
-      setAnexo("");
+      setEmail("");
+      setAnexo(null);
       setloginUsuario("");
       setObservacao("");
+      setDescricaoSolicitacao("");
+      setHPCliente("");
+      setEnderecoCliente("");
+      setCpfCliente("");
+      setnomeCliente("");
+
+      if (inputAnexoRef.current) {
+        inputAnexoRef.current.value = "";
+      }
     } catch (err) {
-      toast.error("Erro ao salvar ❌");
-      console.error(err);
+      console.error("Erro ao salvar suporte comercial:", err);
+
+      const mensagem =
+        err?.response?.data?.message ||
+        err?.response?.data?.error ||
+        "Erro ao salvar ❌";
+
+      toast.error(mensagem);
     } finally {
       setLoading(false);
     }
   };
-
   // objeto de controle de inputs regra
   const camposPorSistema = {
     SOLAR: ["numeroProposta", "numeroPedido"],
@@ -180,19 +381,19 @@ export default function SuporteComercial({ pagina }) {
     <Container>
       <RenameTitle initialTitle={"P&P - HUB"} />
 
-      
-
-      <nav className={Style.nav}>
-        {handlePagina ? (
-          <button onClick={() => setHandlePagina(false)}>
-            Ver minhas solicitações
-          </button>
-        ) : (
-          <button onClick={() => setHandlePagina(true)}>
-            Nova solicitação
-          </button>
-        )}
-      </nav>
+      {!hub_admin && (
+        <nav className={Style.nav}>
+          {handlePagina ? (
+            <button onClick={() => setHandlePagina(false)}>
+              Ver minhas solicitações
+            </button>
+          ) : (
+            <button onClick={() => setHandlePagina(true)}>
+              Nova solicitação
+            </button>
+          )}
+        </nav>
+      )}
       {handlePagina ? (
         <main className={Style.main}>
           {/* HEADER */}
@@ -202,7 +403,7 @@ export default function SuporteComercial({ pagina }) {
             </div>
             <div>
               <h2>SUPORTE COMERCIAL</h2>
-              <span>GESTÃO DE ACESSO</span>
+              <span>GESTÃO DE RESOLUÇÃO</span>
             </div>
           </header>
 
@@ -234,6 +435,7 @@ export default function SuporteComercial({ pagina }) {
                       <option>ERRO NA FERRAMENTA</option>
                       <option>ERRO AO INSERIR PRODUTOS</option>
                       <option>ERRO AO AGENDAR PROPOSTA</option>
+                      <option>ERRO AO AGENDAR CONTRATO</option>
                       <option>ERRO NA MUDANÇA DE PACOTE</option>
                       <option>ERRO AO FINALIZAR PROPOSTA</option>
                       <option>ERRO NA EXECUÇÃO DO GATILHO</option>
@@ -312,8 +514,10 @@ export default function SuporteComercial({ pagina }) {
                     <div className={Style.field}>
                       <label>Descrição</label>
                       <input
-                        value={descricao}
-                        onChange={(e) => setDescricao(e.target.value)}
+                        value={descricaoSolicitacao}
+                        onChange={(e) =>
+                          setDescricaoSolicitacao(e.target.value)
+                        }
                       />
                     </div>
                   )}
@@ -412,7 +616,7 @@ export default function SuporteComercial({ pagina }) {
                     />
                   </div>
                   <div className={Style.field}>
-                    <label>ENDEREÇO</label>
+                    <label>ENDEREÇO COMPLETO</label>
                     <input
                       value={enderecoCliente}
                       onChange={(e) => setEnderecoCliente(e.target.value)}
@@ -433,9 +637,11 @@ export default function SuporteComercial({ pagina }) {
             <div className={Style.field}>
               <label>Anexo</label>
               <input
+                ref={inputAnexoRef}
                 type="file"
                 name="anexo"
-                onChange={(e) => setAnexo(e.target.files[0])}
+                accept="image/jpeg,image/png,image/webp,image/heic,image/heif"
+                onChange={handleAnexoChange}
               />
             </div>
 
@@ -470,7 +676,47 @@ export default function SuporteComercial({ pagina }) {
         </main>
       ) : (
         <main className={Style.mainTabela}>
+          <header className={Style.display}>
+            <aside>
+              <p>PENDENTE</p>
+              <span>{contadores.pendente}</span>
+            </aside>
+            <aside>
+              <p>TRATAMENTO</p>
+              <span>{contadores.tratamento}</span>
+            </aside>
+            <aside>
+              <p>FINALIZADO</p>
+              <span>{contadores.finalizado}</span>
+            </aside>
+          </header>
+
+          <div className={Style.btnsTabela}>
+            <button
+              type="button"
+              className={abaTabela === "PENDENTES" ? Style.abaAtiva : ""}
+              onClick={() => setAbaTabela("PENDENTES")}
+            >
+              pendentes
+            </button>
+            <button
+              type="button"
+              className={abaTabela === "TRATAMENTOS" ? Style.abaAtiva : ""}
+              onClick={() => setAbaTabela("TRATAMENTOS")}
+            >
+              tratamentos
+            </button>
+            <button
+              type="button"
+              className={abaTabela === "FINALIZADOS" ? Style.abaAtiva : ""}
+              onClick={() => setAbaTabela("FINALIZADOS")}
+            >
+              finalizados
+            </button>
+          </div>
+
           <div style={{ padding: "20px", width: "100%" }}>
+            <h1>{abaTabela}</h1>
             <table border="1" width="100%" style={{ marginTop: "15px" }}>
               <thead>
                 <tr>
@@ -481,73 +727,106 @@ export default function SuporteComercial({ pagina }) {
                   <th>CNPJ</th>
                   <th>Nome</th>
                   <th>LOGIN</th>
-                  <th>Responsável</th>
-                  <th>Assumir</th>
+                  {abaTabela !== "FINALIZADOS" && <th>SLA</th>}
+                  {hub && abaTabela !== "PENDENTES" && <th>RESPONSAVEL</th>}
+                  {hub_admin && <th>CRIADOR POR</th>}
+
+                  {hub_admin && abaTabela === "PENDENTES" && (
+                    <>
+                      <th>Assumir</th>
+                    </>
+                  )}
                 </tr>
               </thead>
 
               <tbody>
-                {dataBase.map(
-                  (item) =>
-                    !item?.assumiu && (
-                      <tr key={item.id}>
-                        <td>{item.tipo_solicitacao}</td>
-                        <td>{item.canal}</td>
-                        <td>{item.sistema}</td>
-                        <td>{item.numero_proposta}</td>
-                        <td>{item.cnpj}</td>
-                        <td>{item.nome}</td>
-                        <td>{item.status_iw}</td>
-                        <td>{item.assumiu}</td>
-                        <td>
-                          <button
-                            onClick={() => {
-                              handleAssumir(item.id);
-                            }}
-                          >
-                            Assumir
-                          </button>
-                        </td>
-                      </tr>
-                    ),
-                )}
-              </tbody>
-            </table>
-
-            <table border="1" width="100%" style={{ marginTop: "15px" }}>
-              <thead>
-                <tr>
-                  <th>Tipo</th>
-                  <th>Canal</th>
-                  <th>Sistema</th>
-                  <th>Proposta</th>
-                  <th>CNPJ</th>
-                  <th>Nome</th>
-                  <th>LOGIN</th>
-                  <th>Responsável</th>
-                </tr>
-              </thead>
-
-              <tbody>
-                {dataBase.map(
-                  (item) =>
-                    item?.assumiu === login && (
-                      <tr key={item.id}>
+                {dadosFiltrados.length === 0 ? (
+                  <tr>
+                    <td cols={hub_admin ? 13 : 12}>
+                      Nenhuma solicitacao encontrada
+                    </td>
+                  </tr>
+                ) : (
+                  dadosFiltrados.map((item) => (
+                    <tr key={item.id}>
+                      {hub && (
                         <td>
                           <LinkButton
                             to={`/SuporteComercialVisualizar/${item.id}`}
                             text={`${item.tipo_solicitacao}`}
                           />
                         </td>
-                        <td>{item.canal}</td>
-                        <td>{item.sistema}</td>
-                        <td>{item.numero_proposta}</td>
-                        <td>{item.cnpj}</td>
-                        <td>{item.nome}</td>
-                        <td>{item.status_iw}</td>
+                      )}
+                      {hub_admin && abaTabela === "PENDENTES" && (
+                        <td>{item.tipo_solicitacao}</td>
+                      )}
+                      {hub_admin && abaTabela === "TRATAMENTOS" && (
+                        <td>
+                          <LinkButton
+                            to={`/SuporteComercialVisualizar/${item.id}`}
+                            text={`${item.tipo_solicitacao}`}
+                          />
+                        </td>
+                      )}
+                      {item?.responsavel === login &&
+                        abaTabela === "FINALIZADOS" && (
+                          <tr key={item.id}>
+                            <td>
+                              <LinkButton
+                                to={`/SuporteComercialVisualizar/${item.id}`}
+                                text={`${item.tipo_solicitacao}`}
+                              />
+                            </td>
+                          </tr>
+                        )}
+
+                      <td>{item.canal}</td>
+                      <td>{item.sistema}</td>
+                      <td>{item.numero_proposta}</td>
+                      <td>{item.cnpj}</td>
+                      <td>{item.nome}</td>
+                      <td>{item.login_usuario}</td>
+
+                      {abaTabela !== "FINALIZADOS" && (
+                        <td
+                          style={{
+                            color:
+                              sla(item.data_atualizacao)?.status === "verde"
+                                ? "#23a31fdd"
+                                : "#bb1d1ddd",
+                          }}
+                        >
+                          {(() => {
+                            const resultado = sla(item.data_atualizacao);
+                            if (!resultado) return "-";
+
+                            return resultado.status === "verde"
+                              ? `Dentro SLA (${resultado.horas}h)`
+                              : `Fora SLA (${resultado.horas}h)`;
+                          })()}
+                        </td>
+                      )}
+
+                      {hub_admin && <td>{item.criado_por}</td>}
+                      {hub && abaTabela !== "PENDENTES" && (
                         <td>{item.responsavel}</td>
-                      </tr>
-                    ),
+                      )}
+
+                      {hub_admin && abaTabela === "PENDENTES" && (
+                        <>
+                          <td>
+                            <button
+                              onClick={() => {
+                                handleAssumir(item.id);
+                              }}
+                            >
+                              Assumir
+                            </button>
+                          </td>
+                        </>
+                      )}
+                    </tr>
+                  ))
                 )}
               </tbody>
             </table>

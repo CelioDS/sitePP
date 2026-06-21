@@ -73,7 +73,7 @@ import {
   patchSuporteComercial,
   getSuporteComercialID,
   deleteSuporteComercial,
-  /*uploadSuporte,*/
+  uploadSuporte,
 } from "../Controllers/HUB/ControllersHub.js";
 
 const router = express.Router();
@@ -100,10 +100,17 @@ router.get("/exclusivos", getExclusivos);
 
 router.get("/suportecomercial", getSuporteComercial);
 router.get("/suportecomercial/:id", getSuporteComercialID);
-router.patch("/suportecomercial/:id", patchSuporteComercial);
+router.post(
+  "/suportecomercial/add",
+  uploadSuporte.single("anexo"),
+  setSuporteComercial,
+);
+router.patch(
+  "/suportecomercial/:id",
+  uploadSuporte.single("responsavel_anexo"), // ✅ ADD AQUI
+  patchSuporteComercial,
+);
 router.delete("/suportecomercial/:id", deleteSuporteComercial);
-
-
 
 /*------------------ ROTAS RAIZ ANALLITICAS ------------------*/
 

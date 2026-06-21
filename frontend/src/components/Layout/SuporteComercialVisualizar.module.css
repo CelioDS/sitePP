@@ -317,6 +317,40 @@
   background: #d71920;
 }
 
+/*header*/
+
+.card .header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+.card .header > div {
+  display: flex;
+  flex-direction: row;
+  text-align: center;
+  justify-content: center;
+  color: #555454;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.45px;
+  text-transform: uppercase;
+  gap: 6px;
+}
+.card .header > div > label {
+  color: #555454;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.45px;
+  text-transform: uppercase;
+  gap: 6px;
+}
+.card .header > div > input {
+  color: #555454;
+  outline: none;
+  border: none;
+}
 /* ===============================
    ACTIONS
 ================================ */

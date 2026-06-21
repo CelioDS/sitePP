@@ -453,10 +453,13 @@ export default function DashboardAnalytics({
                   },
                 },
                 yaxis: {
-                  //min: 0,
-                  //max:
-                  //  Math.max(...rankingMelhores.map((c) => c.valorCotaBarra)) + 10,
-                  //forceNiceScale: false,
+                  min: 0,
+                  max:
+                    Math.max(...rankingMelhores.map((c) => c.valorCotaBarra)) + 6.5,
+                  forceNiceScale: false,
+                 labels: {
+               formatter: (val) => Math.round(val),
+              },
                 },
                 xaxis: {
                   categories: rankingMelhores.map((c) =>
@@ -582,8 +585,12 @@ export default function DashboardAnalytics({
                 yaxis: {
                   min: 0,
                   max:
-                    Math.max(...rankingPiores.map((c) => c.valorCotaBarra)) + 1,
+                    Math.max(...rankingPiores.map((c) => c.valorCotaBarra)) + 6.5,
                   forceNiceScale: false,
+
+                  labels: {
+                    formatter: (val) => Math.round(val),
+                  },
                 },
                 xaxis: {
                   categories: rankingPiores.map((c) =>
@@ -669,7 +676,7 @@ export default function DashboardAnalytics({
                         },
                         label: {
                           text: delta > 0 ? `+${delta}` : `${delta}`,
-                         offsetX: 20,
+                          offsetX: 20,
                           offsetY: -16,
                           borderColor: "transparent",
                           style: {

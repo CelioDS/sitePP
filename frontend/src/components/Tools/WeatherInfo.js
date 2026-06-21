@@ -4,8 +4,8 @@ import { fetchWeatherApi } from "openmeteo";
 export default function WeatherInfo({ cidade }) {
   const [clima, setClima] = useState(null);
 
-  const CACHE_TIME = 10 * 60 * 6000; // 10 minutos
-
+  const CACHE_TIME = 9 * 60 * 60 * 1000; // 9 horas
+  
   function weatherCodeToText(code) {
     const map = {
       0: "céu limpo",
@@ -28,8 +28,7 @@ export default function WeatherInfo({ cidade }) {
     if (code >= 61 && code <= 65)
       return "https://img.icons8.com/color/48/rain.png";
 
-    if (code >= 80)
-      return "https://img.icons8.com/color/48/storm.png";
+    if (code >= 80) return "https://img.icons8.com/color/48/storm.png";
 
     if (code === 0) {
       return isDay
@@ -71,8 +70,8 @@ export default function WeatherInfo({ cidade }) {
         // 🌐 2. Geocoding
         const geoRes = await fetch(
           `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(
-            cityClean
-          )}&count=1&language=pt&format=json`
+            cityClean,
+          )}&count=1&language=pt&format=json`,
         ).then((r) => r.json());
 
         if (!geoRes.results?.length) return;
@@ -118,7 +117,7 @@ export default function WeatherInfo({ cidade }) {
           JSON.stringify({
             data,
             timestamp: Date.now(),
-          })
+          }),
         );
 
         setClima(data);
@@ -128,7 +127,7 @@ export default function WeatherInfo({ cidade }) {
     };
 
     loadWeather();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cidade]);
 
   if (!clima)
