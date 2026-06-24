@@ -152,7 +152,7 @@ export default function Cotas() {
         const [
           resCotas,
           /*resOcupacao, resOcupacaoCidades*/
-        ] = await Promise.all([axios.get(`${Url}/neon/cotas-cop`), ,]);
+        ] = await Promise.all([axios.get(`${Url}/neon/cotas-cop`), ]);
 
         const lista = Object.values(resCotas.data || {});
         /*const listaOcupacao = resOcupacao.data || [];
