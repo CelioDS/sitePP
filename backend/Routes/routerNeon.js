@@ -11,6 +11,8 @@ import {
   getPDUMovel,
   getPduFull,
   getPduFullGrafico,
+  porcentagem_ocupacao,
+  porcentagem_ocupacao_cidades
 } from "../ControllersNeon/neon.js";
 
 import { LoginDBNeon, validateTokenNeon } from "../ControllersNeon/authNeon.js";
@@ -38,7 +40,11 @@ router.get("/PduFullGrafico", getPduFullGrafico);
 
 router.get("/cotas-cop", getCotasCop);
 router.get("/importar-cotas-cop", importarCotasCopNeon);
-1;
+router.get("/importar-cotas-cop", importarCotasCopNeon);
+router.get("/importar-cotas-cop", importarCotasCopNeon);
+router.get("/porcentagem_ocupacao", porcentagem_ocupacao);
+router.get("/porcentagem_ocupacao_cidades", porcentagem_ocupacao_cidades);
+
 // routerNeon.js
 router.patch("/users/:id", patchDBLoginNeon);
 

@@ -5,6 +5,8 @@ import Style from "./DashCotas.module.css";
 import ReactApexChart from "react-apexcharts";
 import ClaroLogo from "../Item-Layout/ClaroLogo";
 import { BsCircleFill, BsClock } from "react-icons/bs";
+import { MdEventAvailable } from "react-icons/md";
+import { FaCalendarCheck } from "react-icons/fa";
 import ValidarToken from "../Tools/ValidarToken";
 
 export default function DashboardAnalytics({
@@ -26,6 +28,7 @@ export default function DashboardAnalytics({
     SUDESTE: "#8A8381",
     CENTRAL: "#E42B2D",
     NOROESTE: "#F2C516",
+    "VALE/LITORAL": "#ff0000",
   };
 
   const gerarSnapshot = (lista) => {
@@ -330,7 +333,7 @@ export default function DashboardAnalytics({
   ];
 
   const topCidades = useMemo(() => {
-    return [...dados].sort((a, b) => b.qtd - a.qtd).slice(0, 10);
+    return [...dados].sort((a, b) => b.qtd - a.qtd).slice(0, 30);
   }, [dados]);
 
   const dddData = useMemo(() => {
@@ -404,6 +407,9 @@ export default function DashboardAnalytics({
             <span style={{ color: "#4e4d4d" }}>
               <BsCircleFill color="#8A8381" /> SUDESTE
             </span>
+            <span style={{ color: "#4e4d4d" }}>
+              <BsCircleFill color="#ff0000" /> VALE LITORAL
+            </span>
           </div>
           <span style={{ color: "#4e4d4d", gap: "5px" }}>
             <BsClock />
@@ -455,11 +461,12 @@ export default function DashboardAnalytics({
                 yaxis: {
                   min: 0,
                   max:
-                    Math.max(...rankingMelhores.map((c) => c.valorCotaBarra)) + 6.5,
+                    Math.max(...rankingMelhores.map((c) => c.valorCotaBarra)) +
+                    6.5,
                   forceNiceScale: false,
-                 labels: {
-               formatter: (val) => Math.round(val),
-              },
+                  labels: {
+                    formatter: (val) => Math.round(val),
+                  },
                 },
                 xaxis: {
                   categories: rankingMelhores.map((c) =>
@@ -585,7 +592,8 @@ export default function DashboardAnalytics({
                 yaxis: {
                   min: 0,
                   max:
-                    Math.max(...rankingPiores.map((c) => c.valorCotaBarra)) + 6.5,
+                    Math.max(...rankingPiores.map((c) => c.valorCotaBarra)) +
+                    6.5,
                   forceNiceScale: false,
 
                   labels: {
@@ -724,7 +732,7 @@ export default function DashboardAnalytics({
                   }}
                 >
                   {/* HEADER */}
-                  <div>
+                  <div className={Style.headerTerritorio}> 
                     <h5>{item.territorio}</h5>
 
                     <span style={{ color: corStatus }}>
@@ -738,7 +746,9 @@ export default function DashboardAnalytics({
 
                   {/* COTAS */}
                   <div>
-                    <span>📦 Cotas</span>
+                    <span>
+                      <MdEventAvailable size={10} /> Cotas
+                    </span>
                     <span>{item.cotas}</span>
                     <span>→</span>
                     <span>{item.cotas_dia1}</span>
@@ -746,7 +756,10 @@ export default function DashboardAnalytics({
 
                   {/* AGENDAMENTO */}
                   <div>
-                    <span>📅 Agend</span>
+                    <span>
+                      {" "}
+                      <FaCalendarCheck size={10} /> Agend
+                    </span>
                     <span>{item.agendamentos}</span>
                     <span>→</span>
                     <span>{item.agendamentos_dia1}</span>
@@ -877,24 +890,42 @@ export default function DashboardAnalytics({
           </div>
 
           <div>
-            <h3>Top 10 Cidades (Backlog)</h3>
+            <h3>Top 30 Cidades (Backlog)</h3>
             <ReactApexChart
               type="bar"
-              height={300}
-              width={1200}
+              height={600}
+              width={1300}
               series={[{ data: topCidades.map((c) => c.qtd) }]}
               options={{
                 xaxis: {
                   categories: topCidades.map((c) => {
-                    return c.cidade && c.cidade.includes("|")
-                      ? c.cidade.split("|").map((item) => item.trim())
+                    const nome = c.cidade?.includes("|")
+                      ? c.cidade.split("|").join(" / ")
                       : c.cidade;
+
+                    return nome.length > 100
+                      ? nome.substring(0, 100) + "..."
+                      : nome;
                   }),
                 },
+
                 colors: rankingMelhores.map(
                   (c) => MAPA_CORES_TERRITORIO[c.territorio],
                 ),
-                plotOptions: { bar: { distributed: true } },
+                dataLabels: {
+                  enabled: true,
+                  formatter: (val) => val?.toFixed(1),
+                  style: { fontSize: "10px", colors: ["#1a1515c0"] },
+                  offsetY: 0,
+                },
+                plotOptions: {
+                  bar: {
+                    horizontal: true,
+                    columnWidth: "50%",
+                    distributed: true,
+                  },
+                },
+                legend: { show: false },
               }}
             />
           </div>

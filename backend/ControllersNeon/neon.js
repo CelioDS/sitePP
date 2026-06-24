@@ -171,12 +171,24 @@ export const importarCotasCopNeon = async (req = {}, res = null) => {
   try {
     const queryUltimoLote = `
       SELECT *
-      FROM cop_ocupacao
-      WHERE data_coleta = (
-        SELECT MAX(data_coleta)
-        FROM cop_ocupacao
-      )
-    `;
+  FROM db_projetos.cop_ocupacao
+  WHERE data_coleta = (
+    SELECT MAX(data_coleta)
+    FROM db_projetos.cop_ocupacao
+  )
+
+  UNION ALL
+
+  SELECT *
+  FROM cop_ocupacao
+  WHERE data_coleta = (
+    SELECT MAX(data_coleta)
+    FROM cop_ocupacao
+    WHERE DATE(data_coleta) = (
+      SELECT DATE(MAX(data_coleta)) - INTERVAL 1 DAY
+      FROM db_projetos.cop_ocupacao
+    )
+  )`;
 
     const [rows] = await dataBase.query(queryUltimoLote);
 
@@ -343,12 +355,113 @@ export const getCotasCop = async (req, res) => {
   }
 };
 
+export const porcentagem_ocupacao = async (req, res) => {
+  try {
+    const query = `
+WITH base AS (
+    SELECT
+        *,
+        TO_TIMESTAMP(data_ref, 'DD/MM/YYYY, HH24:MI:SS') AS dt
+    FROM cop_ocupacao
+),
+max_data AS (
+    SELECT DATE(MAX(dt)) - INTERVAL '1 day' AS dia_ref
+    FROM base
+),
+filtro AS (
+    SELECT MAX(dt) AS dt
+    FROM base, max_data
+    WHERE DATE(base.dt) = max_data.dia_ref
+)
 
+SELECT
+    territorio,
+    SUM(saldo) AS cotas,
+    SUM(qtd_os) AS agendamentos,
+    CASE
+        WHEN dia = 'D1' THEN 'D0'
+        WHEN dia = 'D2' THEN 'D1'
+        ELSE dia
+    END AS dia,
+    (SUM(cota_disp_est) / NULLIF(SUM(cota_agenda), 0)) * 100 AS taxa_perc
+FROM base
+WHERE dt = (SELECT dt FROM filtro)
+AND dia IN ('D1', 'D2')
+GROUP BY territorio, dia
+ORDER BY territorio DESC, dia DESC;
+    `;
+
+    const result = await neonDB.query(query);
+    const rows = result.rows;
+
+    return res.status(200).json(rows);
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({
+      error: "Erro ao calcular porcentagem de ocupação",
+    });
+  }
+};
+
+export const porcentagem_ocupacao_cidades = async (req, res) => {
+  try {
+    const query = `
+ WITH base AS (
+    SELECT
+        *,
+        TO_TIMESTAMP(data_ref, 'DD/MM/YYYY, HH24:MI:SS') AS dt
+    FROM cop_ocupacao
+),
+max_data AS (
+    SELECT DATE(MAX(dt)) - INTERVAL '1 day' AS dia_ref
+    FROM base
+),
+filtro AS (
+    SELECT MAX(dt) AS dt
+    FROM base, max_data
+    WHERE DATE(base.dt) = max_data.dia_ref
+)
+
+SELECT
+    cidade,
+    territorio,
+    ddd,
+    SUM(saldo) AS cotas,
+    SUM(qtd_os) AS agendamentos,
+    CASE
+        WHEN dia = 'D1' THEN 'D0'
+        WHEN dia = 'D2' THEN 'D1'
+        ELSE dia
+    END AS dia,
+    (SUM(cota_disp_est) / NULLIF(SUM(cota_agenda), 0)) * 100 AS taxa_perc
+FROM base
+WHERE dt = (SELECT dt FROM filtro)
+AND dia IN ('D1', 'D2')
+AND cidade IN (
+    'ARACATUBA','BAURU','CAMPINAS','SOROCABA','SANTOS',
+    'MIRASSOL | SAO JOSE DO RIO PRETO',
+    'SAO JOSE DOS CAMPOS','RIBEIRAO PRETO'
+)
+GROUP BY cidade, territorio, ddd, dia
+ORDER BY cidade DESC, territorio DESC, dia DESC;
+    `;
+
+    const result = await neonDB.query(query);
+    const rows = result.rows;
+
+    return res.status(200).json(rows);
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({
+      error: "Erro ao calcular porcentagem de ocupação",
+    });
+  }
+};
 
 /* =========================================================
    GET PDU – RESUMO MENSAL (INST / VB)
    ========================================================= */
-   export const getPDU = async (req, res) => {
+export const getPDU = async (req, res) => {
   try {
     const { refDate, year, referencia, movel } = req.query;
 
@@ -477,13 +590,11 @@ export const getCotasCop = async (req, res) => {
 
     const { rows } = await neonDB.query(sql, params);
     return res.status(200).json(rows);
-
   } catch (err) {
     console.error(err);
     return res.status(500).json({ error: "Erro ao buscar PDU" });
   }
 };
-
 
 export const getPduFull = async (req, res) => {
   try {
@@ -572,12 +683,12 @@ export const getPduFull = async (req, res) => {
     /* ---------------- Esqueleto 12 meses ---------------- */
     if (hasYear) {
       const skeleton = Array.from({ length: 12 }, (_, i) =>
-        Number(`${year}${String(i + 1).padStart(2, "0")}`)
+        Number(`${year}${String(i + 1).padStart(2, "0")}`),
       );
 
-      const byKey = new Map(rows.map(r => [Number(r.anomes), r]));
+      const byKey = new Map(rows.map((r) => [Number(r.anomes), r]));
 
-      const completed = skeleton.map(anomes => {
+      const completed = skeleton.map((anomes) => {
         const base = byKey.get(anomes);
         if (base) return base;
 
@@ -596,7 +707,6 @@ export const getPduFull = async (req, res) => {
     }
 
     return res.status(200).json(rows);
-
   } catch (err) {
     console.error(err);
     return res.status(500).json({ error: "Erro ao buscar FULLBASE" });
@@ -697,12 +807,11 @@ export const getPDUMovel = async (req, res) => {
 
     const { rows } = await neonDB.query(sql, params);
     return res.json(rows);
-
   } catch (err) {
     console.error(err);
     return res.status(500).json({
       error: "Erro ao buscar PDUMovel",
-      detail: err.message
+      detail: err.message,
     });
   }
 };
@@ -711,7 +820,9 @@ export const getPduFullGrafico = async (req, res) => {
     const { year, referencia } = req.query;
 
     if (!year || !/^\d{4}$/.test(String(year))) {
-      return res.status(400).json({ error: "Parâmetro year é obrigatório (YYYY)" });
+      return res
+        .status(400)
+        .json({ error: "Parâmetro year é obrigatório (YYYY)" });
     }
 
     const refKey = (referencia || "").toUpperCase().trim();
@@ -803,7 +914,6 @@ export const getPduFullGrafico = async (req, res) => {
     const { rows } = await neonDB.query(sql, params);
 
     res.json(rows);
-
   } catch (err) {
     console.error(err);
     res.status(500).json({
