@@ -150,8 +150,8 @@ export default function Cotas() {
 
         const [resCotas, resOcupacao, resOcupacaoCidades] = await Promise.all([
           axios.get(`${Url}/neon/cotas-cop`),
-          axios.get(`${Url}/neon/porcentagem_ocupacao`),
-          axios.get(`${Url}/neon/porcentagem_ocupacao_cidades`),
+          axios.get(`${Url}/porcentagem_ocupacao`),
+          axios.get(`${Url}/porcentagem_ocupacao_cidades`),
         ]);
 
         const lista = Object.values(resCotas.data || {});
