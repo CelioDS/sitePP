@@ -146,7 +146,7 @@ export default function Cotas() {
       }
 
       try {
-        const ORDEM_TERRITORIO = ["CENTRAL", "OESTE", "SUDESTE", "NOROESTE"];
+        const ORDEM_TERRITORIO = ["CENTRAL", "OESTE", "SUDESTE", "NOROESTE", 'VALE/LITORAL'];
 
         const [resCotas, resOcupacao, resOcupacaoCidades] = await Promise.all([
           axios.get(`${Url}/neon/cotas-cop`),
