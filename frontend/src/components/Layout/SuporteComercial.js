@@ -52,7 +52,7 @@ export default function SuporteComercial({ pagina }) {
   useEffect(() => {
     async function fetchTable() {
       try {
-        const res = await axios.get(`${Url}/suportecomercial`);
+        const res = await axios.get(`${Url}/neon/suportecomercial`);
 
         const ordenado = res.data.sort(
           (a, b) => new Date(a.data_criacao) - new Date(b.data_criacao),
