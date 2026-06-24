@@ -164,6 +164,7 @@ export default function SuporteComercialVisualizar() {
     if (id) {
       fetchTable();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id, Url]);
 
   if (loading) {

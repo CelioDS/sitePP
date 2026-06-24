@@ -915,7 +915,7 @@ export default function DashboardAnalytics({
                 dataLabels: {
                   enabled: true,
                   formatter: (val) => val?.toFixed(1),
-                  style: { fontSize: "10px", colors: ["#1a1515c0"] },
+                  style: { fontSize: "10px", background: ['#e20000'], colors: ["#000000c0"] },
                   offsetY: 0,
                 },
                 plotOptions: {
