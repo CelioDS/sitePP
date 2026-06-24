@@ -146,22 +146,13 @@ export default function Cotas() {
       }
 
       try {
-        const ORDEM_TERRITORIO = [
-          "CENTRAL",
-          "OESTE",
-          "SUDESTE",
-          "NOROESTE",
-          "VALE/LITORAL",
-        ];
+   
+       
 
         const [
           resCotas,
           /*resOcupacao, resOcupacaoCidades*/
-        ] = await Promise.all([
-          axios.get(`${Url}/neon/cotas-cop`),
-          axios.get(`${Url}/porcentagem_ocupacao`),
-          axios.get(`${Url}/porcentagem_ocupacao_cidades`),
-        ]);
+        ] = await Promise.all([axios.get(`${Url}/neon/cotas-cop`), ,]);
 
         const lista = Object.values(resCotas.data || {});
         /*const listaOcupacao = resOcupacao.data || [];
@@ -185,13 +176,13 @@ export default function Cotas() {
           JSON.stringify({
             timestamp: Date.now(),
             data: lista,
-           /* dataPrint: listaOcupacaoOrdenada,
+            /* dataPrint: listaOcupacaoOrdenada,
             dataPrintCidades: listaOcupacaoCidadesOrdenada,*/
           }),
         );
 
         organizarDados(lista);
-       /* setDadosPrint(listaOcupacaoOrdenada);
+        /* setDadosPrint(listaOcupacaoOrdenada);
         setDadosPrintCidades(listaOcupacaoCidadesOrdenada);*/
       } catch (e) {
         console.error("Erro ao carregar dados do Axios:", e.message);
