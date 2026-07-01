@@ -732,7 +732,7 @@ export default function DashboardAnalytics({
                   }}
                 >
                   {/* HEADER */}
-                  <div className={Style.headerTerritorio}> 
+                  <div className={Style.headerTerritorio}>
                     <h5>{item.territorio}</h5>
 
                     <span style={{ color: corStatus }}>
@@ -862,91 +862,96 @@ export default function DashboardAnalytics({
         </aside>
       </section>
 
-      {admin && (
-        <section className={Style.backlog}>
-          <div>
-            <h3>Distribuição de backlog por Território</h3>
-            <ReactApexChart
-              type="donut"
-              height={250}
-              series={Object.values(territorioData)}
-              options={{ labels: Object.keys(territorioData) }}
-            />
-          </div>
+      <section className={Style.backlog}>
+        <div>
+          <h3>Top 30 Cidades (Backlog)</h3>
+          <ReactApexChart
+            type="bar"
+            height={600}
+            width={1300}
+            series={[{ data: topCidades.map((c) => c.qtd) }]}
+            options={{
+              xaxis: {
+                categories: topCidades.map((c) => {
+                  const nome = c.cidade?.includes("|")
+                    ? c.cidade.split("|").join(" / ")
+                    : c.cidade;
 
-          <div>
-            <h3>Cotas vs Agendado por Dia</h3>
-            <ReactApexChart
-              type="line"
-              height={300}
-              width={1200}
-              series={seriesLinha}
-              options={{
-                xaxis: { categories: dias },
-                colors: ["#A1343C", "#595A4A"],
-                chart: { toolbar: { show: false } },
-              }}
-            />
-          </div>
+                  return nome.length > 100
+                    ? nome.substring(0, 100) + "..."
+                    : nome;
+                }),
+              },
 
-          <div>
-            <h3>Top 30 Cidades (Backlog)</h3>
-            <ReactApexChart
-              type="bar"
-              height={600}
-              width={1300}
-              series={[{ data: topCidades.map((c) => c.qtd) }]}
-              options={{
-                xaxis: {
-                  categories: topCidades.map((c) => {
-                    const nome = c.cidade?.includes("|")
-                      ? c.cidade.split("|").join(" / ")
-                      : c.cidade;
-
-                    return nome.length > 100
-                      ? nome.substring(0, 100) + "..."
-                      : nome;
-                  }),
+              colors: rankingMelhores.map(
+                (c) => MAPA_CORES_TERRITORIO[c.territorio],
+              ),
+              dataLabels: {
+                enabled: true,
+                formatter: (val) => val?.toFixed(1),
+                style: {
+                  fontSize: "10px",
+                  background: ["#e20000"],
+                  colors: ["#000000c0"],
                 },
-
-                colors: rankingMelhores.map(
-                  (c) => MAPA_CORES_TERRITORIO[c.territorio],
-                ),
-                dataLabels: {
-                  enabled: true,
-                  formatter: (val) => val?.toFixed(1),
-                  style: { fontSize: "10px", background: ['#e20000'], colors: ["#000000c0"] },
-                  offsetY: 0,
+                offsetY: 0,
+              },
+              plotOptions: {
+                bar: {
+                  horizontal: true,
+                  columnWidth: "50%",
+                  distributed: true,
                 },
-                plotOptions: {
-                  bar: {
-                    horizontal: true,
-                    columnWidth: "50%",
-                    distributed: true,
-                  },
-                },
-                legend: { show: false },
-              }}
-            />
-          </div>
+              },
+              legend: { show: false },
+            }}
+          />
+        </div>
+        {admin && (
+          <>
+            <div>
+              <h3>Distribuição de backlog por Território</h3>
+              <ReactApexChart
+                type="donut"
+                height={250}
+                series={Object.values(territorioData)}
+                options={{ labels: Object.keys(territorioData) }}
+              />
+            </div>
 
-          <div>
-            <h3>Distribuição por DDD</h3>
-            <ReactApexChart
-              type="bar"
-              height={300}
-              series={[{ data: Object.values(dddData) }]}
-              options={{
-                xaxis: { categories: Object.keys(dddData) },
-                colors: rankingMelhores.map(
-                  (c) => MAPA_CORES_TERRITORIO[c.territorio],
-                ),
-                plotOptions: { bar: { distributed: true } },
-              }}
-            />
-          </div>
-        </section>
-      )}
+            <div>
+              <h3>Cotas vs Agendado por Dia</h3>
+              <ReactApexChart
+                type="line"
+                height={300}
+                width={1200}
+                series={seriesLinha}
+                options={{
+                  xaxis: { categories: dias },
+                  colors: ["#A1343C", "#595A4A"],
+                  chart: { toolbar: { show: false } },
+                }}
+              />
+            </div>
+
+            <div>
+              <h3>Distribuição por DDD</h3>
+              <ReactApexChart
+                type="bar"
+                height={300}
+                series={[{ data: Object.values(dddData) }]}
+                options={{
+                  xaxis: { categories: Object.keys(dddData) },
+                  colors: rankingMelhores.map(
+                    (c) => MAPA_CORES_TERRITORIO[c.territorio],
+                  ),
+                  plotOptions: { bar: { distributed: true } },
+                }}
+              />
+            </div>
+          </>
+        )}
+      </section>
     </main>
   );
 }

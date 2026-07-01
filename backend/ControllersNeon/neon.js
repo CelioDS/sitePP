@@ -357,38 +357,64 @@ export const getCotasCop = async (req, res) => {
 
 export const porcentagem_ocupacao = async (req, res) => {
   try {
-    const query = `
-WITH base AS (
+    const query = `WITH base AS (
     SELECT
-        *,
-        TO_TIMESTAMP(data_ref, 'DD/MM/YYYY, HH24:MI:SS') AS dt
+        territorio,
+        dia,
+
+        NULLIF(REPLACE(saldo::text, ',', '.'), '')::numeric AS saldo,
+        NULLIF(REPLACE(qtd_os::text, ',', '.'), '')::numeric AS qtd_os,
+        NULLIF(REPLACE(cota_disp_est::text, ',', '.'), '')::numeric AS cota_disp_est,
+        NULLIF(REPLACE(cota_agenda::text, ',', '.'), '')::numeric AS cota_agenda,
+
+        TO_TIMESTAMP(TRIM(data_ref::text), 'DD/MM/YYYY, HH24:MI:SS') AS dt
     FROM cop_ocupacao
 ),
+
 max_data AS (
-    SELECT DATE(MAX(dt)) - INTERVAL '1 day' AS dia_ref
+    SELECT
+        MAX(dt)::date - INTERVAL '1 day' AS dia_ref
     FROM base
 ),
+
 filtro AS (
-    SELECT MAX(dt) AS dt
-    FROM base, max_data
-    WHERE DATE(base.dt) = max_data.dia_ref
+    SELECT
+        MAX(b.dt) AS dt_ref
+    FROM base b
+    CROSS JOIN max_data m
+    WHERE b.dt::date = m.dia_ref::date
 )
 
 SELECT
-    territorio,
-    SUM(saldo) AS cotas,
-    SUM(qtd_os) AS agendamentos,
+    b.territorio,
+
+    SUM(b.saldo) AS cotas,
+    SUM(b.qtd_os) AS agendamentos,
+
     CASE
-        WHEN dia = 'D1' THEN 'D0'
-        WHEN dia = 'D2' THEN 'D1'
-        ELSE dia
+        WHEN b.dia = 'D1' THEN 'D0'
+        WHEN b.dia = 'D2' THEN 'D1'
+        ELSE b.dia
     END AS dia,
-    (SUM(cota_disp_est) / NULLIF(SUM(cota_agenda), 0)) * 100 AS taxa_perc
-FROM base
-WHERE dt = (SELECT dt FROM filtro)
-AND dia IN ('D1', 'D2')
-GROUP BY territorio, dia
-ORDER BY territorio DESC, dia DESC;
+
+    ROUND(
+        (SUM(b.cota_disp_est) / NULLIF(SUM(b.cota_agenda), 0)) * 100,
+        2
+    ) AS taxa_perc
+
+FROM base b
+CROSS JOIN filtro f
+
+WHERE b.dt = f.dt_ref
+  AND b.dia IN ('D1', 'D2')
+
+GROUP BY
+    b.territorio,
+    b.dia
+
+ORDER BY
+    b.territorio DESC,
+    b.dia DESC;
     `;
 
     const result = await neonDB.query(query);
@@ -405,45 +431,81 @@ ORDER BY territorio DESC, dia DESC;
 
 export const porcentagem_ocupacao_cidades = async (req, res) => {
   try {
-    const query = `
- WITH base AS (
+    const query = `WITH base AS (
     SELECT
-        *,
-        TO_TIMESTAMP(data_ref, 'DD/MM/YYYY, HH24:MI:SS') AS dt
+        cidade,
+        territorio,
+        ddd,
+        dia,
+
+        NULLIF(REPLACE(saldo::text, ',', '.'), '')::numeric AS saldo,
+        NULLIF(REPLACE(qtd_os::text, ',', '.'), '')::numeric AS qtd_os,
+        NULLIF(REPLACE(cota_disp_est::text, ',', '.'), '')::numeric AS cota_disp_est,
+        NULLIF(REPLACE(cota_agenda::text, ',', '.'), '')::numeric AS cota_agenda,
+
+        TO_TIMESTAMP(TRIM(data_ref::text), 'DD/MM/YYYY, HH24:MI:SS') AS dt
     FROM cop_ocupacao
 ),
+
 max_data AS (
-    SELECT DATE(MAX(dt)) - INTERVAL '1 day' AS dia_ref
+    SELECT
+        MAX(dt)::date - INTERVAL '1 day' AS dia_ref
     FROM base
 ),
+
 filtro AS (
-    SELECT MAX(dt) AS dt
-    FROM base, max_data
-    WHERE DATE(base.dt) = max_data.dia_ref
+    SELECT
+        MAX(b.dt) AS dt_ref
+    FROM base b
+    CROSS JOIN max_data m
+    WHERE b.dt::date = m.dia_ref::date
 )
 
 SELECT
-    cidade,
-    territorio,
-    ddd,
-    SUM(saldo) AS cotas,
-    SUM(qtd_os) AS agendamentos,
+    b.cidade,
+    b.territorio,
+    b.ddd,
+
+    SUM(b.saldo) AS cotas,
+    SUM(b.qtd_os) AS agendamentos,
+
     CASE
-        WHEN dia = 'D1' THEN 'D0'
-        WHEN dia = 'D2' THEN 'D1'
-        ELSE dia
+        WHEN b.dia = 'D1' THEN 'D0'
+        WHEN b.dia = 'D2' THEN 'D1'
+        ELSE b.dia
     END AS dia,
-    (SUM(cota_disp_est) / NULLIF(SUM(cota_agenda), 0)) * 100 AS taxa_perc
-FROM base
-WHERE dt = (SELECT dt FROM filtro)
-AND dia IN ('D1', 'D2')
-AND cidade IN (
-    'ARACATUBA','BAURU','CAMPINAS','SOROCABA','SANTOS',
-    'MIRASSOL | SAO JOSE DO RIO PRETO',
-    'SAO JOSE DOS CAMPOS','RIBEIRAO PRETO'
-)
-GROUP BY cidade, territorio, ddd, dia
-ORDER BY cidade DESC, territorio DESC, dia DESC;
+
+    ROUND(
+        (SUM(b.cota_disp_est) / NULLIF(SUM(b.cota_agenda), 0)) * 100,
+        2
+    ) AS taxa_perc
+
+FROM base b
+CROSS JOIN filtro f
+
+WHERE b.dt = f.dt_ref
+  AND b.dia IN ('D1', 'D2')
+  AND b.cidade IN (
+      'ARACATUBA',
+      'BAURU',
+      'CAMPINAS',
+      'SOROCABA',
+      'SANTOS',
+      'MIRASSOL | SAO JOSE DO RIO PRETO',
+      'SAO JOSE DOS CAMPOS',
+      'RIBEIRAO PRETO'
+  )
+
+GROUP BY
+    b.cidade,
+    b.territorio,
+    b.ddd,
+    b.dia
+
+ORDER BY
+    b.cidade DESC,
+    b.territorio DESC,
+    b.dia DESC;
     `;
 
     const result = await neonDB.query(query);
