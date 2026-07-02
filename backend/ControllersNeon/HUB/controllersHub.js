@@ -2,7 +2,6 @@ import { neonDB } from "../../DataBase/neonDatabase.js"; // Importando sua conex
 import dotenv from "dotenv";
 import { uploadBufferToCloudinary } from "../../Controllers/HUB/Cloundinary/uploadBufferToCloudinary.js";
 import multer from "multer";
-import { enviarEmailMudancaStatus } from "../../service/EnviarEmail.js";
 
 dotenv.config();
 
