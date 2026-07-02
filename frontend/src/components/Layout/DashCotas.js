@@ -770,7 +770,7 @@ export default function DashboardAnalytics({
             <ReactApexChart
               type="bar"
               height={200}
-              width={650}
+              width={600}
               series={graficoOcupacao.series}
               options={{
                 xaxis: { categories: graficoOcupacao.categorias },
@@ -809,7 +809,7 @@ export default function DashboardAnalytics({
             <ReactApexChart
               type="bar"
               height={250}
-              width={650}
+              width={600}
               series={graficoOcupacaoCidades.series}
               options={{
                 colors: ["#E42B2D", "#960002"],

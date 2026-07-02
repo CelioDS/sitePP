@@ -122,7 +122,7 @@ export default function SuporteComercialVisualizar() {
     setAnexo(file);
   };
 
-  //assumir demanda
+  //mudar status demanda
   const handleSubmit = async (id) => {
     if (loadingSubmit) return; // evita clique duplicado
     try {
@@ -163,10 +163,9 @@ export default function SuporteComercialVisualizar() {
 
       await fetchTable();
 
-      toast.success("Demanda assumida ✅");
     } catch (err) {
-      console.error(err.message, "handleassumir");
-      toast.error("Erro ao assumir ❌");
+      console.error(err.message, "handlesubmit");
+      toast.error("Erro ao alterar handlesubmit ❌");
     } finally {
       setLoadingSubmit(false);
     }
@@ -446,9 +445,8 @@ export default function SuporteComercialVisualizar() {
         </section>
 
         <section className={styles.card}>
-          <h2>Anexos</h2>
-          {console.log(anexos())}
-
+          <h2>{anexos()?.length > 1 ? "Anexos" : "Anexo"}</h2>
+        
           <fieldset className={styles.grid}>
             <legend className={styles.legend}>
               Informações de data e anexo
@@ -461,11 +459,7 @@ export default function SuporteComercialVisualizar() {
                   <img
                     src={a}
                     alt={`Anexo ${i}`}
-                    style={{
-                      maxWidth: "200px",
-                      display: "block",
-                      marginBottom: "8px",
-                    }}
+                   
                   />
 
                   <button onClick={() => handleDownload(a)}>
