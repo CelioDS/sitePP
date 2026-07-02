@@ -7,6 +7,7 @@ import ValidarToken from "../Tools/ValidarToken";
 import LinkButton from "../Item-Layout/LinkButton";
 import RenameTitle from "../Tools/RenameTitle";
 import Container from "./Container";
+import { BsDownload } from "react-icons/bs";
 
 import styles from "./SuporteComercialVisualizar.module.css";
 
@@ -28,6 +29,19 @@ export default function SuporteComercialVisualizar() {
   const inputAnexoRef = useRef(null);
   const [anexo, setAnexo] = useState(null);
 
+  const anexos = () => {
+    if (!dados?.anexo) return [];
+    if (Array.isArray(dados.anexo)) {
+      return dados.anexo;
+    }
+
+    try {
+      return JSON.parse(dados.anexo);
+    } catch {
+      return [dados.anexo];
+    }
+  };
+
   const camposPorSistema = {
     FINALIZADO: ["numeroChamado", "descricaoResponsavel", "handleAnexoChange"],
     TRATAMENTO: ["numeroChamado", "descricaoResponsavel", "handleAnexoChange"],
@@ -45,7 +59,7 @@ export default function SuporteComercialVisualizar() {
   const fetchTable = async () => {
     try {
       setLoading(true);
-      const res = await axios.get(`${Url}/neon/suportecomercial/${id}`);
+      const res = await axios.get(`${Url}/suportecomercial/${id}`);
       setDataBase(res.data || []);
     } catch (err) {
       console.error("Erro ao buscar tabela:", err);
@@ -110,9 +124,9 @@ export default function SuporteComercialVisualizar() {
 
   //assumir demanda
   const handleSubmit = async (id) => {
+    if (loadingSubmit) return; // evita clique duplicado
     try {
-      if (loadingSubmit) return; // evita clique duplicado
-
+      setLoadingSubmit(true);
       const formData = new FormData();
 
       if (!status || !numeroChamado || !descricaoResponsavel) {
@@ -128,11 +142,7 @@ export default function SuporteComercialVisualizar() {
         formData.append("responsavel_anexo", anexo);
       }
 
-      await axios.patch(`${Url}/neon/suportecomercial/${id}`, formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
+      await axios.patch(`${Url}/suportecomercial/${id}`, formData, {});
 
       toast.success("Salvo com sucesso ✅");
 
@@ -157,6 +167,8 @@ export default function SuporteComercialVisualizar() {
     } catch (err) {
       console.error(err.message, "handleassumir");
       toast.error("Erro ao assumir ❌");
+    } finally {
+      setLoadingSubmit(false);
     }
   };
 
@@ -164,7 +176,7 @@ export default function SuporteComercialVisualizar() {
     if (id) {
       fetchTable();
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id, Url]);
 
   if (loading) {
@@ -435,25 +447,46 @@ export default function SuporteComercialVisualizar() {
 
         <section className={styles.card}>
           <h2>Anexos</h2>
+          {console.log(anexos())}
 
           <fieldset className={styles.grid}>
             <legend className={styles.legend}>
               Informações de data e anexo
             </legend>
 
-            <div className={styles.field}>
-              <label htmlFor="anexo">Anexo</label>
-              <img src={dados.anexo} alt="Anexo" />
-              <button type="dwonl"></button>
+            <div className={styles.fieldAnexo}>
+            
+              {anexos().map((a, i) => (
+                <div key={i}>
+                  <img
+                    src={a}
+                    alt={`Anexo ${i}`}
+                    style={{
+                      maxWidth: "200px",
+                      display: "block",
+                      marginBottom: "8px",
+                    }}
+                  />
+
+                  <button onClick={() => handleDownload(a)}>
+                    <BsDownload />
+                  </button>
+                </div>
+              ))}
             </div>
           </fieldset>
-          <button onClick={() => handleDownload(dados.anexo)}>Download</button>
         </section>
 
-        {(hub && dados.status_solicitacao === "FINALIZADO") ||
-          (hub_admin && dados.status_solicitacao === "FINALIZADO" && (
+        {["FINALIZADO", "TRATAMENTO"].includes(dados.status_solicitacao) &&
+          ((dados.numero_chamado || "").length >= 1 ||
+            (dados.responsavel_descricao || "").length >= 1) && (
             <section className={styles.card}>
-              <h2>Atualizar Solicitação</h2>
+              <h2>
+                {dados.status_solicitacao === "TRATAMENTO"
+                  ? " Atualizar"
+                  : "Atualização da"}
+                Solicitação
+              </h2>
 
               <form
                 className={styles.form}
@@ -517,7 +550,7 @@ export default function SuporteComercialVisualizar() {
                 </fieldset>
               </form>
             </section>
-          ))}
+          )}
 
         {hub_admin && dados.status_solicitacao !== "FINALIZADO" && (
           <section className={styles.card}>

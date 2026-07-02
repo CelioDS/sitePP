@@ -197,8 +197,6 @@ export default function DashboardAnalytics({
   const resumoTerriotrios = useMemo(() => {
     const map = {};
 
-    console.log(dadosPrint);
-
     dadosPrint
       ?.filter((item) => item.territorio) //ignora null
       .forEach((item) => {
@@ -772,7 +770,7 @@ export default function DashboardAnalytics({
             <ReactApexChart
               type="bar"
               height={200}
-              width={600}
+              width={650}
               series={graficoOcupacao.series}
               options={{
                 xaxis: { categories: graficoOcupacao.categorias },
@@ -811,7 +809,7 @@ export default function DashboardAnalytics({
             <ReactApexChart
               type="bar"
               height={250}
-              width={600}
+              width={650}
               series={graficoOcupacaoCidades.series}
               options={{
                 colors: ["#E42B2D", "#960002"],
@@ -881,6 +879,7 @@ export default function DashboardAnalytics({
                     ? nome.substring(0, 100) + "..."
                     : nome;
                 }),
+                position: "top",
               },
 
               colors: rankingMelhores.map(
@@ -889,21 +888,34 @@ export default function DashboardAnalytics({
               dataLabels: {
                 enabled: true,
                 formatter: (val) => val?.toFixed(1),
+
                 style: {
                   fontSize: "10px",
-                  background: ["#e20000"],
-                  colors: ["#000000c0"],
+                  fontWeight: 700,
+                  colors: ["#bd0202"],
                 },
+
+                background: {
+                  enabled: true,
+                  foreColor: "#ffffff",
+                  borderRadius: 4,
+                  padding: 4,
+                  opacity: 0.95,
+                  borderWidth: 0,
+                  borderColor: "transparent",
+                },
+
+                offsetX: 50,
                 offsetY: 0,
               },
               plotOptions: {
                 bar: {
                   horizontal: true,
-                  columnWidth: "50%",
+                  barHeight: "55%",
                   distributed: true,
                 },
               },
-              legend: { show: false },
+              legend: { show: false, position: "top" },
             }}
           />
         </div>

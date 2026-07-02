@@ -28,7 +28,7 @@ export default function SuporteComercial({ pagina }) {
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
   const [canal, setCanal] = useState("");
-  const [anexo, setAnexo] = useState(null);
+  const [anexos, setAnexos] = useState([]);
   const [sistema, setSistema] = useState("");
   const [descricaoSolicitacao, setDescricaoSolicitacao] = useState("");
   const [HPCliente, setHPCliente] = useState("");
@@ -52,7 +52,7 @@ export default function SuporteComercial({ pagina }) {
   useEffect(() => {
     async function fetchTable() {
       try {
-        const res = await axios.get(`${Url}/neon/suportecomercial`);
+        const res = await axios.get(`${Url}/suportecomercial`);
 
         const ordenado = res.data.sort(
           (a, b) => new Date(a.data_criacao) - new Date(b.data_criacao),
@@ -180,7 +180,7 @@ export default function SuporteComercial({ pagina }) {
         return;
       }
 
-      await axios.patch(`${Url}/neon/suportecomercial/${id}`, {
+      await axios.patch(`${Url}/suportecomercial/${id}`, {
         responsavel: userData?.login,
         status_solicitacao: "TRATAMENTO",
       });
@@ -213,35 +213,44 @@ export default function SuporteComercial({ pagina }) {
     "image/heic",
     "image/heif",
   ];
-
   const handleAnexoChange = (e) => {
-    const file = e.target.files?.[0];
+    const files = Array.from(e.target.files || []);
 
-    if (!file) {
-      setAnexo(null);
-      return;
-    }
-
-    if (!tiposImagemPermitidos.includes(file.type)) {
-      toast.warning(
-        "Anexo permitido somente em formato de foto: JPG, PNG, WEBP ou HEIC ⚠️",
-      );
-      e.target.value = "";
-      setAnexo(null);
+    if (!files.length) {
+      setAnexos([]);
       return;
     }
 
     const tamanhoMaximoMB = 5;
     const tamanhoMaximoBytes = tamanhoMaximoMB * 1024 * 1024;
+    const limiteFotos = 10;
 
-    if (file.size > tamanhoMaximoBytes) {
-      toast.warning(`A foto deve ter no máximo ${tamanhoMaximoMB}MB ⚠️`);
+    if (files.length > limiteFotos) {
+      toast.warning(`Você pode enviar no máximo ${limiteFotos} fotos ⚠️`);
       e.target.value = "";
-      setAnexo(null);
+      setAnexos([]);
       return;
     }
 
-    setAnexo(file);
+    for (const file of files) {
+      if (!tiposImagemPermitidos.includes(file.type)) {
+        toast.warning(
+          "Anexo permitido somente em formato de foto: JPG, PNG, WEBP ou HEIC ⚠️",
+        );
+        e.target.value = "";
+        setAnexos([]);
+        return;
+      }
+
+      if (file.size > tamanhoMaximoBytes) {
+        toast.warning(`Cada foto deve ter no máximo ${tamanhoMaximoMB}MB ⚠️`);
+        e.target.value = "";
+        setAnexos([]);
+        return;
+      }
+    }
+
+    setAnexos(files);
   };
 
   const sla = (data) => {
@@ -317,11 +326,13 @@ export default function SuporteComercial({ pagina }) {
       formData.append("nomeCliente", nomeCliente);
       formData.append("criado_por", userData.login);
 
-      if (anexo) {
-        formData.append("anexo", anexo);
+      if (anexos.length > 0) {
+        anexos.forEach((file) => {
+          formData.append("anexo", file);
+        });
       }
 
-      await axios.post(`${Url}/neon/suportecomercial/add`, formData, {
+      await axios.post(`${Url}/suportecomercial/add`, formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
@@ -339,7 +350,7 @@ export default function SuporteComercial({ pagina }) {
       setRazaoSocial("");
       setNome("");
       setEmail("");
-      setAnexo(null);
+      setAnexos(null);
       setloginUsuario("");
       setObservacao("");
       setDescricaoSolicitacao("");
@@ -431,15 +442,17 @@ export default function SuporteComercial({ pagina }) {
                       onChange={(e) => setTipoSolicitacao(e.target.value)}
                     >
                       <option value="">Selecione</option>
-                      <option>ERRO INESPERADO</option>
-                      <option>ERRO NA FERRAMENTA</option>
-                      <option>ERRO AO INSERIR PRODUTOS</option>
-                      <option>ERRO AO AGENDAR PROPOSTA</option>
-                      <option>ERRO AO AGENDAR CONTRATO</option>
-                      <option>ERRO NA MUDANÇA DE PACOTE</option>
-                      <option>ERRO AO FINALIZAR PROPOSTA</option>
-                      <option>ERRO NA EXECUÇÃO DO GATILHO</option>
-                      <option>ERRO AO HABILITAR O NUMERO TELEFONICO</option>
+                      <option>ERRO : INESPERADO</option>
+                      <option>ERRO : NA FERRAMENTA</option>
+                      <option>ERRO : AO INSERIR PRODUTOS</option>
+                      <option>ERRO : AO AGENDAR PROPOSTA</option>
+                      <option>ERRO : AO AGENDAR CONTRATO</option>
+                      <option>ERRO : PEDIDO EXCEÇÃO BIOMETRIA</option>
+                      <option>ERRO : VALOR/OFERTA PRODUTO</option>
+                      <option>ERRO : NA MUDANÇA DE PACOTE</option>
+                      <option>ERRO : AO FINALIZAR PROPOSTA</option>
+                      <option>ERRO : NA EXECUÇÃO DO GATILHO</option>
+                      <option>ERRO : AO HABILITAR O NUMERO TELEFONICO</option>
                     </select>
                   </div>
 
@@ -640,6 +653,7 @@ export default function SuporteComercial({ pagina }) {
                 ref={inputAnexoRef}
                 type="file"
                 name="anexo"
+                multiple
                 accept="image/jpeg,image/png,image/webp,image/heic,image/heif"
                 onChange={handleAnexoChange}
               />

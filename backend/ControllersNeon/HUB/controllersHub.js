@@ -2,15 +2,15 @@ import { neonDB } from "../../DataBase/neonDatabase.js"; // Importando sua conex
 import dotenv from "dotenv";
 import { uploadBufferToCloudinary } from "../../Controllers/HUB/Cloundinary/uploadBufferToCloudinary.js";
 import multer from "multer";
+import { enviarEmailMudancaStatus } from "../../service/EnviarEmail.js";
 
 dotenv.config();
-
 
 // ✅ GET TODOS
 export const getSuporteComercial = async (req, res) => {
   try {
     const result = await neonDB.query(
-      `SELECT * FROM suporte_comercial ORDER BY id DESC`
+      `SELECT * FROM suporte_comercial ORDER BY id DESC`,
     );
 
     return res.status(200).json(result.rows);
@@ -20,8 +20,6 @@ export const getSuporteComercial = async (req, res) => {
   }
 };
 
-
-
 // ✅ GET POR ID
 export const getSuporteComercialID = async (req, res) => {
   try {
@@ -29,7 +27,7 @@ export const getSuporteComercialID = async (req, res) => {
 
     const result = await neonDB.query(
       `SELECT * FROM suporte_comercial WHERE id = $1`,
-      [id]
+      [id],
     );
 
     return res.status(200).json(result.rows);
@@ -38,8 +36,6 @@ export const getSuporteComercialID = async (req, res) => {
     return res.status(500).json({ error: "Erro ao buscar ID" });
   }
 };
-
-
 
 // ✅ INSERT
 export const setSuporteComercial = async (req, res) => {
@@ -72,7 +68,7 @@ export const setSuporteComercial = async (req, res) => {
     if (req.file) {
       const uploadResult = await uploadBufferToCloudinary(
         req.file.buffer,
-        "suporte_comercial"
+        "suporte_comercial",
       );
 
       anexoUrl = uploadResult.secure_url;
@@ -126,7 +122,6 @@ export const setSuporteComercial = async (req, res) => {
       id: result.rows[0].id,
       anexo: anexoUrl,
     });
-
   } catch (error) {
     console.error("Erro ao salvar:", error);
 
@@ -137,9 +132,7 @@ export const setSuporteComercial = async (req, res) => {
   }
 };
 
-
-
-// ✅ UPDATE (corrigido)
+// ✅ UPDATE
 export const updateSuporteComercial = async (req, res) => {
   try {
     const { id } = req.params;
@@ -222,14 +215,11 @@ export const updateSuporteComercial = async (req, res) => {
     await neonDB.query(query, values);
 
     return res.status(200).json({ msg: "Atualizado ✅" });
-
   } catch (err) {
     console.error("Erro update:", err);
     return res.status(500).json({ error: "Erro ao atualizar" });
   }
 };
-
-
 
 // ✅ PATCH (dinâmico)
 export const patchSuporteComercial = async (req, res) => {
@@ -243,7 +233,7 @@ export const patchSuporteComercial = async (req, res) => {
     if (req.file) {
       const uploadResult = await uploadBufferToCloudinary(
         req.file.buffer,
-        "suporte_comercial"
+        "suporte_comercial",
       );
 
       anexoUrl = uploadResult.secure_url;
@@ -251,7 +241,7 @@ export const patchSuporteComercial = async (req, res) => {
     }
 
     const entries = Object.entries(data).filter(
-      ([_, value]) => value !== undefined && value !== null
+      ([_, value]) => value !== undefined && value !== null,
     );
 
     if (anexoUrl) {
@@ -277,37 +267,30 @@ export const patchSuporteComercial = async (req, res) => {
 
     await neonDB.query(query, [...values, id]);
 
-    return res.status(200).json({ msg: "Atualizado parcialmente ✅" });
+    
 
+    return res.status(200).json({ msg: "Atualizado parcialmente ✅" });
   } catch (err) {
     console.error("Erro PATCH:", err);
     return res.status(500).json({ error: "Erro ao atualizar" });
   }
 };
 
-
-
 // ✅ DELETE
 export const deleteSuporteComercial = async (req, res) => {
   try {
     const { id } = req.params;
 
-    await neonDB.query(
-      `DELETE FROM suporte_comercial WHERE id = $1`,
-      [id]
-    );
+    await neonDB.query(`DELETE FROM suporte_comercial WHERE id = $1`, [id]);
 
     return res.status(200).json({ msg: "Deletado ✅" });
-
   } catch (err) {
     console.error("Erro delete:", err);
     return res.status(500).json({ error: "Erro ao deletar" });
   }
 };
 
-
-
-// ✅ UPLOAD (mantido)
+// ✅ UPLOAD
 const storage = multer.memoryStorage();
 
 const tiposPermitidos = [
@@ -320,10 +303,7 @@ const tiposPermitidos = [
 
 const fileFilter = (req, file, cb) => {
   if (!tiposPermitidos.includes(file.mimetype)) {
-    return cb(
-      new Error("Somente JPG, PNG, WEBP ou HEIC"),
-      false
-    );
+    return cb(new Error("Somente JPG, PNG, WEBP ou HEIC"), false);
   }
 
   cb(null, true);
@@ -334,6 +314,3 @@ export const uploadSuporte = multer({
   fileFilter,
   limits: { fileSize: 5 * 1024 * 1024 },
 });
-
-
-

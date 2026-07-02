@@ -66,17 +66,18 @@ export const setSuporteComercial = async (req, res) => {
       criado_por,
     } = req.body;
 
-    let anexoUrl = null;
-    let anexoPublicId = null;
+    let anexosUrls = [];
+    let anexosPublicIds = [];
 
-    if (req.file) {
-      const uploadResult = await uploadBufferToCloudinary(
-        req.file.buffer,
-        "suporte_comercial",
+    if (req.files && req.files.length > 0) {
+      const uploads = await Promise.all(
+        req.files.map((file) =>
+          uploadBufferToCloudinary(file.buffer, "suporte_comercial"),
+        ),
       );
 
-      anexoUrl = uploadResult.secure_url;
-      anexoPublicId = uploadResult.public_id;
+      anexosUrls = uploads.map((item) => item.secure_url);
+      anexosPublicIds = uploads.map((item) => item.public_id);
     }
 
     const sql = `
@@ -124,8 +125,10 @@ export const setSuporteComercial = async (req, res) => {
       enderecoCliente || null,
       cpfCliente || null,
       nomeCliente || null,
-      anexoUrl,
-      anexoPublicId,
+
+      anexosUrls.length ? JSON.stringify(anexosUrls) : null,
+      anexosPublicIds.length ? JSON.stringify(anexosPublicIds) : null,
+
       criado_por || null,
     ];
 
@@ -137,7 +140,7 @@ export const setSuporteComercial = async (req, res) => {
       success: true,
       message: "Solicitação salva com sucesso",
       id: result.insertId,
-      anexo: anexoUrl,
+      anexo: anexosUrls,
     });
   } catch (error) {
     console.error("Erro ao salvar suporte comercial:", error);

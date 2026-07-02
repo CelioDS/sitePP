@@ -102,7 +102,7 @@ router.get("/suportecomercial", getSuporteComercial);
 router.get("/suportecomercial/:id", getSuporteComercialID);
 router.post(
   "/suportecomercial/add",
-  uploadSuporte.single("anexo"),
+  uploadSuporte.array("anexo", 10),
   setSuporteComercial,
 );
 router.patch(
